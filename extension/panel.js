@@ -22,6 +22,29 @@ function workDisplay(){
   }else{progress.removeAttribute?.('value');$('workDetail').textContent=p.engine||'Esta fase no ofrece un porcentaje medible.';}
   $('workHint').textContent=p.stage==='model'?'La primera carga puede descargar el modelo. El audio se procesa en este equipo.':'Puedes seguir navegando o cerrar este panel. El trabajo continúa.';
 }
+// [UI] The strip under the logo follows the note: detected, preparing, review, saved.
+let brandReady=false;
+function brandProgress(){
+  if(!brandReady)return;
+  const c=state.currentCapture,p=state.operationProgress||{};
+  let value=0;
+  if(activeReview)value=75;
+  else if(state.operation)value=p.total_seconds>0&&Number.isFinite(p.processed_seconds)?30+40*Math.min(1,p.processed_seconds/p.total_seconds):45;
+  else if(state.lastResult&&!c)value=100;
+  else if(state.draftResult)value=70;
+  else if(c)value=25;
+  $('brandHead')?.style?.setProperty('--brand-progress',value+'%');
+}
+// Opening the panel fills and empties the strip once, then shows the current step.
+async function brandIntro(){
+  const head=$('brandHead')?.style?$('brandHead'):null;
+  const still=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(head&&!still){
+    const step=(value,ms)=>{head.style.setProperty('--brand-progress',value);return new Promise(r=>setTimeout(r,ms));};
+    await step('0%',60);await step('100%',750);await step('0%',750);
+  }
+  brandReady=true;brandProgress();
+}
 function imageSelection(){
   const checks=[...document.querySelectorAll('#images input[type=checkbox]')],n=checks.filter(e=>e.checked).length;
   $('imageCount').textContent=`${n} / 8 elegidas · ${checks.length} disponibles`;
@@ -186,7 +209,7 @@ async function sync(changes) {
   if(activeReview&&!state.operationError)$('error').hidden=true;
   else if(page?.status==='error')showError(page.error);
   else if(page?.status==='ready'&&!state.operationError&&!state.currentCapture?.detectionError)$("error").hidden=true;
-  $("operation").textContent=state.operation||'';$("operation").hidden=!state.operation;workDisplay();imageSelection();
+  $("operation").textContent=state.operation||'';$("operation").hidden=!state.operation;workDisplay();imageSelection();brandProgress();
   $("prepare").disabled=Boolean(state.operation)||(!state.currentCapture?.id&&state.currentCapture?.kind==="pdf");$("recapture").disabled=Boolean(state.operation);
   for(const id of ["importButton","extractPdf","extractVideo","extractReader"])$(id).disabled=Boolean(state.operation);
   for(const id of ['provider','intent','noteStructure'])$(id).disabled=Boolean(state.operation);
@@ -344,7 +367,7 @@ async function startPanel(){
     browser.tabs.onUpdated.addListener((id,change,tab)=>{if((panelWindowId===null||tab.windowId===panelWindowId)&&tab.active&&(change.status==='complete'||change.url))detectCurrent(true,id);});
     browser.windows?.onFocusChanged?.addListener(id=>{if(id===panelWindowId)detectCurrent(false);});
   }
-  await sync();refresh().catch(showError);if(!manualImport)detectCurrent(false);
+  await sync();brandIntro();refresh().catch(showError);if(!manualImport)detectCurrent(false);
 }
 startPanel().catch(showError);
-if(typeof setInterval==='function')setInterval(workDisplay,1000);
+if(typeof setInterval==='function')setInterval(()=>{workDisplay();brandProgress();},1000);

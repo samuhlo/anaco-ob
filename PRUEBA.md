@@ -6,6 +6,8 @@ Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/a
 
 Recarga la extensión y abre el panel. Mientras el vault no tenga perfil verás **Este vault aún no tiene perfil** con **Revisar perfil**.
 
+La barra de rayitas bajo el logo se llena y se vacía al abrir el panel y después sigue a la nota: un cuarto al detectar contenido, avance durante la preparación (con el porcentaje de la transcripción cuando lo hay), tres cuartos con la revisión abierta y llena al guardar. Con movimiento reducido en el sistema se coloca sin animación.
+
 1. En **Opciones → Perfil del vault**, pulsa **Escanear el vault**. Se leen carpetas, nombres y metadatos; el contenido de tus notas no sale del ordenador.
 2. Revisa **Documentos que puede leer la IA**, agrupados en instrucciones y skills, guías y plantillas, con los sugeridos ya marcados. En tu vault deberían estar marcados `AGENTS.md`, el skill `second-brain-vault`, tus guías de `99_Recursos/guias/` y las plantillas de los tipos que Anaco puede crear. Tus notas de `00_Sistema` no aparecen.
 3. Pulsa **Proponer con IA**: la IA lee esos documentos y las estadísticas y propone el perfil. Con **Usar la propuesta automática** no se usa IA.
