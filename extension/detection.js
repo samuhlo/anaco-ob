@@ -1,5 +1,5 @@
 /* Page detection is separate from saved captures and in-flight generation. */
-const ZenBrainDetection = (() => {
+const AnacoObDetection = (() => {
   const origin = value => { try { const u = new URL(value); return /^https?:$/.test(u.protocol) ? `${u.protocol}//${u.hostname}/*` : null; } catch { return null; } };
   const pdfURL = value => { try { const u = new URL(value); return /\.pdf$/i.test(u.pathname) || /application\/pdf/i.test(u.searchParams.get('type') || u.searchParams.get('content_type') || ''); } catch { return false; } };
   const unique = items => [...new Map(items.map(item => [item.url, item])).values()];

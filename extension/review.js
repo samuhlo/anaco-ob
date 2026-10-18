@@ -73,7 +73,7 @@ async function preview(){
     if(sequence!==previewSequence)return;
     previewNotes=result.notes||[];
     internalLinks(result.internal_links||[]);updatePreview(result.update);
-    $('markdown').textContent=result.markdown;ZenBrainRender($('reading'),result.markdown,assets,enlarge,data.capture.vault.split('/').pop());
+    $('markdown').textContent=result.markdown;AnacoObRender($('reading'),result.markdown,assets,enlarge,data.capture.vault.split('/').pop());
     const collision=result.collisions?.length?'Ya existe: '+result.collisions.join(', '):'';
     $('duplicate').hidden=!result.duplicate&&!collision;$('duplicate').textContent=collision||(result.duplicate?'Esta captura ya existe: '+result.duplicate:'');
     $('error').hidden=true;$('previewState').textContent='Vista actualizada';
@@ -158,13 +158,13 @@ async function proposeSplit(){
     $('splitReason').textContent=result.rationale;
     if(!result.recommended){$('revisionStatus').textContent=result.rationale;return;}
     splitProposal=result;
-    ZenBrainRender($('splitSummary'),result.summary,assets,enlarge,data.capture.vault.split('/').pop());
+    AnacoObRender($('splitSummary'),result.summary,assets,enlarge,data.capture.vault.split('/').pop());
     $('splitNotes').replaceChildren();
     for(const note of result.notes){
       const section=document.createElement('section');section.className='card';
       const title=document.createElement('h3'),purpose=document.createElement('p');title.textContent=note.title;purpose.textContent=note.purpose;
       const details=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');
-      summary.textContent='Ver contenido propuesto';body.className='markdown-body';ZenBrainRender(body,note.body,assets,enlarge,data.capture.vault.split('/').pop());
+      summary.textContent='Ver contenido propuesto';body.className='markdown-body';AnacoObRender(body,note.body,assets,enlarge,data.capture.vault.split('/').pop());
       details.append(summary,body);section.append(title,purpose,details);$('splitNotes').append(section);
     }
     $('splitDialog').showModal();$('revisionStatus').textContent='Sugerencia preparada. La nota todavía no se ha dividido.';
@@ -215,7 +215,7 @@ function acceptRevision(){
 function undoRevision(){const snapshot=history.pop();if(!snapshot)return;edits=snapshot.notes;selected=new Set(snapshot.selected_notes);activeNote=snapshot.active_note;mergedInto=snapshot.merged_into||{};showNote();$('undoRevision').disabled=!history.length;persist();preview();}
 async function init(){
   if(!/^[a-f0-9]{32}$/.test(captureId||''))throw new Error('No se ha indicado una captura válida.');
-  data=await send({type:'reviewData',id:captureId});document.title=data.draft.title+' · Second Brain';
+  data=await send({type:'reviewData',id:captureId});document.title=data.draft.title+' · Anaco';
   drafts={source:data.draft,...Object.fromEntries((data.bundle?.notes||[]).map(note=>[note.id,note]))};selected=new Set(Object.keys(drafts));
   for(const [id,draft] of Object.entries(drafts))edits[id]={title:draft.title,context:draft.context,body:draft.body,folder:draft.folder,filename:draft.filename,note_type:draft.note_type||(draft.folder.startsWith('07_Clases/')?'resumen':'fuente_externa'),tags:draft.tags,images:draft.selected_images||[],captions:{},relations:[]};
   for(const folder of data.folders){const option=document.createElement('option');option.value=folder;option.textContent=folder;$('folder').append(option);}

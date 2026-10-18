@@ -1,5 +1,5 @@
 /* Render standard Markdown, then insert only the locally captured image blobs. */
-globalThis.ZenBrainRender = (root,markdown,assets,onImage,vaultName="") => {
+globalThis.AnacoObRender = (root,markdown,assets,onImage,vaultName="") => {
   const body=markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/,"");
   const html=marked.parse(body,{gfm:true,breaks:false});
   root.innerHTML=DOMPurify.sanitize(html,{USE_PROFILES:{html:true},FORBID_TAGS:["img","style","iframe","form","input","button","video","audio","source"],FORBID_ATTR:["style"]});

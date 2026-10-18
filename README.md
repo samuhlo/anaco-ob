@@ -1,4 +1,8 @@
-# Second Brain Capture
+# Anaco
+
+<img src="extension/icon.svg" alt="Logo de Anaco: una o facetada en violeta" width="80" height="80">
+
+**Anaco** (`anaco-ob`) recoge piezas de conocimiento de la web y las conecta con tus notas de Obsidian.
 
 Extensión personal para Zen/Firefox con servicio local en Python. Captura artículos, frases e imágenes, propone notas y relaciones revisables y guarda Markdown en Obsidian.
 
@@ -42,10 +46,12 @@ La versión 0.9.0 busca conexiones por cada tema con evidencia literal de la not
 
 La versión 0.9.1 concentra los controles de revisión en el panel lateral. La página conserva la nota, los campos editables y las propuestas por confirmar, sin repetir navegación, selección, lectura/edición, división, búsqueda de conexiones o guardado. **Abrir panel lateral** permite recuperar el menú si se cierra.
 
+La versión 0.9.2 adopta el nombre **Anaco**, el proyecto `anaco-ob` y una «o» de cristal como icono. Actualiza rutas, módulos, skill, servicio local y paquetes. El instalador migra configuración, pendientes e historial a `~/.local/share/anaco-ob/`.
+
 - [Cómo instalar y probar](PRUEBA.md).
 - [Idea del producto](IDEA.md).
 - [Plan de desarrollo](PLAN.md).
-- [Skill del vault](skills/second-brain-capture/SKILL.md).
+- [Skill del vault](skills/anaco-ob/SKILL.md).
 - [Resultados y alcance de las pruebas](docs/VALIDACION.md).
 
 ## Estructura
@@ -66,3 +72,10 @@ La ampliación multimedia utiliza Poppler, FFmpeg y `yt-dlp`. Whisper se ejecuta
 La recuperación inicial busca en archivos locales y lee fragmentos relevantes. No se mantiene un índice semántico ni se envía el vault completo al proveedor. Se ha elegido una extensión pequeña propia para integrar la cola local y la revisión explícita de relaciones; las plantillas e interpretación de Obsidian Web Clipper sirvieron de referencia, sin crear un fork que hubiera que mantener.
 
 La vista previa utiliza Marked y DOMPurify empaquetados en `extension/vendor/`, con sus licencias. No carga scripts de una CDN. Para regenerar esas copias en desarrollo: `npm ci` y `npm run vendor`. No hace falta npm para cargar la extensión entregada.
+
+## Identidad y compatibilidad
+
+- Proyecto y repositorio: `anaco-ob`. Nombre visible: **Anaco**.
+- Paquete: `dist/anaco-ob-<versión>.zip`. Servicio: `org.samuh.anaco_ob`.
+- Datos locales: `~/.local/share/anaco-ob/`. El instalador conserva un alias de la ubicación anterior para las rutas de trabajos pendientes y registra el servicio anterior como alias si ya estaba instalado.
+- El identificador interno de Firefox se mantiene estable para conservar las preferencias y ediciones de las instalaciones existentes. El nuevo nombre se aplica a títulos, menús y listados de extensiones.

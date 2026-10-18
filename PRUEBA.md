@@ -1,6 +1,12 @@
-# Probar Second Brain Capture 0.9.1
+# Probar Anaco 0.9.2
 
 Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/audio. Prepara una propuesta editable y guarda Markdown y adjuntos en tu vault. Las relaciones, las imágenes recomendadas y sus descripciones se revisan antes de guardar.
+
+## Nombre y nueva ubicación: comprobar 0.9.2
+
+El proyecto está en `/home/samuh/Projects/anaco-ob/`. Carga `extension/manifest.json` desde esta nueva carpeta en `about:debugging#/runtime/this-firefox`; debe aparecer **Anaco** con una «o» facetada violeta. La ruta de carga del complemento temporal debe apuntar a la nueva ubicación.
+
+El servicio ya utiliza `~/.local/share/anaco-ob/`. El instalador migra la configuración, capturas e historial existentes y mantiene los alias necesarios para los trabajos pendientes. Comprueba tus opciones y la lista de pendientes; abre una captura para revisar y guardar como de costumbre.
 
 ## Revisión sin menús duplicados: comprobar 0.9.1
 
@@ -112,26 +118,26 @@ El modelo de texto sigue siendo `gpt-6-luna`: en la prueba real ha distinguido c
 Desde una terminal:
 
 ```bash
-cd /home/samuh/Projects/zen-second-brain
+cd /home/samuh/Projects/anaco-ob
 python3 scripts/install.py
 ```
 
 El instalador registra el servicio de usuario para Firefox/Zen y prepara el ZIP de la extensión. No modifica tus notas ni tus pestañas. La aplicación utiliza Python estándar; Selenium solo se usa en las pruebas de desarrollo.
 
-El vault predeterminado es `/home/samuh/Second_Brain`. Puedes cambiarlo en Opciones antes de capturar. Los adjuntos se guardarán en `99_Recursos/adjuntos/zen-capture/` al guardar la primera imagen.
+Elige tu vault mediante detección automática o ruta manual en Opciones. Las instalaciones nuevas usan `99_Recursos/adjuntos/anaco-ob/` para las imágenes; las instalaciones anteriores conservan su carpeta de adjuntos configurada.
 
 ## 2. Cargar la extensión en Zen
 
 1. Abre `about:debugging#/runtime/this-firefox` en Zen.
 2. Pulsa **Cargar complemento temporal**.
-3. Selecciona `/home/samuh/Projects/zen-second-brain/extension/manifest.json`.
-4. Abre una página web y pulsa el icono de **Second Brain Capture** en el menú de extensiones. Se abrirá el panel lateral con la captura.
+3. Selecciona `/home/samuh/Projects/anaco-ob/extension/manifest.json`.
+4. Abre una página web y pulsa el icono de **Anaco** en el menú de extensiones. Se abrirá el panel lateral con la captura.
 
 También puedes capturar una página con `Alt+Mayús+S` o usar los menús contextuales sobre una frase seleccionada o una imagen. Si otro atajo del sistema usa esa combinación, puedes cambiarla desde la gestión de atajos de extensiones de Zen.
 
 La instalación temporal dura hasta que cierres Zen. Después puedes volver a cargar el mismo `manifest.json`. La firma y distribución permanente no están incluidas en esta entrega.
 
-Para aplicar una corrección mientras está cargada, vuelve a `about:debugging#/runtime/this-firefox`, busca **Second Brain Capture** y pulsa **Recargar**. Cierra y abre su panel y repite la captura. No hace falta reiniciar Zen ni reinstalar el servicio.
+Para aplicar una corrección mientras está cargada, vuelve a `about:debugging#/runtime/this-firefox`, busca **Anaco** y pulsa **Recargar**. Cierra y abre su panel y repite la captura. No hace falta reiniciar Zen ni reinstalar el servicio.
 
 ## 3. Comprobar las opciones
 
@@ -266,10 +272,10 @@ Si encuentras un fallo, apunta URL, tipo de captura, pasos, mensaje mostrado y r
 
 ## 9. Archivos locales
 
-- Código y documentación: `/home/samuh/Projects/zen-second-brain/`.
-- Configuración, cola e historial: `~/.local/share/zen-second-brain/`.
-- Skill utilizada por la aplicación: `skills/second-brain-capture/SKILL.md`, dentro del proyecto. Se incorpora explícitamente al contexto de generación.
-- Manifiestos del servicio: `~/.mozilla/native-messaging-hosts/org.samuh.second_brain.json` y `~/.config/zen/native-messaging-hosts/org.samuh.second_brain.json`.
+- Código y documentación: `/home/samuh/Projects/anaco-ob/`.
+- Configuración, cola e historial: `~/.local/share/anaco-ob/`.
+- Skill utilizada por la aplicación: `skills/anaco-ob/SKILL.md`, dentro del proyecto. Se incorpora explícitamente al contexto de generación.
+- Manifiestos del servicio: `~/.mozilla/native-messaging-hosts/org.samuh.anaco_ob.json` y `~/.config/zen/native-messaging-hosts/org.samuh.anaco_ob.json`.
 
 La aplicación no guarda claves de API. Utiliza la autenticación gestionada por tu instalación de Codex.
 
@@ -301,7 +307,7 @@ La búsqueda automática consulta el registro de Obsidian (también XDG y Flatpa
 - Una nota que se está generando continúa en segundo plano. Su resultado queda asociado a su origen y también puede recuperarse en Pendientes.
 - Las detecciones con problemas ofrecen **Diagnóstico de detección**, con dominios, recuentos y estado de acceso. No incluye cookies, texto de notas ni parámetros de URLs firmadas. Si AWS Academy o Xunta siguen fallando, copia ese diagnóstico junto al error mostrado para poder identificar su visor concreto.
 
-Para aplicar la versión: recarga Second Brain Capture desde `about:debugging#/runtime/this-firefox` y cierra y vuelve a abrir su panel. Abre una de las lecciones, autoriza su visor si se solicita y comprueba la detección con el vídeo iniciado. El contenido privado real de esas dos plataformas sigue pendiente de validación en tu sesión.
+Para aplicar la versión: recarga Anaco desde `about:debugging#/runtime/this-firefox` y cierra y vuelve a abrir su panel. Abre una de las lecciones, autoriza su visor si se solicita y comprueba la detección con el vídeo iniciado. El contenido privado real de esas dos plataformas sigue pendiente de validación en tu sesión.
 
 ## Copiar errores (0.4.1)
 
@@ -333,6 +339,6 @@ La detección enumera páginas sin rasterizar el libro repetidamente. Los cambio
 
 **Opciones → Libros, PDF y vídeo → Páginas por lote** permite ajustar entre una y ocho por solicitud. Se procesan todos los lotes. La lectura visual respeta la política configurada: con **Sin visión**, solo se usa HTML/OCR; si una página carece de texto recuperable, se pide activar visión antes de afirmar que se ha leído el libro completo.
 
-El texto, las páginas y las lecturas intermedias se conservan en `~/.local/share/zen-second-brain/readers/`, separados por extracción y vinculados al vault. Las notas y adjuntos finales siguen requiriendo revisión. La reanudación de transferencia utiliza el mismo lector y captura; si recargas o cambias el libro, vuelve a detectar para evitar mezclar páginas distintas.
+El texto, las páginas y las lecturas intermedias se conservan en `~/.local/share/anaco-ob/readers/`, separados por extracción y vinculados al vault. Las notas y adjuntos finales siguen requiriendo revisión. La reanudación de transferencia utiliza el mismo lector y captura; si recargas o cambias el libro, vuelve a detectar para evitar mezclar páginas distintas.
 
 La versión admite hasta 500 páginas localizables en el DOM del lector. Un visor que recicla unas pocas páginas y no expone las restantes puede requerir una adaptación específica; comprueba el número localizado antes de empezar. Las páginas no dibujadas o protegidas se notifican sin omitirlas en silencio.

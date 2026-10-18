@@ -1,6 +1,6 @@
 /* Firefox MV2 page-context reads preserve the player's cookie partition and
    referrer. Transfer bounded chunks, never a whole video in one IPC message. */
-if(!globalThis.ZenBrainResource)globalThis.ZenBrainResource=(()=>{
+if(!globalThis.AnacoObResource)globalThis.AnacoObResource=(()=>{
   const jobs=new Map();
   function close(id){const job=jobs.get(id);if(!job)return;jobs.delete(id);clearTimeout(job.timer);job.controller.abort();job.reader?.cancel().catch(()=>{});}
   async function open(url,maxBytes){

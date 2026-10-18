@@ -62,7 +62,7 @@ class CoreTest(unittest.TestCase):
         result = self.app.save(c["id"], {})
         image = next((self.vault / "99_Recursos").rglob("*.png"))
         self.assertEqual(image.read_bytes(), PNG)
-        self.assertIn("![[99_Recursos/adjuntos/zen-capture/", Path(result["path"]).read_text())
+        self.assertIn("![[99_Recursos/adjuntos/anaco-ob/", Path(result["path"]).read_text())
 
     def test_duplicate_blocked_different_selection_allowed(self):
         c, _ = self.prepared(kind="quote")
@@ -156,7 +156,7 @@ class CoreTest(unittest.TestCase):
         with patch("core.os.link",side_effect=OSError("Disco lleno")):
             with self.assertRaises(OSError):self.app.save(c["id"],{})
         self.assertFalse((self.vault/d["draft"]["folder"]/d["draft"]["filename"]).exists())
-        self.assertFalse(list(self.vault.rglob(".zen-capture-*")))
+        self.assertFalse(list(self.vault.rglob(".anaco-ob-*")))
         self.assertEqual(self.app.load(c["id"])["status"],"draft")
 
     def test_discard_removes_pending_without_creating_note(self):
@@ -188,7 +188,7 @@ class CoreTest(unittest.TestCase):
         import os
         packet=json.dumps({"action":"status","requestId":"test"}).encode()
         process=subprocess.run([sys.executable,str(Path(__file__).resolve().parents[1]/"native/host.py")],input=struct.pack("=I",len(packet))+packet,
-                               capture_output=True,env={**os.environ,"ZEN_BRAIN_STATE":str(self.root/"state")})
+                               capture_output=True,env={**os.environ,"ANACO_OB_STATE":str(self.root/"state")})
         size=struct.unpack("=I",process.stdout[:4])[0]
         result=json.loads(process.stdout[4:4+size])
         self.assertTrue(result["ok"])

@@ -1,5 +1,5 @@
 /* Reads only the page selected in the capture panel, with its granted access. */
-globalThis.ZenBrainCapture = async (input = {}) => {
+globalThis.AnacoObCapture = async (input = {}) => {
   const absolute = value => { try { const u = new URL(value, location.href); return /^(https?:|data:|blob:)$/.test(u.protocol) ? u.href : ""; } catch { return ""; } };
   const ignored = 'script,style,noscript,nav,header,footer,aside,form,button,[role="navigation"],[role="banner"],[aria-hidden="true"],.advertisement,.ads,.cookie-banner';
   const selection = window.getSelection();
@@ -13,7 +13,7 @@ globalThis.ZenBrainCapture = async (input = {}) => {
   const clone = root.cloneNode(true);
   // Remove hidden course pages before converting the clone to Markdown.
   const originals=[...root.querySelectorAll('*')], copies=[...clone.querySelectorAll('*')];
-  originals.forEach((node,index)=>{if(!ZenBrainSurfaces.visible(node))copies[index]?.remove();});
+  originals.forEach((node,index)=>{if(!AnacoObSurfaces.visible(node))copies[index]?.remove();});
   clone.querySelectorAll(ignored).forEach(node => node.remove());
   const escape = s => s.replace(/([\\`*_\[\]])/g, "\\$1");
   const codeBlocks=[];
@@ -55,7 +55,7 @@ globalThis.ZenBrainCapture = async (input = {}) => {
   const seen = new Set();
   function describeImage(img) {
     const imageId = crypto.randomUUID();
-    img.dataset.zenBrainImage = imageId;
+    img.dataset.anacoObImage = imageId;
     let thumbnail = "";
     try {
       if (img.complete && img.naturalWidth) {
@@ -70,14 +70,14 @@ globalThis.ZenBrainCapture = async (input = {}) => {
     const aria_description=(img.getAttribute('aria-describedby')||'').split(/\s+/).map(id=>document.getElementById(id)?.textContent?.trim()||'').filter(Boolean).join(' ');
     return {imageId,thumbnail,url:absolute(img.currentSrc || img.src),alt:img.alt||"",figcaption,aria_description,aria_label:img.getAttribute('aria-label')||'',title:img.title||'',width:img.naturalWidth,height:img.naturalHeight};
   }
-  const images = readerHint?[]:[...root.querySelectorAll("img")].filter(img=>ZenBrainSurfaces.visible(img)&&!img.closest(ignored)&&!/\b(logo|avatar|profile picture)\b/i.test(img.alt||'')).map(describeImage)
+  const images = readerHint?[]:[...root.querySelectorAll("img")].filter(img=>AnacoObSurfaces.visible(img)&&!img.closest(ignored)&&!/\b(logo|avatar|profile picture)\b/i.test(img.alt||'')).map(describeImage)
     .filter(img => img.url && !seen.has(img.url) && seen.add(img.url) && (img.width >= 100 || img.height >= 100));
-  const inventory=ZenBrainSurfaces.inventory(root);
-  if(readerHint)globalThis.ZenBrainReaderRoot=root;
-  const rendered=readerHint?{images:[],canvas:inventory.pages.filter(p=>p.type==='canvas').length,svg:inventory.pages.filter(p=>p.type==='svg').length,backgrounds:inventory.pages.filter(p=>p.type==='background').length,blocked:0,limited:false,failures:[]}:await ZenBrainSurfaces.collect(root,images);
+  const inventory=AnacoObSurfaces.inventory(root);
+  if(readerHint)globalThis.AnacoObReaderRoot=root;
+  const rendered=readerHint?{images:[],canvas:inventory.pages.filter(p=>p.type==='canvas').length,svg:inventory.pages.filter(p=>p.type==='svg').length,backgrounds:inventory.pages.filter(p=>p.type==='background').length,blocked:0,limited:false,failures:[]}:await AnacoObSurfaces.collect(root,images);
   const rasterizedSVG=new Set(rendered.images.filter(i=>i.data).map(i=>i.imageId));
   // Converted SVG <img> replaces its original unsupported SVG resource.
-  const convertedNodes=[...root.querySelectorAll('img')].filter(n=>rasterizedSVG.has(n.dataset.zenBrainImage));
+  const convertedNodes=[...root.querySelectorAll('img')].filter(n=>rasterizedSVG.has(n.dataset.anacoObImage));
   for(const node of convertedNodes){const index=images.findIndex(i=>i.url===(node.currentSrc||node.src));if(index>=0)images.splice(index,1);}
   images.push(...rendered.images);
   let kind = input.kind || "article";
@@ -97,8 +97,8 @@ globalThis.ZenBrainCapture = async (input = {}) => {
   const seenDocs=new Set(),seenVideos=new Set();
   function addDocument(url,title){url=absolute(url);if(url&&!seenDocs.has(url)){seenDocs.add(url);documents.push({url,title:title||"Documento PDF"});}}
   function addVideo(video){
-    if(ZenBrainMedia.apiURL(video.url))return;
-    video.url=ZenBrainMedia.platformURL(video.url)||video.url;
+    if(AnacoObMedia.apiURL(video.url))return;
+    video.url=AnacoObMedia.platformURL(video.url)||video.url;
     if(video.url&&!seenVideos.has(video.url)){seenVideos.add(video.url);videos.push(video);}
   }
   for(const node of document.querySelectorAll('embed,object,iframe')){
@@ -109,7 +109,7 @@ globalThis.ZenBrainCapture = async (input = {}) => {
       frames.push({url:src,title:node.title||new URL(src).hostname});
       const u=new URL(src);const nested=u.searchParams.get('file')||u.searchParams.get('url');
       if(nested&&/\.pdf(?:[?#]|$)/i.test(nested))addDocument(new URL(nested,src).href,node.title);
-      if(ZenBrainMedia.platformURL(src)||/drive\.google\.com\/file\/d\//i.test(src)){const id=src.match(/drive\.google\.com\/file\/d\/([^/?#]+)/)?.[1];addVideo({url:src,title:node.title||"Vídeo incrustado",tracks:[],download:id?'https://drive.google.com/uc?export=download&id='+encodeURIComponent(id):undefined});}
+      if(AnacoObMedia.platformURL(src)||/drive\.google\.com\/file\/d\//i.test(src)){const id=src.match(/drive\.google\.com\/file\/d\/([^/?#]+)/)?.[1];addVideo({url:src,title:node.title||"Vídeo incrustado",tracks:[],download:id?'https://drive.google.com/uc?export=download&id='+encodeURIComponent(id):undefined});}
     }
   }
   for(const link of document.querySelectorAll('a[href]')){
@@ -169,9 +169,9 @@ globalThis.ZenBrainCapture = async (input = {}) => {
 };
 // Notify only about changes to media/frames, not every DOM mutation. The
 // background verifies that this is still the selected page before rescanning.
-if(!globalThis.ZenBrainMediaWatcher){
+if(!globalThis.AnacoObMediaWatcher){
   let timer;
-  const changed=()=>{if(globalThis.ZenBrainReaderBusy)return;clearTimeout(timer);timer=setTimeout(()=>browser.runtime.sendMessage({type:'pageMediaChanged'}).catch(()=>{}),700);};
+  const changed=()=>{if(globalThis.AnacoObReaderBusy)return;clearTimeout(timer);timer=setTimeout(()=>browser.runtime.sendMessage({type:'pageMediaChanged'}).catch(()=>{}),700);};
   const observer=new MutationObserver(records=>{
     if(records.some(r=>(r.type==='attributes'&&r.target.matches('iframe,video,audio,source,track,embed,object,canvas,.page,.pf,.slide,.book-content,.flipbook'))||[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('iframe,video,audio,source,track,embed,object,canvas,svg,.page,.pf,.slide')||n.querySelector?.('iframe,video,audio,source,track,embed,object,canvas,svg,.page,.pf,.slide')))))changed();
   });
@@ -182,7 +182,7 @@ if(!globalThis.ZenBrainMediaWatcher){
       if(document.querySelector('canvas,.pdfViewer,.book-content,.flipbook,[data-reader]')&&list.getEntries().some(e=>/^https?:/.test(e.name)&&/\.(png|jpe?g|webp|svg)(?:[?#]|$)/i.test(e.name)))changed();
     });resources.observe({type:'resource',buffered:false});
   }
-  globalThis.ZenBrainMediaWatcher=observer;
+  globalThis.AnacoObMediaWatcher=observer;
 }
 // executeScript serializes the last expression: never return the function itself.
 void 0;

@@ -824,3 +824,20 @@ Validación: **106 pruebas Python y 41 JavaScript superadas**. En Zen 1.22.3b se
 Evidencias: [asistente lateral](../.test-artifacts/zen-review-menu/report.json), [página simplificada](../.test-artifacts/zen-review-menu/review-with-sidebar.png) y [división desde el menú](../.test-artifacts/zen-split-review/report.json). Las pruebas usan vaults temporales y no escriben notas personales.
 
 También supera el recorrido de ajustes por apartado, aceptación y deshacer, integración de notas, ampliación con aprobación explícita, cancelación y reanudación; comprueba anchos de 480, 640 y 950 px. [Informe del recorrido](../.test-artifacts/zen-workflow/report.json).
+
+
+## Versión 0.9.2 — Anaco (`anaco-ob`)
+
+El proyecto y el checkout adoptan `anaco-ob`; el nombre visible de la extensión es **Anaco**. El icono es una «o» facetada en violeta, integrada en el panel, opciones, revisión y barra del navegador. Se actualizan el paquete npm, ZIP, módulos de captura y renderizado, atributos de página, documentación, skill y servicio Native Messaging (`org.samuh.anaco_ob`).
+
+El instalador migra los datos a `~/.local/share/anaco-ob/` y deja un alias de la ubicación anterior para las rutas absolutas de trabajos pendientes. Conserva el identificador de instalación de Firefox y registra el host anterior como alias cuando existe. Los entornos locales se reparan para la nueva ruta del checkout.
+
+La migración real conserva todos los valores de configuración, el historial SQLite y las **11 capturas conservadas**, de las que 3 figuran como pendientes para el vault activo. Las pruebas de migración comprueban archivos, rutas absolutas de trabajos, escritura con SQLite ya abierto, repetición de la instalación, destino existente y restauración si falla el alias. **110 pruebas Python y 41 JavaScript superadas**, además de validación de la skill y sintaxis JavaScript.
+
+El recorrido de revisión en Zen 1.22.3b supera navegación, edición, selección y guardado desde el asistente, relaciones entre temas, recuperación de ediciones, varias revisiones y panel de 240 px sin scroll horizontal. Una comprobación del test leía los enlaces antes de terminar la vista asíncrona; se corrige esperando a que la relación esté disponible.
+
+Evidencias: [asistente de Anaco](../.test-artifacts/zen-review-menu/report.json), [interfaz con el icono](../.test-artifacts/zen-review-menu/menu.png) y [icono ampliado](../.test-artifacts/brand/anaco-icon.png). Las pruebas escriben en vaults temporales.
+
+También supera el recorrido de artículo, frase e imagen: captura, resaltado con ratón y teclado, renderizado saneado, imágenes locales, guardado, descarte y regreso al origen. [Informe de captura](../.test-artifacts/zen/report.json).
+
+El lector completo también supera la regresión de 55 páginas: se conserva la página final, el panel permanece estable durante las mutaciones del lector, mantiene el origen al cambiar de pestaña y restaura el scroll. [Informe del lector](../.test-artifacts/zen-book/report.json). Se comprueba además la importación de Faster Whisper desde el entorno multimedia trasladado.

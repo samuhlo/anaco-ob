@@ -1,5 +1,5 @@
 /* Identify playable platform pages, never arbitrary URLs mentioning YouTube. */
-globalThis.ZenBrainMedia=(()=>{
+globalThis.AnacoObMedia=(()=>{
   function platformURL(value){
     try{
       const u=new URL(value),host=u.hostname.toLowerCase().replace(/^www\./,'');let id;

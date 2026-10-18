@@ -1,5 +1,5 @@
 /* Read rendered course pages without navigating the course or changing progress. */
-if (!globalThis.ZenBrainSurfaces) {
+if (!globalThis.AnacoObSurfaces) {
   const visible = node => {
     if (!node?.isConnected || node.closest('[hidden],[aria-hidden="true"],nav,header,footer,aside,[role="navigation"]')) return false;
     const box=node.getBoundingClientRect(), style=getComputedStyle(node);
@@ -29,7 +29,7 @@ if (!globalThis.ZenBrainSurfaces) {
     if(data.length>3900000)throw new Error('oversize');
     const thumb=document.createElement('canvas');thumb.width=160;thumb.height=Math.min(240,Math.max(1,Math.round(160*canvas.height/canvas.width)));
     thumb.getContext('2d').drawImage(canvas,0,0,thumb.width,thumb.height);
-    const imageId=crypto.randomUUID();node.dataset.zenBrainImage=imageId;
+    const imageId=crypto.randomUUID();node.dataset.anacoObImage=imageId;
     return {imageId,url:location.href+'#zen-page-'+imageId,data,thumbnail:thumb.toDataURL('image/jpeg',.65),width:canvas.width,height:canvas.height,alt:label,visual_page:true};
   }
   async function svgImage(node){
@@ -71,7 +71,7 @@ if (!globalThis.ZenBrainSurfaces) {
           let url;try{url=new URL(match[1],location.href).href;}catch{continue;}
           if(!/^https?:/.test(url)||seen.has(url)||/\.svg(?:[?#]|$)/i.test(url))continue;
           seen.add(url);backgroundCount++;if(!room())continue;
-          const imageId=crypto.randomUUID();node.dataset.zenBrainImage=imageId;
+          const imageId=crypto.randomUUID();node.dataset.anacoObImage=imageId;
           add({imageId,url,alt:node.getAttribute('aria-label')||node.title||'',width:Math.round(box.width),height:Math.round(box.height)});
         }
       }
@@ -97,7 +97,7 @@ if (!globalThis.ZenBrainSurfaces) {
     }
     candidates.sort((a,b)=>a.node===b.node?0:a.node.compareDocumentPosition(b.node)&Node.DOCUMENT_POSITION_FOLLOWING?-1:1);
     const pages=candidates.slice(0,501).map(({node,type},i)=>{
-      const id=node.dataset.zenBrainPage||(node.dataset.zenBrainPage=crypto.randomUUID());
+      const id=node.dataset.anacoObPage||(node.dataset.anacoObPage=crypto.randomUUID());
       const image=type==='img'?node:node.querySelector('img');
       const urls=[image?.currentSrc,image?.src,image?.dataset.src,...[...getComputedStyle(node).backgroundImage.matchAll(/url\(["']?([^"')]+)["']?\)/g)].map(m=>m[1])].filter(u=>/^https?:/.test(u||''));
       return {id,type,index:i+1,label:'Página '+(i+1),urls:[...new Set(urls)]};
@@ -106,14 +106,14 @@ if (!globalThis.ZenBrainSurfaces) {
   }
   function start(){
     if(!savedScroll)savedScroll={x:window.scrollX,y:window.scrollY,elements:elements(document).filter(e=>e.scrollHeight>e.clientHeight+30).map(e=>({e,x:e.scrollLeft,y:e.scrollTop}))};
-    globalThis.ZenBrainReaderBusy=true;
+    globalThis.AnacoObReaderBusy=true;
   }
   function end(){
     if(savedScroll){for(const {e,x,y} of savedScroll.elements){e.scrollLeft=x;e.scrollTop=y;}window.scrollTo(savedScroll.x,savedScroll.y);savedScroll=null;}
-    globalThis.ZenBrainReaderBusy=false;
+    globalThis.AnacoObReaderBusy=false;
   }
   async function read(id){
-    const node=elements(document).find(e=>e.dataset.zenBrainPage===id);
+    const node=elements(document).find(e=>e.dataset.anacoObPage===id);
     if(!node)throw new Error('La página cambió mientras se extraía el libro. Vuelve a detectar el lector.');
     start();node.scrollIntoView({behavior:'instant',block:'center',inline:'nearest'});
     await new Promise(r=>setTimeout(r,180));
@@ -150,6 +150,6 @@ if (!globalThis.ZenBrainSurfaces) {
     if(text)return {text,image:null};
     throw new Error('Esta página no expone texto ni una imagen que se pueda leer.');
   }
-  globalThis.ZenBrainSurfaces={visible,elements,collect,inventory,start,end,read};
+  globalThis.AnacoObSurfaces={visible,elements,collect,inventory,start,end,read};
 }
 void 0;

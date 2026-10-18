@@ -1,9 +1,9 @@
 ---
-name: second-brain-capture
+name: anaco-ob
 description: Convertir fuentes de navegación en notas para el Second_Brain de Samuh, eligiendo estructura, tipo, destino y conexiones según el contenido y la intención de estudio.
 ---
 
-# Captura para Second_Brain
+# Anaco: captura para Second_Brain
 
 El servicio incorpora contexto del vault y sus plantillas. Úsalos para entender su vocabulario y organización; el usuario considera las plantillas orientativas y algunas están anticuadas. No conviertas su estructura en un formato obligatorio para todas las fuentes.
 

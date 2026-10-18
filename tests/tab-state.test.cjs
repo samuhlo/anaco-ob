@@ -99,8 +99,8 @@ test('resource downloads use the selected iframe and avoid an unnecessary backgr
  ctx.browser.tabs.executeScript=async(id,target)=>{
   frames.push(target.frameId);
   if(target.file)return [];
-  if(target.code.startsWith('ZenBrainResource.open'))return [{ok:true,id:'job',status:200,url:'https://player.example/video.mp4'}];
-  if(target.code.startsWith('ZenBrainResource.read'))return [reads++?{done:true}:{done:false,data:btoa('abc')}];
+  if(target.code.startsWith('AnacoObResource.open'))return [{ok:true,id:'job',status:200,url:'https://player.example/video.mp4'}];
+  if(target.code.startsWith('AnacoObResource.read'))return [reads++?{done:true}:{done:false,data:btoa('abc')}];
   return [];
  };
  ctx.fetch=async()=>{throw new Error('background fetch loses the player session');};

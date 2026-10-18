@@ -1,5 +1,5 @@
 /* Isolated content-script helper. Leaves page styles and layout untouched. */
-if (!globalThis.ZenBrainLocateImage) {
+if (!globalThis.AnacoObLocateImage) {
   let overlay, target, label;
   function clear() {
     overlay?.remove();overlay=null;target=null;
@@ -11,15 +11,15 @@ if (!globalThis.ZenBrainLocateImage) {
     const r=target.getBoundingClientRect();
     Object.assign(overlay.style,{left:(r.left-5)+"px",top:(r.top-5)+"px",width:(r.width+10)+"px",height:(r.height+10)+"px"});
   }
-  globalThis.ZenBrainLocateImage = function(input) {
+  globalThis.AnacoObLocateImage = function(input) {
     clear();
     if(input.clear)return {found:false};
-    target=[...document.querySelectorAll("[data-zen-brain-image]")].find(img=>img.dataset.zenBrainImage===input.imageId)
+    target=[...document.querySelectorAll("[data-anaco-ob-image]")].find(img=>img.dataset.anacoObImage===input.imageId)
       ||[...document.images].find(img=>(img.currentSrc||img.src)===input.url);
     if(!target)return {found:false};
     // Immediate placement avoids queued animations when scanning several images.
     target.scrollIntoView({behavior:"instant",block:"center",inline:"nearest"});
-    overlay=document.createElement("div");overlay.id="zen-brain-image-highlight";
+    overlay=document.createElement("div");overlay.id="anaco-ob-image-highlight";
     overlay.setAttribute("aria-hidden","true");
     Object.assign(overlay.style,{position:"fixed",pointerEvents:"none",zIndex:"2147483647",border:"4px solid #b69aff",borderRadius:"8px",boxShadow:"0 0 0 5px #21162b55",boxSizing:"border-box"});
     label=document.createElement("span");label.textContent="Imagen "+(input.index+1);

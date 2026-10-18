@@ -28,7 +28,7 @@ def main():
     sys.path.insert(0,str(ROOT/'native'));from core import App
     app=App(run/'state');app.set_config({'vault':str(vault),'provider':'manual'});app.db.close()
     audio=run/'speech.flac';subprocess.run(['ffmpeg','-v','error','-y','-stream_loop','10','-i',str(ROOT/'.test-artifacts/jfk.flac'),'-t','75','-ar','16000',str(audio)],check=True)
-    env={**os.environ,'ZEN_BRAIN_STATE':str(run/'state')};host=subprocess.Popen([sys.executable,str(ROOT/'native/host.py')],stdin=subprocess.PIPE,stdout=subprocess.PIPE,env=env)
+    env={**os.environ,'ANACO_OB_STATE':str(run/'state')};host=subprocess.Popen([sys.executable,str(ROOT/'native/host.py')],stdin=subprocess.PIPE,stdout=subprocess.PIPE,env=env)
     def request(value):
         host.stdin.write(encode(value));host.stdin.flush();events=[]
         while True:

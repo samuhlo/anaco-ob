@@ -21,7 +21,7 @@ from vaults import discover_vaults
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_VAULT = Path.home() / "Second_Brain"
-STATE = Path(os.environ.get("ZEN_BRAIN_STATE", Path.home() / ".local/share/zen-second-brain"))
+STATE = Path(os.environ.get("ANACO_OB_STATE") or os.environ.get("ZEN_BRAIN_STATE") or Path.home() / ".local/share/anaco-ob")
 ALLOWED_ROOTS = ("02_Cerebro", "03_Proyectos", "04_Cajon_Ideas", "07_Clases")
 STOP = set("para como este esta esto estas estos sobre desde entre donde cuando porque pero una uno unos unas del los las por con sin que sus son ser mas muy hay the and for with from that this into your you have has not".split())
 
@@ -112,7 +112,7 @@ def write_new_atomic(path, data):
     """Publish a completed file exclusively; interruption cannot publish half a note."""
     temporary = None
     try:
-        with tempfile.NamedTemporaryFile(dir=path.parent, prefix=".zen-capture-", delete=False) as stream:
+        with tempfile.NamedTemporaryFile(dir=path.parent, prefix=".anaco-ob-", delete=False) as stream:
             temporary = Path(stream.name)
             stream.write(data)
             stream.flush()
@@ -152,7 +152,7 @@ class App:
 
     def config(self):
         path = self.state / "config.json"
-        default = {"vault": str(DEFAULT_VAULT), "vault_mode": "auto", "note_structure": "single", "attachments": "99_Recursos/adjuntos/zen-capture",
+        default = {"vault": str(DEFAULT_VAULT), "vault_mode": "auto", "note_structure": "single", "attachments": "99_Recursos/adjuntos/anaco-ob",
                    "read_roots": ["02_Cerebro", "03_Proyectos", "07_Clases"],
                    "model": "gpt-6-luna", "vision_model":"gpt-6.1-sol", "describe_images":True,"vision_policy":"auto",
                    "reader_batch_pages":6,"pdf_page_limit":60,"pdf_visual_pages":6,"video_minutes":120,"video_frames":3,"asr_model":"base",
@@ -233,7 +233,7 @@ class App:
                 texts[rel] = read_note(p)[:22000]
         if not texts:
             texts["fallback"] = "Fuente externa: tipo, formato, tags, estado, contexto, fuente_url, fuente_autor, creado, modificado, version, llm_asistido. Clases: resumen, curso, asignatura."
-        skill = (ROOT / "skills/second-brain-capture/SKILL.md").read_text()
+        skill = (ROOT / "skills/anaco-ob/SKILL.md").read_text()
         from prompts import VERSION
         digest = hashlib.sha256((VERSION+skill + json.dumps(texts, sort_keys=True)).encode()).hexdigest()
         return {"instructions": skill, "documents": texts, "hash": digest}
@@ -382,7 +382,7 @@ class App:
 
     def codex_json(self,prompt,spec,model=None,images=None):
         cfg=self.config();model=model or cfg["model"]
-        with tempfile.TemporaryDirectory(prefix="zen-brain-ai-") as temp:
+        with tempfile.TemporaryDirectory(prefix="anaco-ob-ai-") as temp:
             work = Path(temp)
             json_dump(work / "schema.json", spec)
             attachments=[]
@@ -678,7 +678,7 @@ class App:
             return job.update(status=message.get('status','complete'))
         if action == "status":
             from jobs import pending
-            return {"version": "0.9.1", "config": self.config(), "folders": self.folders(), "pending": self.pending(), 'jobs':pending(self), "profile_hash": self.profile()["hash"]}
+            return {"version": "0.9.2", "config": self.config(), "folders": self.folders(), "pending": self.pending(), 'jobs':pending(self), "profile_hash": self.profile()["hash"]}
         if action == "settings":
             cfg = self.config()
             return {"config": cfg, "vault_available": Path(cfg["vault"]).expanduser().is_dir()}

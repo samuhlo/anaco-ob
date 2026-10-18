@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
-  "name": "Second Brain Capture",
-  "version": "0.9.1",
+  "name": "Anaco",
+  "version": "0.9.2",
   "description": "Artículos, PDF, vídeos e imágenes para Obsidian, con transcripción, descripciones visuales y relaciones revisables.",
   "browser_specific_settings": {
     "gecko": {
@@ -30,11 +30,11 @@
     "persistent": true
   },
   "browser_action": {
-    "default_title": "Capturar en Second Brain",
+    "default_title": "Capturar con Anaco",
     "default_icon": "icon.svg"
   },
   "sidebar_action": {
-    "default_title": "Second Brain",
+    "default_title": "Anaco",
     "default_panel": "panel.html",
     "default_icon": "icon.svg",
     "open_at_install": false
@@ -52,8 +52,9 @@
       "suggested_key": {
         "default": "Alt+Shift+S"
       },
-      "description": "Capturar página en Second Brain"
+      "description": "Capturar página con Anaco"
     }
   },
-  "content_security_policy": "script-src 'self'; object-src 'none'"
+  "content_security_policy": "script-src 'self'; object-src 'none'",
+  "short_name": "Anaco"
 }

@@ -104,7 +104,7 @@ def main():
         if audio.exists():
             subprocess.run(['pdftoppm','-f','2','-l','2','-scale-to','640','-jpeg','-singlefile',str(pdf),str(run_dir/'slide')],check=True)
             subprocess.run(['ffmpeg','-v','error','-y','-loop','1','-i',str(run_dir/'slide.jpg'),'-i',str(audio),'-t','6','-vf','scale=640:-2','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p','-c:a','aac','-shortest',str(ROOT/'tests/fixtures/lesson.mp4')],check=True)
-    manifest_paths = [Path.home() / ".mozilla/native-messaging-hosts/org.samuh.second_brain.json", Path.home() / ".config/zen/native-messaging-hosts/org.samuh.second_brain.json"]
+    manifest_paths = [Path.home() / ".mozilla/native-messaging-hosts/org.samuh.anaco_ob.json", Path.home() / ".config/zen/native-messaging-hosts/org.samuh.anaco_ob.json"]
     backups = {p: p.read_bytes() if p.exists() else None for p in manifest_paths}
     driver = None
     server = None
@@ -297,7 +297,7 @@ def main():
             driver.find_element(By.ID,'copyError').click()
             wait.until(lambda d:'Copiado' in d.find_element(By.ID,'copyError').text)
             copied=driver.execute_async_script('const done=arguments[arguments.length-1];navigator.clipboard.readText().then(done);')
-            assert sample in copied and diagnostic in copied and 'Second Brain Capture '+json.loads((ROOT/'extension/manifest.json').read_text())['version'] in copied,copied
+            assert sample in copied and diagnostic in copied and 'Anaco '+json.loads((ROOT/'extension/manifest.json').read_text())['version'] in copied,copied
             assert driver.find_element(By.ID,'error').text==sample
             driver.save_screenshot(str(out/'copy-error.png'))
             driver.find_element(By.CSS_SELECTOR,'#diagnostic summary').click()
@@ -552,8 +552,8 @@ def main():
             driver.find_element(By.CSS_SELECTOR,'[data-review-note="comprension"]').click()
             driver.switch_to.window(review_handle)
             wait.until(lambda d:'Comprender lo estudiado' in d.find_element(By.ID,'activeNoteLabel').text)
-            assert len(driver.find_elements(By.CSS_SELECTOR,'#relations .relation'))>0
-            assert driver.find_element(By.CSS_SELECTOR,'[data-new-link="recuperacion"]').is_selected()
+            wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'#relations .relation'))>0)
+            wait.until(lambda d:d.find_element(By.CSS_SELECTOR,'[data-new-link="recuperacion"]').is_selected())
             driver.switch_to.window(panel_handle);driver.find_element(By.ID,'reviewEdit').click();driver.switch_to.window(review_handle)
             wait.until(lambda d:d.find_element(By.ID,'editPane').is_displayed())
             driver.switch_to.window(panel_handle)
@@ -570,7 +570,7 @@ def main():
             wait.until(lambda d:'3 de 4' in d.find_element(By.ID,'reviewMenuStatus').text)
             driver.find_element(By.CSS_SELECTOR,'[data-review-note="recuperacion"]').click();driver.switch_to.window(review_handle)
             wait.until(lambda d:'Recuperar sin mirar' in d.find_element(By.ID,'activeNoteLabel').text)
-            assert driver.find_element(By.CSS_SELECTOR,'[data-new-link="comprension"]').is_selected()
+            wait.until(lambda d:d.find_element(By.CSS_SELECTOR,'[data-new-link="comprension"]').is_selected())
             # Exact narrow-panel viewport with the live assistant state.
             driver.switch_to.window(panel_handle)
             driver.execute_script('const f=document.createElement("iframe");f.id="menu-narrow";f.src=location.href;f.style="position:fixed;inset:0 auto auto 0;width:240px;height:900px;border:0;z-index:1000";document.body.append(f);')
@@ -690,7 +690,7 @@ def main():
             review_control('read')
             wait.until(lambda d:d.find_element(By.ID,'previewState').text=='Vista actualizada')
             stress='# Título '+('Largo'*90)+'\n\nhttps://example.org/'+('ruta'*250)+'\n\n| '+(' | '.join('Columna '+str(i) for i in range(12)))+' |\n| '+(' | '.join('---' for i in range(12)))+' |\n| '+(' | '.join('Dato '+str(i) for i in range(12)))+' |\n\n```text\n'+('codigo_sin_espacios'*100)+'\n```'
-            driver.execute_script('ZenBrainRender(document.getElementById("reading"),arguments[0],new Map(),()=>{},"Vault");',stress)
+            driver.execute_script('AnacoObRender(document.getElementById("reading"),arguments[0],new Map(),()=>{},"Vault");',stress)
             for width in (480,640,950):
                 driver.set_window_size(width,1000)
                 dimensions=driver.execute_script('return {width:innerWidth,body:document.documentElement.scrollWidth};')
@@ -998,15 +998,15 @@ def main():
         source_id=c["source"]["tabId"]
         source_script(source_id,'document.querySelector("figure").style.marginTop="1400px";document.body.style.paddingBottom="1400px";document.images[0].style.border="2px solid rgb(1, 2, 3)";window.scrollTo(0,0);true')
         ActionChains(driver).move_to_element(driver.find_element(By.CSS_SELECTOR,".image-pick")).perform()
-        wait.until(lambda d:source_script(source_id,'!!document.getElementById("zen-brain-image-highlight")'))
+        wait.until(lambda d:source_script(source_id,'!!document.getElementById("anaco-ob-image-highlight")'))
         wait.until(lambda d:source_script(source_id,'window.scrollY>0'))
         ActionChains(driver).move_to_element(driver.find_element(By.ID,"captureTitle")).perform()
-        wait.until(lambda d:not source_script(source_id,'!!document.getElementById("zen-brain-image-highlight")'))
+        wait.until(lambda d:not source_script(source_id,'!!document.getElementById("anaco-ob-image-highlight")'))
         assert source_script(source_id,'document.images[0].style.border')=='2px solid rgb(1, 2, 3)'
         driver.find_element(By.CSS_SELECTOR,"#images input").send_keys(Keys.SPACE)
-        wait.until(lambda d:source_script(source_id,'!!document.getElementById("zen-brain-image-highlight")'))
+        wait.until(lambda d:source_script(source_id,'!!document.getElementById("anaco-ob-image-highlight")'))
         driver.find_element(By.ID,"intent").click()
-        wait.until(lambda d:not source_script(source_id,'!!document.getElementById("zen-brain-image-highlight")'))
+        wait.until(lambda d:not source_script(source_id,'!!document.getElementById("anaco-ob-image-highlight")'))
         if args.fresh_permissions:
             # Extraction uses 127.0.0.1; the image uses localhost, which has NOT
             # been granted to this extension. This reproduces first-use prompts.
@@ -1037,7 +1037,7 @@ def main():
         assert driver.find_element(By.ID,"imageDialog").get_attribute("open")
         driver.find_element(By.ID,"closeImage").click()
         sanitized=driver.execute_script('''const mount=document.createElement('section');
-          ZenBrainRender(mount,'# Prueba\\n\\n**Énfasis**\\n\\n[Enlace](javascript:alert(1))\\n\\n<img src="https://tracker.invalid/x" onerror="alert(1)"><script>alert(1)</script>',new Map(),()=>{},'Vault');
+          AnacoObRender(mount,'# Prueba\\n\\n**Énfasis**\\n\\n[Enlace](javascript:alert(1))\\n\\n<img src="https://tracker.invalid/x" onerror="alert(1)"><script>alert(1)</script>',new Map(),()=>{},'Vault');
           return {heading:mount.querySelector('h1')?.textContent,strong:mount.querySelector('strong')?.textContent,images:mount.querySelectorAll('img').length,scripts:mount.querySelectorAll('script').length,unsafeLinks:[...mount.querySelectorAll('a')].filter(a=>a.getAttribute('href')?.startsWith('javascript:')).length};''')
         assert sanitized=={"heading":"Prueba","strong":"Énfasis","images":0,"scripts":0,"unsafeLinks":0},sanitized
         if args.ai:
@@ -1078,7 +1078,7 @@ def main():
             open_review()
             field("filename").clear();field("filename").send_keys("fuente_2026-10-16_diagrama.md")
             finish_and_return("save",im["source"]["tabId"])
-            assert "![[99_Recursos/adjuntos/zen-capture/" in next(vault.rglob("*diagrama.md")).read_text()
+            assert "![[99_Recursos/adjuntos/anaco-ob/" in next(vault.rglob("*diagrama.md")).read_text()
             discarded=capture({"kind":"quote","selection":"Esta captura se descarta, sin escribir una nota."})
             Select(field("provider")).select_by_value("manual")
             driver.find_element(By.ID,"prepare").click();open_review()

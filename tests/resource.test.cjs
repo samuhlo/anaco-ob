@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm');
 function resource(fetch){
  const ctx=vm.createContext({URL,content:{fetch},AbortController,setTimeout,clearTimeout,crypto:require('node:crypto').webcrypto,btoa});
- vm.runInContext(fs.readFileSync('extension/resource.js','utf8'),ctx);return ctx.ZenBrainResource;
+ vm.runInContext(fs.readFileSync('extension/resource.js','utf8'),ctx);return ctx.AnacoObResource;
 }
 test('page reads use content.fetch with credentials and transfer bounded chunks',async()=>{
  const input=new Uint8Array(950000);input.forEach((_,i)=>input[i]=i%251);let options;

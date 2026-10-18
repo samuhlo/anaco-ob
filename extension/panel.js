@@ -35,7 +35,7 @@ async function copyReport(button) {
   if(!$("error").hidden&&$("error").textContent)parts.push("Error:\n"+$("error").textContent);
   if(!$("diagnostic").hidden&&$("detectionReport").textContent)parts.push("Diagnóstico de detección:\n"+$("detectionReport").textContent);
   if(!parts.length)return;
-  const text="Second Brain Capture "+browser.runtime.getManifest().version+"\n\n"+parts.join("\n\n");
+  const text="Anaco "+browser.runtime.getManifest().version+"\n\n"+parts.join("\n\n");
   try {
     await navigator.clipboard.writeText(text);
     $("copyFallback").hidden=true;
@@ -110,7 +110,7 @@ function drawCapture(c) {
   $("resources").hidden=!(rawBook||documents.length||videos.some(v=>v.extractable!==false));
   for(const [name,items,label] of [["pdf",documents,"PDF"],["video",videos,"Vídeo"]]){
     $(name+"Controls").hidden=!items.length||(name==='video'&&items.every(v=>v.extractable===false));$(name+"Resource").replaceChildren();
-    items.forEach((item,index)=>{const option=document.createElement("option");option.value=index;option.textContent=name==='video'?ZenBrainMedia.label(item,index):item.title||label+" "+(index+1);$(name+"Resource").append(option);});
+    items.forEach((item,index)=>{const option=document.createElement("option");option.value=index;option.textContent=name==='video'?AnacoObMedia.label(item,index):item.title||label+" "+(index+1);$(name+"Resource").append(option);});
   }
   const onlyLocalPDF=documents.length>0&&documents.every(d=>d.url.startsWith('file:'));
   $("extractPdf").hidden=onlyLocalPDF;
@@ -243,8 +243,8 @@ $("extractVideo").onclick=run(async()=>{
   const c=state.currentCapture,video=c.videos[Number($("videoResource").value)];
   if(video.extractable===false)throw new Error(video.unavailableReason||'No hay audio o subtítulos accesibles en este reproductor.');
   const track=[...(video.tracks||[])].sort((a,b)=>(!a.language?.startsWith("es"))-(!b.language?.startsWith("es")))[0];
-  const platform=ZenBrainMedia.platformURL(video.url);
-  const direct=video.download||(/^https?:/.test(video.url)&&!platform&&!ZenBrainMedia.apiURL(video.url)&&video.url!==c.url?video.url:null);
+  const platform=AnacoObMedia.platformURL(video.url);
+  const direct=video.download||(/^https?:/.test(video.url)&&!platform&&!AnacoObMedia.apiURL(video.url)&&video.url!==c.url?video.url:null);
   const granted=await requestOrigins([track?.url,direct,...(video.download?['https://drive.usercontent.google.com/','https://*.googleusercontent.com/']:[])]);
   if(!granted)throw new Error("No se ha concedido acceso al recurso de vídeo.");
   const audio=direct&&!/\.mpd(?:[?#]|$)/i.test(direct)?(/\.m3u8(?:[?#]|$)/i.test(direct)?{kind:'video-hls',url:direct}:{kind:'video',url:direct,name:'video.mp4'}):platform?{kind:'video-platform',url:platform}:null;

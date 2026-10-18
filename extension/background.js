@@ -1,5 +1,5 @@
 /* The background owns in-flight requests so closing the sidebar doesn't cancel them. */
-const HOST = "org.samuh.second_brain";
+const HOST = "org.samuh.anaco_ob";
 const SESSION = crypto.randomUUID();
 // Keep return targets in this browser session; never reuse tab IDs after restart.
 const optionsSources = new Map();
@@ -130,7 +130,7 @@ async function cancelWork(){
   if(!workClaim)return;
   const id=workClaim;cancelledWork.add(id);await browser.storage.local.set({operation:'Cancelando el trabajo y conservando el avance…'});
   workAbortControllers.get(id)?.abort();
-  for(const r of workResources.get(id)||[])browser.tabs.executeScript(r.tabId,{frameId:r.frameId,code:`ZenBrainResource.close(${JSON.stringify(r.job)});void 0;`}).catch(()=>{});
+  for(const r of workResources.get(id)||[])browser.tabs.executeScript(r.tabId,{frameId:r.frameId,code:`AnacoObResource.close(${JSON.stringify(r.job)});void 0;`}).catch(()=>{});
   const result=await browser.runtime.sendNativeMessage(HOST,{action:'cancel_job',job:id});if(!result.ok)throw new Error(result.error);
 }
 
@@ -146,7 +146,7 @@ async function readFrame(tabId, frameId, input = {}) {
   await browser.tabs.executeScript(tabId, {...target, file:"surfaces.js"});
   await browser.tabs.executeScript(tabId, {...target, file:"media-source.js"});
   await browser.tabs.executeScript(tabId, {...target, file:"capture.js"});
-  const [result] = await browser.tabs.executeScript(tabId, {...target, code:`globalThis.ZenBrainCapture(${JSON.stringify(input)})`});
+  const [result] = await browser.tabs.executeScript(tabId, {...target, code:`globalThis.AnacoObCapture(${JSON.stringify(input)})`});
   return {...result, frameId};
 }
 async function probePDF(url){
@@ -156,11 +156,11 @@ async function probePDF(url){
   }catch{return false;}
 }
 async function scanTab(tab, input = {}) {
-  if (ZenBrainDetection.pdfURL(tab.url)) return pdfCapture(tab);
+  if (AnacoObDetection.pdfURL(tab.url)) return pdfCapture(tab);
   const pages = [], blocked = [];
   try { pages.push(await readFrame(tab.id, 0, input)); }
   catch {
-    const granted = await browser.permissions.contains({origins:[ZenBrainDetection.origin(tab.url)].filter(Boolean)});
+    const granted = await browser.permissions.contains({origins:[AnacoObDetection.origin(tab.url)].filter(Boolean)});
     if (granted && await probePDF(tab.url)) return pdfCapture(tab);
     blocked.push({url:tab.url,title:tab.title||'Página actual',needsPermission:!granted});
   }
@@ -170,24 +170,24 @@ async function scanTab(tab, input = {}) {
   const frames = (all || []).filter(f => f.frameId !== 0 && !f.errorOccurred &&
     !/doubleclick|recaptcha|googlesyndication/i.test(f.url)).slice(0,40);
   const results = await Promise.allSettled(frames.map(async frame => {
-    if (ZenBrainDetection.pdfURL(frame.url)) return {kind:'pdf',url:frame.url,frameId:frame.frameId,documents:[{url:frame.url,title:'PDF del curso'}]};
+    if (AnacoObDetection.pdfURL(frame.url)) return {kind:'pdf',url:frame.url,frameId:frame.frameId,documents:[{url:frame.url,title:'PDF del curso'}]};
     try { return {...await readFrame(tab.id, frame.frameId),parentFrameId:frame.parentFrameId}; }
     catch {
-      const origin=ZenBrainDetection.origin(frame.url);
+      const origin=AnacoObDetection.origin(frame.url);
       const granted=origin&&await browser.permissions.contains({origins:[origin]});
       if(granted&&await probePDF(frame.url))return {kind:'pdf',url:frame.url,frameId:frame.frameId,documents:[{url:frame.url,title:'PDF del visor'}]};
       return {blocked:true,url:frame.url,title:'Contenido incrustado',needsPermission:!granted,frameId:frame.frameId,reason:granted?'script-unreadable':'permission-required'};
     }
   }));
   for (const result of results) if (result.status === 'fulfilled') {
-    if (result.value.blocked) { if (ZenBrainDetection.origin(result.value.url)) blocked.push(result.value); }
+    if (result.value.blocked) { if (AnacoObDetection.origin(result.value.url)) blocked.push(result.value); }
     else pages.push(result.value);
   }
   // The live navigation tree is authoritative. An iframe's src can still be
   // its launch URL after a redirect, so it is not evidence of denied access.
   const unmatched=pages.flatMap(p=>(p.frames||[]).filter(f=>!all?.some(live=>live.url===f.url))).length;
 
-  return ZenBrainDetection.merge(pages, tab, blocked, {frameReferencesUnmatched:unmatched});
+  return AnacoObDetection.merge(pages, tab, blocked, {frameReferencesUnmatched:unmatched});
 }
 let activeDetection;
 function capture(tab,input={},options={}){
@@ -220,7 +220,7 @@ async function performCapture(tab, input = {}, {automatic = false, fresh = true}
     const result = await Promise.race([scanTab(tab,input), new Promise((_,reject) => {timer=setTimeout(() => reject(new Error('No se pudo terminar la detección. Espera a que cargue el contenido y vuelve a intentarlo.')),12000);})]).finally(()=>clearTimeout(timer));
     if (!result) throw new Error('No se pudo leer el contenido seleccionado. Vuelve a capturarlo desde la página.');
     result.source = sourceFor(tab); result.token = crypto.randomUUID();
-    result.detectionError = ZenBrainDetection.problem(result);
+    result.detectionError = AnacoObDetection.problem(result);
     // Empty detections are still shown, with their specific explanation.
     if (tabCaptures.size >= 80) tabCaptures.delete(tabCaptures.keys().next().value);
     if (sequence !== detectionSequence) return result;
@@ -276,7 +276,7 @@ async function prepare(message,ownedCapture=null) {
   let c=ownedCapture||capture;
   if(!c)throw new Error('Primero captura una página, frase o imagen.');
   if(message.token&&c.token!==message.token)throw new Error('La pestaña cambió antes de preparar la nota. Revisa la captura actual y reintenta.');
-  if(!c.id&&(c.reader||c.kind==='pdf'||!ZenBrainDetection.usable(c)))throw new Error('Primero extrae el documento detectado.');
+  if(!c.id&&(c.reader||c.kind==='pdf'||!AnacoObDetection.usable(c)))throw new Error('Primero extrae el documento detectado.');
   c={...c,intent:message.intent||'',selected_images:message.images||c.selected_images};
   const work=await beginWork(c,'Preparando la propuesta…');
   try {
@@ -347,7 +347,7 @@ async function locateImage(message) {
     await browser.tabs.executeScript(source.tabId,{file:"locate.js",frameId,matchAboutBlank:true});
     if(sequence!==locateSequence)return {found:false};
     const input=message.clear?{clear:true}:{imageId:image.imageId,url:image.url,index:message.index};
-    const [result]=await browser.tabs.executeScript(source.tabId,{code:`globalThis.ZenBrainLocateImage(${JSON.stringify(input)})`,frameId,matchAboutBlank:true});
+    const [result]=await browser.tabs.executeScript(source.tabId,{code:`globalThis.AnacoObLocateImage(${JSON.stringify(input)})`,frameId,matchAboutBlank:true});
     return result;
   } catch {throw new Error("No puedo localizar la imagen. Comprueba que el artículo sigue abierto y vuelve a capturarlo si ha cambiado.");}
 }
@@ -417,7 +417,7 @@ async function resourceBytes(url,source,frameId=0,maxBytes=100000000,diagnostic)
     try{
       await browser.tabs.executeScript(source.tabId,{...target,file:'resource.js'});
       phase='page-fetch';
-      const [opened]=await browser.tabs.executeScript(source.tabId,{...target,code:`ZenBrainResource.open(${JSON.stringify(url)},${maxBytes})`});
+      const [opened]=await browser.tabs.executeScript(source.tabId,{...target,code:`AnacoObResource.open(${JSON.stringify(url)},${maxBytes})`});
       resourceAttempt(diagnostic,{context:'player',host,status:opened.status,reason:opened.reason||''});
       if(opened.ok){
         phase='page-transfer';
@@ -425,7 +425,7 @@ async function resourceBytes(url,source,frameId=0,maxBytes=100000000,diagnostic)
         if(workClaim){const list=workResources.get(workClaim)||[];list.push({tabId:source.tabId,frameId,job});workResources.set(workClaim,list);}
         while(true){
           checkWork();
-          const [chunk]=await browser.tabs.executeScript(source.tabId,{...target,code:`ZenBrainResource.read(${JSON.stringify(job)})`});
+          const [chunk]=await browser.tabs.executeScript(source.tabId,{...target,code:`AnacoObResource.read(${JSON.stringify(job)})`});
           if(chunk.done)break;
           const binary=atob(chunk.data),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
           size+=bytes.length;if(size>maxBytes)throw new Error('El recurso supera el límite de descarga.');parts.push(bytes);
@@ -433,7 +433,7 @@ async function resourceBytes(url,source,frameId=0,maxBytes=100000000,diagnostic)
         return {parts,size,url:opened.url};
       }
     }catch(error){frameError=error;resourceAttempt(diagnostic,{context:'player',host,reason:phase,error:error.name||'Error'});}
-    finally{if(job){await browser.tabs.executeScript(source.tabId,{...target,code:`ZenBrainResource.close(${JSON.stringify(job)});void 0;`}).catch(()=>{});if(owner)workResources.set(owner,(workResources.get(owner)||[]).filter(v=>v.job!==job));}}
+    finally{if(job){await browser.tabs.executeScript(source.tabId,{...target,code:`AnacoObResource.close(${JSON.stringify(job)});void 0;`}).catch(()=>{});if(owner)workResources.set(owner,(workResources.get(owner)||[]).filter(v=>v.job!==job));}}
     if(frameError?.message?.includes('límite de descarga'))throw frameError;
   }
   // A CDN may allow the extension but reject page CORS. Try its authorized read.
@@ -482,7 +482,7 @@ async function importResource(message){
       let parts=[],size=0;
       if(message.kind==='video-hls'){
         const {config}=await native({action:'settings'});
-        ({parts,size}=await ZenBrainStream.download(message.url,{load:(url,limit)=>resourceBytes(url,source,message.frameId||0,limit,diagnostic),maxSeconds:config.video_minutes*60,onProgress:(n,total)=>{
+        ({parts,size}=await AnacoObStream.download(message.url,{load:(url,limit)=>resourceBytes(url,source,message.frameId||0,limit,diagnostic),maxSeconds:config.video_minutes*60,onProgress:(n,total)=>{
           if(n===1||n===total||n%10===0)browser.storage.local.set({operation:`Recuperando vídeo del curso: segmento ${n} de ${total}…`});
         }}));
       }else{
@@ -511,13 +511,13 @@ async function extractReader(message){
   try{
     const pages=[];
     for(const frameId of c.reader.frames){
-      const [inventory]=await browser.tabs.executeScript(c.source.tabId,{frameId,matchAboutBlank:true,code:'ZenBrainSurfaces.inventory(globalThis.ZenBrainReaderRoot||document.body)'});
+      const [inventory]=await browser.tabs.executeScript(c.source.tabId,{frameId,matchAboutBlank:true,code:'AnacoObSurfaces.inventory(globalThis.AnacoObReaderRoot||document.body)'});
       if(inventory.overflow)throw new Error('El libro supera el límite de 500 páginas.');
       pages.push(...inventory.pages.map(p=>({...p,frameId})));
     }
     if(!pages.length)throw new Error('No se localizaron páginas del lector.');
     if(pages.length>500)throw new Error('El libro supera el límite de 500 páginas.');
-    for(const frameId of frames)await browser.tabs.executeScript(c.source.tabId,{frameId,matchAboutBlank:true,code:'ZenBrainSurfaces.start();void 0;'}).catch(()=>{});
+    for(const frameId of frames)await browser.tabs.executeScript(c.source.tabId,{frameId,matchAboutBlank:true,code:'AnacoObSurfaces.start();void 0;'}).catch(()=>{});
     const identity=c.token+':'+pages.map(p=>p.id).join(',');
     const {readerJobs={}}=await browser.storage.local.get('readerJobs');
     const saved=readerJobs[c.token];
@@ -529,7 +529,7 @@ async function extractReader(message){
       await browser.storage.local.set({operation:`Extrayendo página ${i+1} de ${pages.length}…`});
       const page=pages[i];
       try{
-        const [value]=await browser.tabs.executeScript(c.source.tabId,{frameId:page.frameId,matchAboutBlank:true,code:`ZenBrainSurfaces.read(${JSON.stringify(page.id)})`});
+        const [value]=await browser.tabs.executeScript(c.source.tabId,{frameId:page.frameId,matchAboutBlank:true,code:`AnacoObSurfaces.read(${JSON.stringify(page.id)})`});
         const image=value.image?await imageData(value.image):null;
         const data=image?.data||'';
         const size=data?atob(data).length:0;
@@ -546,7 +546,7 @@ async function extractReader(message){
     return await adoptMedia(result,c.source);
   }catch(error){failure=error;throw error;}
   finally{
-    for(const frameId of [...frames].reverse())await browser.tabs.executeScript(c.source.tabId,{frameId,matchAboutBlank:true,code:'ZenBrainSurfaces.end();void 0;'}).catch(()=>{});
+    for(const frameId of [...frames].reverse())await browser.tabs.executeScript(c.source.tabId,{frameId,matchAboutBlank:true,code:'AnacoObSurfaces.end();void 0;'}).catch(()=>{});
     readingBook=false;
     await endWork(work,failure);
   }
@@ -575,8 +575,8 @@ browser.commands.onCommand.addListener(async command => {
   if(tab.url?.startsWith(browser.runtime.getURL(''))||Object.values(reviewSessions).some(r=>r.windowId===tab.windowId))return;
   capture(tab).catch(error => browser.storage.local.set({operationError:error.message}));
 });
-browser.menus.create({id: "quote", title: "Guardar frase en Second Brain", contexts: ["selection"]});
-browser.menus.create({id: "image", title: "Guardar imagen en Second Brain", contexts: ["image"]});
+browser.menus.create({id: "quote", title: "Guardar frase con Anaco", contexts: ["selection"]});
+browser.menus.create({id: "image", title: "Guardar imagen con Anaco", contexts: ["image"]});
 browser.menus.onClicked.addListener((info, tab) => {
   openSidebar(tab);
   capture(tab, {kind: info.menuItemId, selection: info.selectionText, src: info.srcUrl})

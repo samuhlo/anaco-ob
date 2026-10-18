@@ -1,6 +1,6 @@
 /* Selected HLS resources are fetched in the browser, retaining its course session.
    No cookies are exported. Encrypted/live streams are rejected explicitly. */
-const ZenBrainStream = (() => {
+const AnacoObStream = (() => {
   function playlist(text, base) {
     if (!text.trimStart().startsWith('#EXTM3U')) throw new Error('El recurso no es un manifiesto HLS válido; puede ser una página de acceso.');
     const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
