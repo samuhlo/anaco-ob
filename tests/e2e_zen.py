@@ -766,6 +766,18 @@ def main():
             tweet=next(e for e in c['embeds'] if e['type']=='tweet');assert tweet['url']=='https://twitter.com/uuuuuulala/status/1803039502136426656' and 'Packaging people' in tweet['text'],tweet
             wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'#embeds input[type=checkbox]'))==3)
             assert all(e.is_selected() for e in driver.find_elements(By.CSS_SELECTOR,'#embeds input[type=checkbox]'))
+            # Hovering a row outlines that resource in the article, as with images.
+            expected={'clip':('Clip 1','VIDEO'),'pen':('Demo 1','P'),'tweet':('Publicación 1','DIV')}
+            for row in driver.find_elements(By.CSS_SELECTOR,'#embeds label.image-pick'):
+                index=int(row.find_element(By.CSS_SELECTOR,'input').get_attribute('data-embed'));kind=c['embeds'][index]['type']
+                driver.execute_script('arguments[0].scrollIntoView({block:"center"})',row);ActionChains(driver).move_to_element(row).perform()
+                def outlined(d):
+                    found=source_script(c['source']['tabId'],'(()=>{const o=document.getElementById("anaco-ob-image-highlight");if(!o)return null;const t=document.querySelector("[data-anaco-ob-locate=\'"+'+json.dumps(c['embeds'][index]['locator'])+'+"\']");const r=t.getBoundingClientRect(),b=o.getBoundingClientRect();return {label:o.textContent,tag:(t.querySelector("video")||t.querySelector("p.codepen")||t).tagName,inside:b.left<=r.left&&b.right>=r.right}})()')
+                    return found if found and found['label']==expected[kind][0] else False
+                found=WebDriverWait(driver,10).until(outlined)
+                assert found['inside'] and found['tag']==expected[kind][1],(kind,found)
+                if kind=='clip':driver.save_screenshot(str(out/'locate-panel.png'))
+            title=driver.find_element(By.ID,'captureTitle');driver.execute_script('arguments[0].scrollIntoView({block:"center"})',title);ActionChains(driver).move_to_element(title).perform()
             driver.save_screenshot(str(out/'panel.png'))
             Select(field('provider')).select_by_value('manual')
             driver.find_element(By.ID,'prepare').click();open_review()

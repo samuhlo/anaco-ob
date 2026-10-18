@@ -50,12 +50,13 @@ async function copyReport(button) {
 }
 for(const id of ["copyError","copyDiagnostic"])$(id).onclick=()=>copyReport($(id));
 
-function locate(c,index,clear=false) {
+function locate(c,index,clear=false,embed=null) {
   if(c.reader||c.kind==="pdf"||c.kind==="video")return;
   clearTimeout(locateTimer);
-  const send=()=>browser.runtime.sendMessage({type:"locateImage",token:c.token,index,clear}).then(result=>{
-    if(!clear&&!result.found)$("imageHint").textContent="No se encuentra esta imagen en el artículo. Puede haber cambiado desde la captura.";
-  }).catch(error=>{if(!clear)$("imageHint").textContent=error.message;});
+  const hint=embed?$('embedHint'):$("imageHint");
+  const send=()=>browser.runtime.sendMessage({type:"locateImage",token:c.token,index,clear,embed:Boolean(embed),label:embed}).then(result=>{
+    if(!clear&&!result.found)hint.textContent=embed?"No se encuentra este recurso en el artículo. Puede haber cambiado desde la captura.":"No se encuentra esta imagen en el artículo. Puede haber cambiado desde la captura.";
+  }).catch(error=>{if(!clear)hint.textContent=error.message;});
   if(clear)send();else locateTimer=setTimeout(send,140);
 }
 function drawCapture(c) {
@@ -139,6 +140,10 @@ function drawEmbeds(c){
       detail.textContent=type==='clip'?[item.duration?Math.round(item.duration)+' s':'',item.size?(item.size/1000000).toFixed(1)+' MB':''].filter(Boolean).join(' · ')||'Clip silencioso':type==='pen'?'CodePen · @'+item.user+' · copia ejecutable sin conexión':(item.text||'Publicación incrustada').slice(0,140);
       info.append(name,detail);
       if(item.warning){const warning=document.createElement('small');warning.className='embed-warning';warning.textContent=item.warning;info.append(warning);}
+      // Hover or keyboard focus scrolls the article to the resource and outlines it, as with images.
+      const tag={clip:'Clip',pen:'Demo',tweet:'Publicación'}[type]+' '+(list.indexOf(item)+1);
+      label.addEventListener('mouseenter',()=>locate(c,item.index,false,tag));label.addEventListener('mouseleave',()=>locate(c,item.index,true,tag));
+      label.addEventListener('focusin',()=>locate(c,item.index,false,tag));label.addEventListener('focusout',()=>locate(c,item.index,true,tag));
       label.append(check,thumb,info);$('embeds').append(label);
     }
   }

@@ -429,13 +429,15 @@ async function locateImage(message) {
   if(!c || c.token!==message.token)return {found:false};
   const source=c.source;
   if(!source?.tabId || source.session!==SESSION)throw new Error("Vuelve a capturar el artículo para localizar sus imágenes.");
-  const image=c.images[message.index];
+  // Embedded resources live in the top frame and carry their own locator.
+  const embed=message.embed?c.embeds?.[message.index]:null;
+  const image=message.embed?null:c.images[message.index];
   const frameId=image?.frameId||0;
-  if(!message.clear&&!image)return {found:false};
+  if(!message.clear&&!image&&!embed?.locator)return {found:false};
   try {
     await browser.tabs.executeScript(source.tabId,{file:"locate.js",frameId,matchAboutBlank:true});
     if(sequence!==locateSequence)return {found:false};
-    const input=message.clear?{clear:true}:{imageId:image.imageId,url:image.url,index:message.index};
+    const input=message.clear?{clear:true}:embed?{locator:embed.locator,label:message.label}:{imageId:image.imageId,url:image.url,index:message.index};
     const [result]=await browser.tabs.executeScript(source.tabId,{code:`globalThis.AnacoObLocateImage(${JSON.stringify(input)})`,frameId,matchAboutBlank:true});
     return result;
   } catch {throw new Error("No puedo localizar la imagen. Comprueba que el artículo sigue abierto y vuelve a capturarlo si ha cambiado.");}

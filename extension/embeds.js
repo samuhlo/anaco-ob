@@ -45,7 +45,9 @@ if(!globalThis.AnacoObEmbeds)globalThis.AnacoObEmbeds=(()=>{
     const items=[],seen=new Set();
     const add=(anchor,item,key)=>{
       if(!anchor||seen.has(key)||anchor.closest('[data-anaco-ob-embed]'))return;
-      seen.add(key);anchor.dataset.anacoObEmbed=String(items.length);items.push({index:items.length,...item});
+      // The locator outlives the capture so the panel can highlight the resource later.
+      const locator=crypto.randomUUID();anchor.dataset.anacoObLocate=locator;
+      seen.add(key);anchor.dataset.anacoObEmbed=String(items.length);items.push({index:items.length,locator,...item});
     };
     // The X widget keeps the original quote hidden next to its iframe.
     for(const quote of root.querySelectorAll('blockquote.twitter-tweet')){
