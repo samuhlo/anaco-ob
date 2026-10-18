@@ -129,3 +129,68 @@ class VaultScanTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class VaultInterpretationTest(unittest.TestCase):
+    setUp = VaultScanTest.setUp
+    tearDown = VaultScanTest.tearDown
+    app_for = VaultScanTest.app_for
+
+    def answer(self, base):
+        """A model answer in list form, refining the deterministic proposal."""
+        p = base["profile"]
+        return {
+            "types": [{"key": k, "label": v["label"], "filename": v["filename"]} for k, v in p["types"].items()],
+            "destinations": [{"pattern": r["pattern"], "types": r["types"], "default": r["default"], "derived": r["derived"], "study": r["pattern"].startswith("07_Clases")} for r in p["destinations"]],
+            "frontmatter": [{"key": f["key"], "from": f["from"], "value": str(f.get("value", "")), "index": f.get("index", -1), "keep_empty": bool(f.get("keep_empty")),
+                             "values": [{"folder": k, "value": v} for k, v in f.get("values", {}).items()], "when_types": f.get("when", {}).get("types", []),
+                             "when_folders": [], "when_assisted": "any" if "assisted" not in f.get("when", {}) else "yes"} for f in p["frontmatter"]],
+            "attachments": p["attachments"], "relation_roots": p["relation_roots"], "instructions": p["instructions"],
+            "default_destination": p["default_destination"],
+            "sections": [{"key": "relations", "heading": "Relacionadas"}],
+            "explanations": [{"rule": "frontmatter:zona", "explanation": "La guía de frontmatter define zona por carpeta."}],
+        }
+
+    def test_model_reads_only_chosen_documents_and_never_note_bodies(self):
+        from vault_scan import interpret
+        app = self.app_for(second_brain(self.root))
+        app.set_config({"provider": "codex"})
+        sent = {}
+        def fake(prompt, spec, model=None, images=None):
+            sent["prompt"] = prompt
+            return self.answer(propose(scan(app)))
+        from unittest.mock import patch
+        with patch.object(app, "codex_json", side_effect=fake):
+            result = interpret(app, ["AGENTS.md", "99_Recursos/guias/guia_frontmatter_y_relaciones.md", "00_Sistema/identidad_viva.md"])
+        self.assertIn("Leer la skill local", sent["prompt"])
+        self.assertIn("zona, area y relacionadas", sent["prompt"])
+        # Not an instruction document: rejected even if requested.
+        self.assertNotIn(SECRET, sent["prompt"])
+        self.assertNotIn("Manual vigente del vault", sent["prompt"])
+        self.assertEqual(result["profile"]["sections"], {"relations": "Relacionadas"})
+        self.assertIn("frontmatter:zona", result["evidence"])
+        self.assertTrue(result["assisted"])
+
+    def test_invented_folders_or_documents_fall_back_to_the_scan(self):
+        from vault_scan import interpret
+        app = self.app_for(second_brain(self.root))
+        app.set_config({"provider": "codex"})
+        bad = self.answer(propose(scan(app)))
+        bad["destinations"].append({"pattern": "Inventada/Carpeta", "types": ["nota_atomica"], "default": "nota_atomica", "derived": "nota_atomica", "study": False})
+        bad["instructions"].append("00_Sistema/identidad_viva.md")
+        from unittest.mock import patch
+        with patch.object(app, "codex_json", return_value=bad):
+            result = interpret(app, ["AGENTS.md"])
+        patterns = [r["pattern"] for r in result["profile"]["destinations"]]
+        self.assertNotIn("Inventada/Carpeta", patterns)
+        self.assertNotIn("00_Sistema/identidad_viva.md", result["profile"]["instructions"])
+        self.assertTrue(result["warnings"])
+
+    def test_manual_mode_uses_the_deterministic_proposal(self):
+        from vault_scan import interpret
+        app = self.app_for(second_brain(self.root))
+        from unittest.mock import patch
+        with patch.object(app, "codex_json", side_effect=AssertionError("no AI in manual mode")):
+            result = interpret(app, ["AGENTS.md"])
+        self.assertFalse(result["assisted"])
+        self.assertEqual(result["profile"], propose(scan(app))["profile"])
