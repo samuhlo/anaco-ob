@@ -335,7 +335,7 @@ def typed_fields(stats, destinations, evidence):
         spec = field_for(key, entry, stats, destinations)
         if not spec:
             continue
-        if share < 0.5 and "when" not in spec and spec["from"] not in ("folder_map", "path_segment"):
+        if share < 0.5 and "when" not in spec and spec["from"] != "folder_map":
             continue
         fields.append({"key": key, **spec})
         evidence[f"field:{key}"] = f"{entry['count']} de {total} notas en destinos usan {key}" + (f" ({spec['from']})" if spec["from"] != "constant" else "")
@@ -349,7 +349,7 @@ def field_for(key, entry, stats, destinations):
     for info in entry["folders"].values():
         values.update(info["values"])
     if any(v.startswith("(carpeta ") for v in values) and len(values) == 1:
-        return {"from": "path_segment", "index": int(next(iter(values))[9:-1])}
+        return {"from": "path_segment", "index": int(next(iter(values))[9:-1]), "when": {"folders": observed_roots(key, stats, destinations)}}
     for pattern, spec in SEMANTIC:
         if pattern.search(key):
             spec = dict(spec)
@@ -370,6 +370,11 @@ def field_for(key, entry, stats, destinations):
     if len(set(mapping.values())) == 1 and len(mapping) == len(destinations):
         return {"from": "constant", "value": next(iter(mapping.values()))}
     return {"from": "folder_map", "values": compress(mapping, destinations)}
+
+
+def observed_roots(key, stats, folders):
+    """Top-level folders whose notes carry the key."""
+    return sorted({f.split("/")[0] for f in folders if key in stats.get(f, {}).get("keys", {})})
 
 
 def types_where_present(key, stats, destinations):
@@ -483,6 +488,12 @@ def sanitize(profile, facts, allowed, warnings):
             for folder in unknown:
                 del spec["values"][folder]
     profile["frontmatter"] = [f for f in profile["frontmatter"] if f["from"] != "folder_map" or f["values"]]
+    for spec in profile["frontmatter"]:
+        if spec["from"] == "path_segment" and not spec.get("when", {}).get("folders"):
+            roots = observed_roots(spec["key"], facts["stats"], list(facts["stats"]))
+            if roots:
+                spec.setdefault("when", {})["folders"] = roots
+                warnings.append(f"El campo {spec['key']} se limita a {', '.join(roots)}, donde aparece en tus notas.")
     dropped = [p for p in profile["instructions"] if p not in allowed]
     if dropped:
         warnings.append("Se descartan documentos que no se han revisado: " + ", ".join(dropped))

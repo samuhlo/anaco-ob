@@ -67,6 +67,7 @@ def main():
     parser.add_argument("--manual-import", action="store_true", help="Check the separate manual importer and its review")
     parser.add_argument("--detection", action="store_true", help="Exercise active-tab detection and nested authenticated course resources")
     parser.add_argument("--options", action="store_true", help="Exercise vault discovery and manual configuration in Options")
+    parser.add_argument('--profile',action='store_true',help='Vault without profile: scan in Options, confirm, save a note with the vault frontmatter and detect a moved guide')
     parser.add_argument('--embeds-live',action='store_true',help='Network: capture the real Codrops spotlight with its tweets, pens and clips')
     parser.add_argument('--embeds',action='store_true',help='Embedded posts, CodePen and silent clips in a web article; course mode keeps the previous detection')
     parser.add_argument('--code',action='store_true',help='Capture cached real Codrops HTML and verify literal code and note organization')
@@ -87,6 +88,7 @@ def main():
     args.embeds=args.embeds or args.embeds_live
     if args.embeds:out=ROOT/'.test-artifacts'/('zen-embeds-live' if args.embeds_live else 'zen-embeds');out.mkdir(parents=True,exist_ok=True)
     if args.review_menu:out=ROOT/'.test-artifacts/zen-review-menu';out.mkdir(parents=True,exist_ok=True)
+    if args.profile:out=ROOT/'.test-artifacts/zen-profile';out.mkdir(parents=True,exist_ok=True)
     if args.split_review:out=ROOT/'.test-artifacts/zen-split-review';out.mkdir(parents=True,exist_ok=True)
     run_dir = Path(tempfile.mkdtemp(prefix="run-",dir=out))
     vault = run_dir / "Vault"
@@ -96,8 +98,14 @@ def main():
     (vault / "02_Cerebro/Tech_&_Codigo/recuperacion_paquetes.md").write_text("# Recuperación de paquetes\n\nLa recuperación de paquetes perdidos utiliza retransmisión en redes de ordenadores. Los routers conectan equipos.")
     app = App(run_dir / "state")
     app.set_config({"vault":str(vault), "provider":"codex" if args.ai else "manual",'note_structure':'linked' if args.editorial or args.workflow or args.review_menu else 'single'})
-    from vault_profile import install
-    install(app, json.loads((ROOT/'tests/fixtures/profile-classic.json').read_text()), '99_Recursos/anaco/perfil.json')
+    if args.profile:
+        # A reduced copy of the reorganized second_brain, with no profile yet.
+        sys.path.insert(0,str(ROOT/'tests'))
+        from test_vault_scan import second_brain
+        vault=second_brain(run_dir);app.set_config({"vault":str(vault),"provider":"manual"})
+    else:
+        from vault_profile import install
+        install(app, json.loads((ROOT/'tests/fixtures/profile-classic.json').read_text()), '99_Recursos/anaco/perfil.json')
     app.db.close()
     (ROOT / "tests/fixtures/diagram.png").write_bytes(fixture_png())
     if args.media or args.detection:
@@ -656,6 +664,47 @@ def main():
             driver.save_screenshot(str(out/'accepted.png'));finish_and_return('save',c['source']['tabId'])
             report={'passed':True,'suggestion_does_not_change_draft':True,'discard_preserves_note_and_edits':True,'accept_requires_user_click':True,'code_and_personal_annotation_preserved':True,'accepted_split_survives_reload':True,'review_before_save':True,'saved_new_notes':3,'vault':str(vault)}
             (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,indent=2));return
+        if args.profile:
+            wait.until(lambda d:not d.find_element(By.ID,'profileNotice').get_attribute('hidden'))
+            assert 'aún no tiene perfil' in driver.find_element(By.ID,'profileNoticeText').text
+            driver.save_screenshot(str(out/'panel-missing.png'))
+            panel_url=driver.current_url;driver.get(panel.replace('panel.html','options.html'))
+            wait.until(lambda d:'aún no tiene perfil' in d.find_element(By.ID,'profileStatus').text)
+            driver.find_element(By.ID,'profileScan').click()
+            wait.until(lambda d:d.find_element(By.ID,'profileDocs').is_displayed())
+            docs={b.get_attribute('value'):b.is_selected() for b in driver.find_elements(By.CSS_SELECTOR,'#profileDocList input')}
+            assert docs.get('AGENTS.md') and docs.get('99_Recursos/guias/guia_frontmatter_y_relaciones.md') and '00_Sistema/identidad_viva.md' not in docs,docs
+            driver.find_element(By.ID,'profileAutomatic').click()
+            wait.until(lambda d:d.find_element(By.ID,'profileReview').is_displayed())
+            form=driver.find_element(By.ID,'profileForm').text
+            assert '02_Cerebro/Tech_&_Codigo' in form and 'relacionadas' in form,form[:500]
+            proposed=json.loads(driver.find_element(By.ID,'profileJson').get_attribute('value'))
+            assert not any(r['pattern'].startswith(('05_Archivo_Legacy','00_Sistema','01_Diario','99_Recursos')) for r in proposed['destinations']),proposed['destinations']
+            assert driver.find_element(By.ID,'profilePath').get_attribute('value')=='99_Recursos/anaco/perfil.json'
+            driver.save_screenshot(str(out/'options-review.png'))
+            driver.execute_script('arguments[0].scrollIntoView()',driver.find_element(By.ID,'profileSave'));driver.find_element(By.ID,'profileSave').click()
+            wait.until(lambda d:'Perfil guardado' in d.find_element(By.ID,'message').text)
+            assert (vault/'99_Recursos/anaco/perfil.json').is_file()
+            wait.until(lambda d:'Perfil confirmado' in d.find_element(By.ID,'profileStatus').text)
+            driver.get(panel_url);wait.until(lambda d:d.find_element(By.ID,'profileNotice').get_attribute('hidden'))
+            before={p for p in vault.rglob('*.md')}
+            c=capture({});Select(field('provider')).select_by_value('manual')
+            driver.find_element(By.ID,'prepare').click();open_review()
+            finish_and_return('save',c['source']['tabId'])
+            created=[p for p in vault.rglob('*.md') if p not in before]
+            assert len(created)==1,created
+            note=created[0].read_text();(out/'note.md').write_text(note)
+            assert created[0].parent.name=='Tech_&_Codigo' and created[0].name.startswith('nota_'),created[0]
+            for line in ('tipo: "nota_atomica"','zona: "cerebro"','area: "tech_codigo"','relacionadas: []'):assert line in note,(line,note[:600])
+            for old in ('version:','estado:','llm_asistido:'):assert old not in note.split('---')[1],(old,note[:600])
+            (vault/'99_Recursos/guias/MANUAL_VAULT.md').rename(vault/'MANUAL_VAULT.md')
+            problems=message({'type':'native','message':{'action':'status'}})['profile']['problems']
+            assert any('MANUAL_VAULT.md' in p for p in problems),problems
+            driver.get(panel_url);wait.until(lambda d:'MANUAL_VAULT.md' in d.find_element(By.ID,'profileNoticeText').text)
+            driver.save_screenshot(str(out/'panel-review.png'))
+            report={'passed':True,'missing_profile_notice':True,'scan_documents_without_private_notes':True,'automatic_proposal_reviewed':True,'profile_saved':'99_Recursos/anaco/perfil.json',
+                    'note':created[0].relative_to(vault).as_posix(),'vault_frontmatter':True,'old_fields_absent':True,'moved_guide_asks_review':True}
+            (out/'report.json').write_text(json.dumps(report,indent=2,ensure_ascii=False));print(json.dumps(report,indent=2,ensure_ascii=False));return
         if args.embeds_live:
             live='https://tympanus.net/codrops/2026/10/16/ksenia-kondrashova/'
             c=capture({},live)

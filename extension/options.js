@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 const call = message => browser.runtime.sendMessage({type: "native", message});
-const configKeys = ["vault", "vault_mode", "note_structure", "attachments", "provider", "model", "vision_model", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model"];
+const configKeys = ["vault", "vault_mode", "note_structure", "provider", "model", "vision_model", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model"];
 let manualPath = "", savedPath = "", savedAvailable = false, detecting = false;
 const draftKey = 'optionsDraft';
 let loaded = false, dirty = false;
@@ -9,8 +9,7 @@ function rememberDraft() {
   if (!loaded) return;
   dirty = true;
   localStorage.setItem(draftKey, JSON.stringify({
-    values: Object.fromEntries(configKeys.map(k => [k, $(k).value])), manualPath,
-    roots: [...document.querySelectorAll('[name="root"]:checked')].map(e => e.value)
+    values: Object.fromEntries(configKeys.map(k => [k, $(k).value])), manualPath
   }));
   $('options-draft-status').textContent = 'Cambios sin guardar · se conservan al volver';
 }
@@ -85,15 +84,11 @@ async function load() {
     savedPath = manualPath = s.config.vault;
     savedAvailable = s.vault_available;
     if (!s.config.describe_images) $("vision_policy").value = "metadata";
-    for (const box of document.querySelectorAll('[name="root"]')) {
-      box.checked = s.config.read_roots.includes(box.value);
-    }
     let draft;
     try { draft = JSON.parse(localStorage.getItem(draftKey)); } catch { localStorage.removeItem(draftKey); }
-    if (draft?.values && Array.isArray(draft.roots)) {
+    if (draft?.values) {
       for (const k of configKeys) if (typeof draft.values[k] === 'string') $(k).value = draft.values[k];
       manualPath = draft.manualPath ?? draft.values.vault;
-      for (const box of document.querySelectorAll('[name="root"]')) box.checked = draft.roots.includes(box.value);
       dirty = true;
       $('options-draft-status').textContent = 'Cambios sin guardar · se conservan al volver';
     }
@@ -126,7 +121,6 @@ $("settings").onsubmit = async event => {
     const values = Object.fromEntries(configKeys.map(k => [k, $(k).value]));
     for (const k of ["reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames"]) values[k] = Number(values[k]);
     values.describe_images = values.vision_policy !== "metadata";
-    values.read_roots = [...document.querySelectorAll('[name="root"]:checked')].map(e => e.value);
     const config = await call({action: "configure", values});
     savedPath = config.vault;
     savedAvailable = true;
@@ -137,6 +131,7 @@ $("settings").onsubmit = async event => {
     $('options-draft-status').textContent = 'Opciones guardadas';
     await browser.storage.local.set({currentCapture: null, draftResult: null, editorFields: null, operationError: "", settingsRevision: crypto.randomUUID()});
     notice("Opciones guardadas. Las capturas pendientes siguen disponibles desde su vault de origen.");
+    globalThis.AnacoObProfileCard?.refresh();
     if (event.submitter?.id === 'save-and-back') await returnToCapture(event);
   } catch (e) { notice(e.message, true); }
   finally { submit.disabled = $('save-and-back').disabled = false; }

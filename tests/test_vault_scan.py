@@ -100,6 +100,8 @@ class VaultScanTest(unittest.TestCase):
         self.assertEqual(fm["relacionadas"], ["[[02_Cerebro/Modelos_Mentales/nota_modelo_0|Modelo 0]]"])
         self.assertEqual(fm["fuente_url"], "https://example.org/x")
         self.assertNotIn("version", fm)
+        # Course fields come from the path only where courses live.
+        self.assertNotIn("curso", fm)
         clase = profile.frontmatter({"type": "ejercicio", "folder": "07_Clases/01_Habilitacion_Docencia/02_Programacion", "tags": [], "created": "2026-10-18", "relations": []})
         self.assertEqual((clase["zona"], clase["curso"], clase["asignatura"], clase["relacionadas"]), ("clases", "Habilitacion Docencia", "Programacion", []))
         self.assertIn("99_Recursos/guias/MANUAL_VAULT.md", profile.data["instructions"])

@@ -153,6 +153,9 @@ async function refresh() {
   try {
     status=await call({action:"status"});
     if(!structureInitialized){$('noteStructure').value=status.config.note_structure||'single';structureInitialized=true;}$("connection").textContent="SERVICIO LOCAL CONECTADO";
+    // [UI] The vault profile decides where notes go: missing or outdated, say so before preparing.
+    const profile=status.profile||{};$('profileNotice').hidden=!(profile.missing||profile.problems?.length);
+    $('profileNoticeText').textContent=profile.missing?'Este vault aún no tiene perfil: escanéalo en Opciones antes de guardar notas.':profile.problems?.length?profile.problems[0]+(profile.problems.length>1?` (y ${profile.problems.length-1} más)`:''):'';
     if(serviceError && $('error').textContent === serviceError) $('error').hidden=true;
     serviceError='';
     $('recoverSection').hidden=!(status.jobs||[]).length;$('recoverJobs').replaceChildren();
@@ -229,6 +232,7 @@ function reviewAction(command,note,value){
 }
 for(const [id,action] of Object.entries({reviewRead:'read',reviewEdit:'edit',reviewProperties:'properties',reviewConnections:'connections',reviewRefreshLinks:'refreshLinks',reviewSplit:'split',reviewFocus:'focus',reviewSave:'save'}))$(id).onclick=run(()=>reviewAction(action));
 $('reviewChooser').onchange=()=>{preferredReview=$('reviewChooser').value;browser.runtime.sendMessage({type:'reviewCommand',id:preferredReview,windowId:panelWindowId,command:'focus'}).catch(showError);};
+$("profileReviewButton").onclick=run(async()=>browser.runtime.sendMessage({type:'openOptions',windowId:panelWindowId}));
 $("options").onclick=run(async()=>{
   await browser.runtime.sendMessage({type:'openOptions',windowId:panelWindowId});
 });
