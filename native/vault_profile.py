@@ -308,6 +308,10 @@ def install(app, data, rel):
     if not rel.endswith(".json"):
         raise UserError("El perfil del vault se guarda como archivo .json.")
     profile = Profile(vault, json.loads(json.dumps(data)), rel)
+    # A new vault receives the folders the confirmed profile asked to create.
+    for rule in profile.data["destinations"]:
+        if rule.get("create") and not any(ch in rule["pattern"] for ch in "*?"):
+            safe_path(vault, rule["pattern"]).mkdir(parents=True, exist_ok=True)
     path = safe_path(vault, rel)
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name("." + path.name + ".tmp")
