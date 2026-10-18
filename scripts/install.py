@@ -3,7 +3,6 @@
 import argparse
 import json
 from pathlib import Path
-import shlex
 import shutil
 import sys
 import zipfile
@@ -32,7 +31,8 @@ def main():
     parser.add_argument("--state", type=Path, default=STATE)
     parser.add_argument("--vault", type=Path)
     args = parser.parse_args()
-    default_install = args.state.resolve() == (Path.home() / ".local/share/anaco-ob").resolve()
+    from installer import default_state
+    default_install = args.state.resolve() == default_state().resolve()
     if default_install and migrate_state(Path.home() / ".local/share/zen-second-brain", args.state.resolve()):
         print("Configuración, capturas e historial migrados a:", args.state)
     app = App(args.state)
@@ -42,21 +42,16 @@ def main():
         cfg["vault_mode"] = "manual"
     cfg["codex"] = shutil.which("codex") or cfg["codex"]
     json_dump(args.state / "config.json", cfg)
-    launcher = args.state.resolve() / "native-host"
-    launcher.write_text("#!/bin/sh\nexport ANACO_OB_STATE=" + shlex.quote(str(args.state.resolve())) +
-                        "\nexec " + shlex.quote(sys.executable) + " " + shlex.quote(str(ROOT / "native/host.py")) + "\n")
-    launcher.chmod(0o700)
-    # Keep the installation ID so renaming preserves browser preferences and edits.
-    manifest = {"name": "org.samuh.anaco_ob", "description": "Anaco local host",
-                "path": str(launcher), "type": "stdio", "allowed_extensions": ["anaco-ob@samuhlo"]}
-    for directory in (Path.home() / ".mozilla/native-messaging-hosts", Path.home() / ".config/zen/native-messaging-hosts"):
-        target = directory / "org.samuh.anaco_ob.json"
-        json_dump(target, manifest)
+    from installer import install
+    result = install(args.state)
+    for target in result["registered"]:
         print("Registrado:", target)
-        # An already loaded version can reconnect until Anaco is reloaded.
-        legacy = directory / "org.samuh.second_brain.json"
-        if default_install and legacy.exists():
-            json_dump(legacy, {**manifest, "name": "org.samuh.second_brain"})
+    if default_install:
+        # An already loaded old version can reconnect until Anaco is reloaded.
+        for directory in (Path.home() / ".mozilla/native-messaging-hosts", Path.home() / ".config/zen/native-messaging-hosts"):
+            legacy = directory / "org.samuh.second_brain.json"
+            if legacy.exists():
+                json_dump(legacy, {**json.loads((directory / "org.samuh.anaco_ob.json").read_text()), "name": "org.samuh.second_brain"})
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
     version = json.loads((ROOT / "extension/manifest.json").read_text())["version"]

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "anaco-ob"
+version = "0.11.0"
+description = "Local service for Anaco: captures from Zen/Firefox into reviewed notes for your Obsidian vault."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "samuhlo" }]
+requires-python = ">=3.11"
+dependencies = []
+classifiers = [
+  "Environment :: Console",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: Text Processing :: Markup :: Markdown",
+]
+
+[project.urls]
+Homepage = "https://github.com/samuhlo/anaco-ob"
+Issues = "https://github.com/samuhlo/anaco-ob/issues"
+
+[project.scripts]
+anaco-ob = "anaco_ob.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["anaco_ob"]
+
+# The service modules and the editorial contract travel inside the package.
+[tool.hatch.build.targets.wheel.force-include]
+"native" = "anaco_ob/native"
+"skills/anaco-ob/SKILL.md" = "anaco_ob/skills/anaco-ob/SKILL.md"
+
+[tool.hatch.build.targets.sdist]
+include = ["anaco_ob", "native", "skills", "README.md", "LICENSE", "PRIVACY.md"]

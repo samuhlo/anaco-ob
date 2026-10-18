@@ -34,3 +34,23 @@ jobs:
       # PDF fixtures need Ghostscript (ps2pdf); PDF and media tests call Poppler and FFmpeg.
       - run: sudo apt-get update && sudo apt-get install -y poppler-utils ffmpeg ghostscript
       - run: python -m unittest discover -s tests -v
+
+  install:
+    # Real install with pipx and a framed Native Messaging round trip on each system.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest tests.test_installer -v
+      - run: pipx install .
+      - run: mkdir vault-ci
+      - run: anaco-ob install --vault vault-ci
+      - run: anaco-ob doctor || true
+      - run: python scripts/smoke_native_host.py
+      - run: anaco-ob uninstall --purge
