@@ -8,6 +8,7 @@
 
   <img src="https://img.shields.io/badge/STATUS-ACTIVE-FFCA40?style=for-the-badge&labelColor=000000" alt="Status" />
   <img src="https://img.shields.io/badge/VERSIÓN-0.11.0-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
+  <img src="https://img.shields.io/badge/LICENCIA-MIT-FFCA40?style=for-the-badge&labelColor=000000" alt="Licencia MIT" />
   <br/>
   <img src="https://img.shields.io/badge/Zen_·_Firefox-0C0011?style=for-the-badge&logo=firefoxbrowser&logoColor=FFCA40&labelColor=000000" alt="Zen y Firefox" />
   <img src="https://img.shields.io/badge/Obsidian-0C0011?style=for-the-badge&logo=obsidian&logoColor=FFCA40&labelColor=000000" alt="Obsidian" />
@@ -19,7 +20,6 @@
   <br/><br/>
 
 [Guía de prueba](PRUEBA.md) ·
-[Idea](IDEA.md) ·
 [Historial](docs/HISTORIAL.md) ·
 [Validación](docs/VALIDACION.md) ·
 [Notas técnicas](docs/TECNICO.md)
@@ -149,11 +149,11 @@ docs/          # Historial, validación, notas técnicas y capturas
 
 ---
 
-## // 08_ TESTS · DOCS · ESTADO
+## // 08_ TESTS · DOCS · ESTADO · LICENCIA
 
 - **Estado:** 0.11.0, en uso diario. Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
-- **Docs:** [guía de prueba](PRUEBA.md), [idea del producto](IDEA.md), [plan](PLAN.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md) y [contrato editorial de la IA](skills/anaco-ob/SKILL.md).
-- **Licencia:** todavía sin licencia publicada.
+- **Docs:** [guía de prueba](PRUEBA.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md) y [contrato editorial de la IA](skills/anaco-ob/SKILL.md).
+- **Licencia:** [MIT](LICENSE).
 
 ---
 

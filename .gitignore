@@ -6,3 +6,7 @@ dist/
 .test-artifacts/
 node_modules/
 
+WORK.md
+PLAN.md
+IDEA.md
+.codegraph/
