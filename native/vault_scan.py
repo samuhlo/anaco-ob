@@ -282,22 +282,55 @@ def propose(facts):
         info = stats[folder]
         for kind, shapes in info["shapes"].items():
             all_shapes[kind or "nota"].update(shapes)
+    # A type seen once is an exception, not a convention to offer for new notes.
+    counts = Counter()
+    for folder in destinations:
+        for kind, count in stats[folder]["types"].items():
+            counts[kind or "nota"] += count
+    all_shapes = {k: v for k, v in all_shapes.items() if counts[k] >= 2} or all_shapes
     for kind, shapes in all_shapes.items():
         best, count = shapes.most_common(1)[0]
         total = sum(shapes.values())
         pattern = best + ".md" if count * 10 >= total * 6 and count >= 2 else "{title}.md"
         types[kind] = {"label": kind.replace("_", " ").capitalize(), "filename": pattern}
         evidence[f"filename:{kind}"] = f"{count} de {total} notas de tipo {kind} se llaman como {best}" if pattern != "{title}.md" else f"Las notas de tipo {kind} no siguen un patrón común: se usará el título"
-    for folder in sorted(destinations):
-        info = stats[folder]
-        ranked = [k or "nota" for k, _ in sorted(Counter(info["types"]).items(), key=lambda kv: (kv[0] in INDEX_TYPES, -kv[1], kv[0]))]
-        default = ranked[0]
-        rules.append({"pattern": folder, "types": ranked, "default": default, "derived": ranked[1] if len(ranked) > 1 and default.startswith("fuente") else default})
-        evidence[f"destination:{folder}"] = f"{info['count']} notas; tipos: " + ", ".join(f"{k or 'nota'} ({v})" for k, v in Counter(info["types"]).most_common(5))
+    rules = zone_rules(facts, destinations, types, evidence)
     fields = typed_fields(stats, destinations, evidence) if typed else generic_fields()
     if not typed:
         evidence["frontmatter"] = "Las notas no tienen un tipo en el frontmatter: se usará un frontmatter mínimo."
     return finish(facts, types, rules, fields, evidence, destinations[0])
+
+
+def zone_rules(facts, destinations, types, evidence):
+    """One rule per top-level folder: its subfolders share types and defaults.
+    Folders inside a zone that are not destinations are excluded explicitly."""
+    stats, zones = facts["stats"], defaultdict(list)
+    for folder in destinations:
+        zones[folder.split("/")[0]].append(folder)
+    rules = []
+    for zone, folders in sorted(zones.items()):
+        counter = Counter()
+        for folder in folders:
+            counter.update({(k or "nota"): v for k, v in stats[folder]["types"].items()})
+        ranked = [k for k, _ in sorted(counter.items(), key=lambda kv: (kv[0] in INDEX_TYPES, -kv[1], kv[0])) if k in types]
+        if not ranked:
+            continue
+        default = ranked[0]
+        derived = next((k for k in ranked[1:] if default.startswith("fuente") and k not in INDEX_TYPES), default)
+        if len(folders) == 1:
+            pattern, exclude = folders[0], []
+        else:
+            pattern = zone + "/**" if zone in folders else zone + "/*/**"
+            inside = [f for f in facts["folders"] if f.startswith(zone + "/") or f == zone]
+            exclude = sorted(f for f in inside if f not in folders and stats.get(f, {}).get("count") and not any(f.startswith(x + "/") for x in facts["excluded"] if x.startswith(zone)))
+            exclude = sorted(set(exclude) | {x for x in facts["excluded"] if x.startswith(zone + "/")})
+        rule = {"pattern": pattern, "types": ranked, "default": default, "derived": derived}
+        if exclude:
+            rule["exclude"] = exclude
+        rules.append(rule)
+        notes = sum(stats[f]["count"] for f in folders)
+        evidence[f"destination:{pattern}"] = f"{len(folders)} carpetas con {notes} notas; tipos: " + ", ".join(f"{k} ({v})" for k, v in counter.most_common(5))
+    return rules
 
 
 def generic_fields():
@@ -365,7 +398,7 @@ def field_for(key, entry, stats, destinations):
             continue
         mapping[folder] = next(iter(options))
     covered = sum(stats[f]["count"] for f in mapping)
-    if not mapping or (len(mapping) < 2 and covered * 10 < sum(stats[f]["count"] for f in destinations) * 3):
+    if not mapping or covered * 10 < sum(stats[f]["count"] for f in destinations) * 3:
         return None
     if len(set(mapping.values())) == 1 and len(mapping) == len(destinations):
         return {"from": "constant", "value": next(iter(mapping.values()))}
@@ -414,7 +447,9 @@ def finish(facts, types, rules, fields, evidence, default):
     evidence["attachments"] = f"Carpeta de adjuntos detectada: {roles['attachments']}" if roles["attachments"] else "No hay carpeta de adjuntos: se propone una nueva"
     profile = {"schema": SCHEMA, "types": types, "destinations": rules, "frontmatter": fields, "attachments": attachments,
                "relation_roots": tops if tops != ["Anaco"] else [], "instructions": documents[:20], "sections": {}, "default_destination": default}
-    return {"profile": profile, "evidence": evidence, "excluded": facts["excluded"], "documents": facts["documents"]}
+    # Only templates for types Anaco can create are suggested to the model.
+    shown = [{**d, "suggested": d["suggested"] and (d["kind"] != "template" or d["type"] in types)} for d in facts["documents"]]
+    return {"profile": profile, "evidence": evidence, "excluded": facts["excluded"], "documents": shown}
 
 
 # =============================================================================
@@ -429,7 +464,7 @@ def response_schema():
     sources = sorted(__import__("vault_profile").SOURCES)
     return obj({
         "types": {"type": "array", "items": obj({"key": string, "label": string, "filename": string})},
-        "destinations": {"type": "array", "items": obj({"pattern": string, "types": strings, "default": string, "derived": string, "study": {"type": "boolean"}})},
+        "destinations": {"type": "array", "items": obj({"pattern": string, "types": strings, "default": string, "derived": string, "study": {"type": "boolean"}, "exclude": strings})},
         "frontmatter": {"type": "array", "items": obj({"key": string, "from": {"type": "string", "enum": sources}, "value": string, "index": {"type": "integer"},
                                                         "keep_empty": {"type": "boolean"}, "values": {"type": "array", "items": obj({"folder": string, "value": string})},
                                                         "when_types": strings, "when_folders": strings, "when_assisted": {"type": "string", "enum": ["any", "yes", "no"]}})},
@@ -462,7 +497,7 @@ def from_response(answer):
             spec["when"] = when
         fields.append(spec)
     return {"schema": SCHEMA, "types": {t["key"]: {"label": t["label"], "filename": t["filename"]} for t in answer["types"]},
-            "destinations": [{k: r[k] for k in ("pattern", "types", "default", "derived")} | ({"study": True} if r["study"] else {}) for r in answer["destinations"]],
+            "destinations": [{k: r[k] for k in ("pattern", "types", "default", "derived")} | ({"study": True} if r["study"] else {}) | ({"exclude": r["exclude"]} if r.get("exclude") else {}) for r in answer["destinations"]],
             "frontmatter": fields, "attachments": answer["attachments"], "relation_roots": answer["relation_roots"], "instructions": answer["instructions"],
             "default_destination": answer["default_destination"], "sections": {s["key"]: s["heading"] for s in answer["sections"] if s["heading"].strip()}}
 
@@ -524,6 +559,8 @@ def interpret(app, chosen):
               "Propón el perfil del vault: dónde guarda Anaco, qué tipos usa en cada carpeta, cómo se llaman los archivos, de dónde sale cada campo del frontmatter, "
               "dónde van los adjuntos, en qué carpetas buscar relaciones, qué documentos debe leer el redactor y los encabezados de las partes que añade Anaco. "
               "Las instrucciones del vault mandan sobre la propuesta automática. Usa la evidencia: no inventes carpetas, tipos sin uso ni documentos. "
+              "Mantén el perfil breve para que el usuario lo revise de un vistazo: una regla por zona con patrones como Zona/*/** y exclude para las subcarpetas que no deben recibir notas, "
+              "solo los tipos y campos de frontmatter que Anaco necesita al crear notas nuevas, y solo los documentos que de verdad orientan la redacción. "
               "Excluye diario, archivo, plantillas, sistema y adjuntos como destino, salvo que las instrucciones digan otra cosa. "
               "Nombres de archivo: solo {date}, {slug_}, {slug-}, {title}, {type} y {variant}, terminados en .md. "
               "Orígenes de frontmatter: type, constant, folder_map, path_segment, tags, context, title, created, today, url, author, source_format, assisted, model, relations. "

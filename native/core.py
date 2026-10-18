@@ -696,7 +696,7 @@ class App:
             if action == "profile_scan":
                 facts = scan(self)
                 proposal = propose(facts)
-                return {"documents": facts["documents"], "roles": facts["roles"], "excluded": facts["excluded"], "notes": facts["notes"],
+                return {"documents": proposal["documents"], "roles": facts["roles"], "excluded": facts["excluded"], "notes": facts["notes"],
                         "folders": sorted(facts["folders"]), "proposal": proposal, "suggested_path": suggested_path(facts)}
             if action == "profile_interpret":
                 return interpret(self, [clean(p, 500) for p in message.get("documents", [])][:40])

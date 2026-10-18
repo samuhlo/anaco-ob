@@ -73,7 +73,8 @@ class Profile:
 
     def rule(self, folder, required=True):
         for rule in self.data["destinations"]:
-            if matches(rule["pattern"], folder):
+            excluded = any(folder == e or folder.startswith(e + "/") for e in rule.get("exclude", []))
+            if matches(rule["pattern"], folder) and not excluded:
                 return rule
         if required:
             raise UserError("El destino no existe o no respeta la estructura del vault.")
@@ -256,6 +257,9 @@ def validate(vault, data):
             rule[key] = rule.get(key) or chosen[0]
             if rule[key] not in chosen:
                 raise UserError(f"Perfil del vault: el tipo predeterminado de {rule['pattern']} no está entre sus tipos.")
+        rule["exclude"] = [relative(vault, e, "una carpeta excluida") for e in rule.get("exclude") or []][:50]
+        if not rule["exclude"]:
+            del rule["exclude"]
         for kind, pattern in (rule.get("filenames") or {}).items():
             if kind not in chosen:
                 raise UserError(f"Perfil del vault: {rule['pattern']} define nombres para un tipo que no admite.")

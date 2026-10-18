@@ -100,3 +100,6 @@ header img.brand-mark,.review-brand img.brand-mark{width:auto;height:26px}
 .profile-evidence{display:block;margin-top:6px;font-size:11px}.profile-notes{margin:6px 0;padding-left:18px;font-size:12px}.profile-notes li{margin:4px 0}
 #profileJson{font:12px/1.5 ui-monospace,monospace}#profileSave{margin-top:12px}
 @media(max-width:520px){.profile-fields{grid-template-columns:minmax(0,1fr)}}
+.profile-summary{border:1px solid var(--tint-line);background:var(--tint);border-radius:18px;padding:14px 18px;margin:12px 0}.profile-summary h4{margin:0 0 6px;font-size:14px;font-weight:600}.profile-summary ul{margin:0;padding-left:18px}.profile-summary li{margin:5px 0;overflow-wrap:anywhere}
+details.profile-section{padding:4px 16px}details.profile-section>summary{font-size:13px;font-weight:600;color:var(--text);padding:10px 0}details.profile-section[open]{padding-bottom:14px}
+.profile-group{margin:6px 0}.profile-group>summary{font-size:12px}

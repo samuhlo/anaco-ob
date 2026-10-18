@@ -7,14 +7,9 @@ Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/a
 Recarga la extensión y abre el panel. Mientras el vault no tenga perfil verás **Este vault aún no tiene perfil** con **Revisar perfil**.
 
 1. En **Opciones → Perfil del vault**, pulsa **Escanear el vault**. Se leen carpetas, nombres y metadatos; el contenido de tus notas no sale del ordenador.
-2. Revisa **Documentos que puede leer la IA**. En tu vault deberían aparecer marcados `AGENTS.md`, el skill `second-brain-vault`, tus guías de `99_Recursos/guias/` y las plantillas. Tus notas de `00_Sistema` no aparecen. Desmarca lo que no quieras enviar.
+2. Revisa **Documentos que puede leer la IA**, agrupados en instrucciones y skills, guías y plantillas, con los sugeridos ya marcados. En tu vault deberían estar marcados `AGENTS.md`, el skill `second-brain-vault`, tus guías de `99_Recursos/guias/` y las plantillas de los tipos que Anaco puede crear. Tus notas de `00_Sistema` no aparecen.
 3. Pulsa **Proponer con IA**: la IA lee esos documentos y las estadísticas y propone el perfil. Con **Usar la propuesta automática** no se usa IA.
-4. Revisa el formulario. Cada regla muestra su evidencia:
-   - destinos y tipos por carpeta;
-   - nombres de archivo;
-   - frontmatter, con el origen de cada campo (`zona` y `area` según la carpeta, `relacionadas` desde las relaciones aceptadas…);
-   - adjuntos, carpetas de relaciones, documentos para redactar y encabezados.
-   Desmarca lo que sobre o ajusta el JSON.
+4. Lee **Lo que hará Anaco**: en pocas líneas, las zonas donde guardará (una regla por zona, por ejemplo `02_Cerebro`), el tipo por defecto, los metadatos, los adjuntos y cuántos documentos leerá la IA. Si quieres cambiar algo, abre el desplegable **Ajustar…** de esa parte: cada regla muestra su evidencia. El JSON completo sigue disponible.
 5. Pulsa **Confirmar perfil**. Se guarda en la ruta indicada (propuesta: `99_Recursos/anaco/perfil.json`), que LiveSync sincroniza.
 6. Captura una página y guárdala: la nota sigue las reglas del perfil y la estructura de tus plantillas. Tus notas existentes no se modifican.
 7. Mueve o edita una guía del perfil: el panel avisará con **Revisar perfil**. Si un destino deja de existir, guardar en él muestra un error claro.

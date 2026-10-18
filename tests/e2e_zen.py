@@ -686,8 +686,13 @@ def main():
             driver.find_element(By.ID,'profileAutomatic').click()
             wait.until(lambda d:d.find_element(By.ID,'profileReview').is_displayed())
             form=driver.find_element(By.ID,'profileForm').text
-            assert '02_Cerebro/Tech_&_Codigo' in form and 'relacionadas' in form,form[:500]
+            # The review opens on a short summary; every section starts folded.
+            summary=driver.find_element(By.CSS_SELECTOR,'#profileForm .profile-summary').text
+            assert 'Guarda en' in summary and '02_Cerebro' in summary,summary
+            assert not any(d.get_attribute('open') for d in driver.find_elements(By.CSS_SELECTOR,'#profileForm details.profile-section'))
+            assert len(form.splitlines())<40,len(form.splitlines())
             proposed=json.loads(driver.find_element(By.ID,'profileJson').get_attribute('value'))
+            assert len(proposed['destinations'])<=4 and 'relacionadas' in [f['key'] for f in proposed['frontmatter']],proposed
             assert not any(r['pattern'].startswith(('05_Archivo_Legacy','00_Sistema','01_Diario','99_Recursos')) for r in proposed['destinations']),proposed['destinations']
             assert driver.find_element(By.ID,'profilePath').get_attribute('value')=='99_Recursos/anaco/perfil.json'
             driver.save_screenshot(str(out/'options-review.png'))

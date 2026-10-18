@@ -153,3 +153,17 @@ class InvalidProfileTest(unittest.TestCase):
         self.assertTrue(status["missing"])
         self.assertIn("ilegible", status["message"])
         self.assertEqual(self.app.handle({"action": "profile_get"})["path"], "Anaco/perfil.json")
+
+
+class ZoneRulesTest(unittest.TestCase):
+    setUp = ProfileTest.setUp
+    tearDown = ProfileTest.tearDown
+
+    def test_a_zone_rule_covers_subfolders_except_the_excluded_ones(self):
+        (self.vault / "03_Proyectos/App/guias").mkdir(parents=True)
+        (self.vault / "03_Proyectos/Web").mkdir(parents=True)
+        zone = {**GENERIC, "destinations": [{"pattern": "03_Proyectos/*/**", "types": ["nota"], "default": "nota", "derived": "nota", "exclude": ["03_Proyectos/App/guias"]}]}
+        install(self.app, zone, "Anaco/perfil.json")
+        self.assertEqual(self.app.vault_profile().destinations(), ["03_Proyectos/App", "03_Proyectos/Web"])
+        with self.assertRaises(UserError):
+            install(self.app, {**zone, "destinations": [{**zone["destinations"][0], "exclude": ["../fuera"]}]}, "Anaco/perfil.json")

@@ -45,10 +45,16 @@ globalThis.AnacoObProfileCard = (() => {
     try {
       scanned = await call({action: "profile_scan"});
       $("profileDocList").replaceChildren();
-      const labels = {instructions: "Instrucciones", skill: "Skill", guide: "Guía", template: "Plantilla"};
-      for (const doc of scanned.documents) {
-        const box = el("input", {type: "checkbox", value: doc.path, checked: doc.suggested});
-        $("profileDocList").append(el("label", {className: "profile-option"}, box, " ", el("span", {textContent: doc.path}), el("small", {textContent: ` · ${labels[doc.kind] || doc.kind}`})));
+      // Grouped by kind; long groups stay folded with their count.
+      const groups = [["Instrucciones y skills", ["instructions", "skill"], true], ["Guías", ["guide"], false], ["Plantillas", ["template"], false]];
+      for (const [title, kinds, open] of groups) {
+        const docs = scanned.documents.filter(d => kinds.includes(d.kind));
+        if (!docs.length) continue;
+        const marked = docs.filter(d => d.suggested).length;
+        const boxes = docs.sort((a, b) => b.suggested - a.suggested || a.path.localeCompare(b.path)).map(doc =>
+          el("label", {className: "profile-option"}, el("input", {type: "checkbox", value: doc.path, checked: doc.suggested}), " ", el("span", {textContent: doc.path})));
+        $("profileDocList").append(el("details", {className: "profile-group", open: open || docs.length <= 3},
+          el("summary", {textContent: `${title} · ${marked} de ${docs.length} marcadas`}), ...boxes));
       }
       if (!scanned.documents.length) $("profileDocList").append(el("p", {className: "muted", textContent: "No se han encontrado instrucciones ni plantillas en el vault."}));
       $("profileDocs").hidden = false;
@@ -78,8 +84,31 @@ globalThis.AnacoObProfileCard = (() => {
   // ===========================================================================
   // [UI] REVIEW FORM
   // ===========================================================================
+  const opened = new Set();
+  // Folded by default; a section stays open across re-renders once opened.
   function section(title, intro, ...rows) {
-    return el("fieldset", {className: "profile-section"}, el("legend", {textContent: title}), intro ? el("p", {className: "muted"}, el("small", {textContent: intro})) : null, ...rows);
+    const node = el("details", {className: "profile-section", open: opened.has(title)}, el("summary", {textContent: title}), intro ? el("p", {className: "muted"}, el("small", {textContent: intro})) : null, ...rows);
+    node.ontoggle = () => node.open ? opened.add(title) : opened.delete(title);
+    return node;
+  }
+  // Same glob as native/vault_profile.py: * is one segment, ** any number.
+  function matches(pattern, folder) {
+    const walk = (p, f) => !p.length ? !f.length : p[0] === "**" ? f.map((_, i) => i).concat(f.length).some(i => walk(p.slice(1), f.slice(i))) : f.length > 0 && (p[0] === "*" || p[0] === f[0]) && walk(p.slice(1), f.slice(1));
+    return walk(pattern.split("/"), folder ? folder.split("/") : []);
+  }
+  function summary(profile) {
+    const folders = scanned?.folders || [];
+    const covered = rule => folders.filter(f => matches(rule.pattern, f) && !(rule.exclude || []).some(e => f === e || f.startsWith(e + "/"))).length;
+    const fields = profile.frontmatter.map(f => f.key);
+    const lines = [
+      ["Guarda en", profile.destinations.map(r => `${r.pattern.replace(/\/\*.*$/, "")} (${covered(r)} carpeta${covered(r) === 1 ? "" : "s"})`).join(" · ")],
+      ["Tipo por defecto", profile.destinations.map(r => `${r.default} en ${r.pattern.replace(/\/\*.*$/, "")}`).join(" · ")],
+      ["Metadatos", fields.slice(0, 7).join(", ") + (fields.length > 7 ? ` y ${fields.length - 7} más` : "")],
+      ["Adjuntos", profile.attachments],
+      ["La IA redacta con", `${profile.instructions.length} documento${profile.instructions.length === 1 ? "" : "s"} de tu vault`]];
+    return el("div", {className: "profile-summary"}, el("h4", {textContent: "Lo que hará Anaco"}),
+      el("ul", {}, ...lines.map(([label, text]) => el("li", {}, el("strong", {textContent: label + ": "}), text || "—"))),
+      el("p", {className: "muted"}, el("small", {textContent: "Si te encaja, confírmalo. Puedes ajustar cualquier parte en los desplegables."})));
   }
 
   function render() {
@@ -127,25 +156,29 @@ globalThis.AnacoObProfileCard = (() => {
       box.onchange = () => { draft.relation_roots = box.checked ? [...draft.relation_roots, top] : draft.relation_roots.filter(r => r !== top); sync(); };
       return el("label", {className: "profile-option"}, box, " " + top);
     });
-    const documents = (scanned?.documents || []).map(doc => {
-      const box = el("input", {type: "checkbox", checked: draft.instructions.includes(doc.path)});
-      box.onchange = () => { draft.instructions = box.checked ? [...draft.instructions, doc.path] : draft.instructions.filter(p => p !== doc.path); sync(); };
-      return el("label", {className: "profile-option"}, box, " " + doc.path);
-    });
+    const docOption = path => {
+      const box = el("input", {type: "checkbox", checked: draft.instructions.includes(path)});
+      box.onchange = () => { draft.instructions = box.checked ? [...draft.instructions, path] : draft.instructions.filter(p => p !== path); sync(); };
+      return el("label", {className: "profile-option"}, box, " " + path);
+    };
+    const known = (scanned?.documents || []).map(d => d.path);
+    const main = [...new Set([...draft.instructions, ...(scanned?.documents || []).filter(d => d.suggested).map(d => d.path)])];
+    const others = known.filter(p => !main.includes(p));
+    const documents = [...main.map(docOption), others.length ? el("details", {className: "profile-group"}, el("summary", {textContent: `Otros documentos (${others.length})`}), ...others.map(docOption)) : null];
     const headings = Object.entries(SECTIONS).map(([key, fallback]) => {
       const input = el("input", {value: draft.sections?.[key] || "", placeholder: fallback, "aria-label": "Encabezado: " + fallback});
       input.onchange = () => { draft.sections = {...draft.sections, [key]: input.value.trim()}; if (!input.value.trim()) delete draft.sections[key]; sync(); };
       return el("div", {className: "profile-fields"}, el("span", {textContent: fallback}), input);
     });
     const notes = Object.entries(evidence).filter(([key]) => !/^(destination|filename|field|frontmatter):/.test(key)).map(([key, text]) => el("li", {}, el("strong", {textContent: key + ": "}), text));
-    form.append(
-      notes.length ? section("Por qué se propone así", "", el("ul", {className: "profile-notes"}, ...notes)) : "",
-      section("Destinos", "Carpetas donde Anaco puede guardar notas y los tipos que admite cada una.", ...destinations),
-      section("Tipos y nombres de archivo", "Admite {date}, {slug_}, {slug-}, {title}, {type} y {variant}.", ...types),
-      section("Frontmatter", "Cada campo dice de dónde sale su valor. Las relaciones solo incluyen las que aceptes al revisar.", ...fields),
-      section("Adjuntos y relaciones", "", el("label", {textContent: "Carpeta de adjuntos"}), attachments, el("p", {className: "muted"}, el("small", {textContent: "Carpetas donde buscar notas relacionadas:"})), ...roots),
-      section("Documentos para la IA al redactar", "Las instrucciones del vault mandan sobre el estilo y la estructura de las notas.", ...documents),
-      section("Encabezados que añade Anaco", "Vacío: se usa el encabezado por defecto.", ...headings));
+    form.append(summary(finalProfile()),
+      section(`Ajustar destinos (${destinations.length})`, "Zonas donde Anaco puede guardar notas, con los tipos que admite cada una.", ...destinations),
+      section(`Ajustar tipos y nombres de archivo (${types.length})`, "Admite {date}, {slug_}, {slug-}, {title}, {type} y {variant}.", ...types),
+      section(`Ajustar metadatos (${fields.length})`, "Cada campo dice de dónde sale su valor. Las relaciones solo incluyen las que aceptes al revisar.", ...fields),
+      section("Ajustar adjuntos y relaciones", "", el("label", {textContent: "Carpeta de adjuntos"}), attachments, el("p", {className: "muted"}, el("small", {textContent: "Carpetas donde buscar notas relacionadas:"})), ...roots),
+      section(`Ajustar documentos para la IA (${draft.instructions.length})`, "Las instrucciones del vault mandan sobre el estilo y la estructura de las notas.", ...documents),
+      section("Ajustar encabezados", "Vacío: se usa el encabezado por defecto.", ...headings),
+      notes.length ? section("Por qué se propone así", "", el("ul", {className: "profile-notes"}, ...notes)) : "");
     sync();
   }
 
@@ -156,7 +189,11 @@ globalThis.AnacoObProfileCard = (() => {
     profile.frontmatter = profile.frontmatter.filter(f => !f.disabled).map(({disabled, ...field}) => field);
     return profile;
   }
-  function sync() { $("profileJson").value = JSON.stringify(finalProfile(), null, 2); }
+  function sync() {
+    $("profileJson").value = JSON.stringify(finalProfile(), null, 2);
+    const current = $("profileForm").querySelector(".profile-summary");
+    if (current) current.replaceWith(summary(finalProfile()));
+  }
 
   function applyJson() {
     try { draft = JSON.parse($("profileJson").value); render(); message("JSON aplicado al formulario. Revísalo y confirma."); }

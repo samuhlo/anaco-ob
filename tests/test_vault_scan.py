@@ -46,6 +46,11 @@ def second_brain(root):
         note(v / f"03_Proyectos/homelab/nota_homelab_{i}.md", {"tipo": "nota_proyecto", "zona": "proyectos", "proyecto": "[[homelab]]", "tags": [], "relacionadas": []})
     for i in range(3):
         note(v / f"07_Clases/01_Habilitacion_Docencia/02_Programacion/ejercicio_2026-10-0{i + 1}_tarea-{i}.md", {"tipo": "ejercicio", "zona": "clases", "curso": "Habilitacion Docencia", "asignatura": "Programacion", "tags": [], "relacionadas": []})
+    for project in ("planificador", "o-rito", "tupuntodulce", "inspector-node"):
+        note(v / f"03_Proyectos/{project}/proyecto_{project.replace('-', '_')}.md", {"tipo": "proyecto", "zona": "proyectos", "tags": [], "relacionadas": [], "estado": "activo"})
+        for i in range(2):
+            note(v / f"03_Proyectos/{project}/notas/nota_{i}.md", {"tipo": "nota_proyecto", "zona": "proyectos", "tags": [], "relacionadas": [], "gestion": "interna" if project == "o-rito" else None})
+    note(v / "02_Cerebro/Tech_&_Codigo/snippets_unico.md", {"tipo": "snippets", "zona": "cerebro", "area": "tech_codigo", "tags": [], "relacionadas": []})
     for i in range(5):
         note(v / f"05_Archivo_Legacy/Diario_etapa_2026/registro_{i}.md", {"tipo": "registro", "zona": "archivo", "estado": "legacy", "tags": [], "relacionadas": []})
     note(v / "01_Diario/indice_diario.md", {"tipo": "indice", "zona": "diario", "tags": [], "relacionadas": []})
@@ -106,6 +111,21 @@ class VaultScanTest(unittest.TestCase):
         self.assertEqual((clase["zona"], clase["curso"], clase["asignatura"], clase["relacionadas"]), ("clases", "Habilitacion Docencia", "Programacion", []))
         self.assertIn("99_Recursos/guias/MANUAL_VAULT.md", profile.data["instructions"])
         self.assertTrue(proposal["evidence"])
+
+    def test_the_proposal_stays_short_grouping_destinations_by_zone(self):
+        app = self.app_for(second_brain(self.root))
+        profile = propose(scan(app))["profile"]
+        patterns = [r["pattern"] for r in profile["destinations"]]
+        # One rule per zone, not one per folder.
+        self.assertIn("02_Cerebro/*/**", patterns)
+        self.assertIn("03_Proyectos/*/**", patterns)
+        self.assertLessEqual(len(patterns), 4)
+        # Marginal types and fields are left out.
+        self.assertNotIn("snippets", profile["types"])
+        self.assertNotIn("gestion", [f["key"] for f in profile["frontmatter"]])
+        installed = install(app, profile, "99_Recursos/anaco/perfil.json")
+        self.assertIn("03_Proyectos/planificador/notas", installed.destinations())
+        self.assertNotIn("02_Cerebro", installed.destinations())
 
     def test_vault_without_conventions_gets_the_generic_profile(self):
         v = self.root / "plain"
