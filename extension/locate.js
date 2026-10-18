@@ -20,6 +20,9 @@ if (!globalThis.AnacoObLocateImage) {
     if(!target)return {found:false};
     // Immediate placement avoids queued animations when scanning several images.
     target.scrollIntoView({behavior:"instant",block:"center",inline:"nearest"});
+    // A highlighted clip plays, so it is recognizable at a glance; only muted video, never sound.
+    const clip=target.matches("video")?target:target.querySelector?.("video");
+    if(clip?.muted&&clip.paused)clip.play().catch(()=>{});
     overlay=document.createElement("div");overlay.id="anaco-ob-image-highlight";
     overlay.setAttribute("aria-hidden","true");
     Object.assign(overlay.style,{position:"fixed",pointerEvents:"none",zIndex:"2147483647",border:"4px solid #ffca40",borderRadius:"8px",boxShadow:"0 0 0 5px #1c1b2055",boxSizing:"border-box"});

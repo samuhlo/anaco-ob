@@ -37,6 +37,9 @@ const AnacoObDetection = (() => {
   function problem(c) {
     if (c.contentReady || c.documents?.length || c.videos?.some(v => v.extractable !== false)) return '';
     if(c.detection?.surfaces?.blocked)return 'El lector dibuja sus páginas, pero el navegador impide leer su contenido visual. El diagnóstico indica qué superficies no se han podido capturar.';
+    // The page itself (not an embedded viewer) needs access, e.g. after a reload ends the active-tab grant.
+    const page = c.frames?.find(f => f.top && f.needsPermission !== false);
+    if (page) return `Anaco no tiene permiso para leer esta página (${(()=>{try{return new URL(page.url).hostname;}catch{return 'esta web';}})()}). Pulsa «Permitir lectura» o «Detectar contenido» para concederlo.`;
     if (c.requiredOrigins?.length) return 'El contenido está dentro de un visor de otro dominio. Autoriza su lectura para detectar el PDF o el vídeo.';
     if (c.detection?.loginPage) return 'La página muestra un inicio de sesión. Entra en el curso y vuelve a detectar su contenido.';
     if (c.videos?.length) return c.videos[0].unavailableReason || 'Veo un reproductor, pero no expone audio ni subtítulos accesibles. Inicia el vídeo y vuelve a detectar.';

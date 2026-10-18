@@ -68,3 +68,12 @@ test('parent and child reader text are not repeated and rendered surfaces are di
  const c=detect.merge([page(tab.url,0,{contentReady:true,text:'Parent'}),page('https://frame.example/book',2,{parentFrameId:0,contentReady:true,text:'Visible page',surfaces:{canvas:1,svg:2,backgrounds:1,blocked:0}})],tab);
  assert.equal(c.text,'Visible page');assert.equal(c.detection.surfaces.svg,2);
 });
+
+test('a page Anaco cannot read says so instead of pointing to a viewer',()=>{
+ const c=detect.merge([],{url:'https://tympanus.net/codrops/a',title:'Artículo'},[{url:'https://tympanus.net/codrops/a',title:'Página actual',needsPermission:true,top:true}]);
+ const message=detect.problem(c);
+ assert.match(message,/permiso para leer esta página/);assert.match(message,/tympanus\.net/);assert.doesNotMatch(message,/visor/);
+ // A blocked embedded viewer keeps the viewer explanation.
+ const nested=detect.merge([page('https://course.example/lesson',0)],{url:'https://course.example/lesson',title:'Curso'},[{url:'https://player.example/v',needsPermission:true}]);
+ assert.match(detect.problem(nested),/visor/);
+});

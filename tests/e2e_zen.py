@@ -739,6 +739,20 @@ def main():
             assert not any(v['url'].endswith('-optimized.mp4') for v in c['videos']),c['videos']
             wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'#embeds input[type=checkbox]'))==len(c['embeds']))
             driver.save_screenshot(str(out/'panel.png'))
+            # The user's report: hover clips, reload the article, detect again.
+            hover={}
+            for row in driver.find_elements(By.CSS_SELECTOR,'#embeds label.image-pick')[:3]:
+                index=int(row.find_element(By.CSS_SELECTOR,'input').get_attribute('data-embed'))
+                driver.execute_script('arguments[0].scrollIntoView({block:"center"})',row);ActionChains(driver).move_to_element(row).perform();time.sleep(1.5)
+                hover[c['embeds'][index]['type']+str(index)]=source_script(c['source']['tabId'],'(()=>{const o=document.getElementById("anaco-ob-image-highlight");return o?o.textContent:null})()')
+            hint=driver.find_element(By.ID,'embedHint').text
+            (out/'hover.json').write_text(json.dumps({'hover':hover,'hint':hint},ensure_ascii=False,indent=2))
+            driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.reload(arguments[0]).then(()=>done(true));',c['source']['tabId']);time.sleep(6)
+            again=capture({},live)
+            (out/'after-reload.json').write_text(json.dumps({k:again.get(k) for k in ('contentReady','detectionError','requiredOrigins','warnings','detection')},ensure_ascii=False,indent=2))
+            assert again.get('contentReady') and not again.get('detectionError'),(again.get('detectionError'),again.get('requiredOrigins'))
+            assert all(hover.values()),(hover,hint)
+            c=again
             # Keep the run light: two clips, every pen and post.
             clips=[e['index'] for e in c['embeds'] if e['type']=='clip']
             for box in driver.find_elements(By.CSS_SELECTOR,'#embeds input[type=checkbox]'):
@@ -776,6 +790,7 @@ def main():
             assert all(e.is_selected() for e in driver.find_elements(By.CSS_SELECTOR,'#embeds input[type=checkbox]'))
             # Hovering a row outlines that resource in the article, as with images.
             expected={'clip':('Clip 1','VIDEO'),'pen':('Demo 1','P'),'tweet':('Publicación 1','DIV')}
+            source_script(c['source']['tabId'],'document.querySelector("video").pause();true')
             for row in driver.find_elements(By.CSS_SELECTOR,'#embeds label.image-pick'):
                 index=int(row.find_element(By.CSS_SELECTOR,'input').get_attribute('data-embed'));kind=c['embeds'][index]['type']
                 driver.execute_script('arguments[0].scrollIntoView({block:"center"})',row);ActionChains(driver).move_to_element(row).perform()
@@ -784,7 +799,11 @@ def main():
                     return found if found and found['label']==expected[kind][0] else False
                 found=WebDriverWait(driver,10).until(outlined)
                 assert found['inside'] and found['tag']==expected[kind][1],(kind,found)
-                if kind=='clip':driver.save_screenshot(str(out/'locate-panel.png'))
+                if kind=='clip':
+                    driver.save_screenshot(str(out/'locate-panel.png'))
+                    # Headless Firefox keeps background media paused: record the play request instead.
+                    played=source_script(c['source']['tabId'],'(()=>{const v=document.querySelector("video");v.pause();let asked=false;const original=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){asked=true;return Promise.resolve();};globalThis.AnacoObLocateImage({locator:'+json.dumps(c['embeds'][index]['locator'])+',label:"Clip 1"});HTMLMediaElement.prototype.play=original;return asked;})()')
+                    assert played is True,played
             title=driver.find_element(By.ID,'captureTitle');driver.execute_script('arguments[0].scrollIntoView({block:"center"})',title);ActionChains(driver).move_to_element(title).perform()
             driver.save_screenshot(str(out/'panel.png'))
             Select(field('provider')).select_by_value('manual')

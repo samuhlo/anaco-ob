@@ -166,7 +166,7 @@ async function scanTab(tab, input = {}) {
   catch {
     const granted = await browser.permissions.contains({origins:[AnacoObDetection.origin(tab.url)].filter(Boolean)});
     if (granted && await probePDF(tab.url)) return pdfCapture(tab);
-    blocked.push({url:tab.url,title:tab.title||'Página actual',needsPermission:!granted});
+    blocked.push({url:tab.url,title:tab.title||'Página actual',needsPermission:!granted,top:true});
   }
   if (input.kind === 'quote' || input.kind === 'image') return pages[0];
   const all = await browser.webNavigation.getAllFrames({tabId:tab.id}).catch(() => []);
@@ -440,7 +440,11 @@ async function locateImage(message) {
     const input=message.clear?{clear:true}:embed?{locator:embed.locator,label:message.label}:{imageId:image.imageId,url:image.url,index:message.index};
     const [result]=await browser.tabs.executeScript(source.tabId,{code:`globalThis.AnacoObLocateImage(${JSON.stringify(input)})`,frameId,matchAboutBlank:true});
     return result;
-  } catch {throw new Error("No puedo localizar la imagen. Comprueba que el artículo sigue abierto y vuelve a capturarlo si ha cambiado.");}
+  } catch {
+    const origin=AnacoObDetection.origin(c.url);
+    if(origin&&!await browser.permissions.contains({origins:[origin]}))throw new Error("Anaco ya no tiene permiso para marcar en esta página (al recargarla se pierde). Pulsa «Detectar de nuevo» para concederlo.");
+    throw new Error("No puedo localizar este elemento. Comprueba que el artículo sigue abierto y vuelve a capturarlo si ha cambiado.");
+  }
 }
 
 async function reviewData(id) {
