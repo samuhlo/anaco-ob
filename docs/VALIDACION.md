@@ -114,7 +114,7 @@ Referencia del comportamiento de Firefox: [acciones del usuario](https://develop
 
 ## Versión 0.2.0 — Imágenes localizables y revisión en pestaña
 
-El panel lateral se dedica a capturar y elegir imágenes. Sus filas tienen número, dimensiones y miniatura cuando el navegador permite obtenerla de la imagen ya cargada. Al pasar por una fila o enfocar su casilla, el artículo se desplaza a la imagen y muestra un marco violeta. Al salir se elimina el marco sin cambiar los bordes o estilos originales de la página.
+El panel lateral se dedica a capturar y elegir imágenes. Sus filas tienen número, dimensiones y miniatura cuando el navegador permite obtenerla de la imagen ya cargada. Al pasar por una fila o enfocar su casilla, el artículo se desplaza a la imagen y muestra un marco amarillo. Al salir se elimina el marco sin cambiar los bordes o estilos originales de la página.
 
 La propuesta se abre en `review.html?capture=<id>`, en una pestaña nueva vinculada a esa captura. La lectura utiliza Markdown renderizado y muestra los adjuntos locales, que se pueden ampliar. Las propiedades y las relaciones se revisan en una columna lateral dentro de esa página. El modo de edición conserva las últimas teclas incluso al recargar la revisión.
 

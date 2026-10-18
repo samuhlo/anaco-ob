@@ -1,6 +1,6 @@
 # Anaco
 
-<img src="extension/icon.svg" alt="Logo de Anaco: una o facetada en violeta" width="80" height="80">
+<img src="extension/logo.svg" alt="Logo de Anaco: «Anac» con la O sustituida por un cristal facetado amarillo" height="64">
 
 **Anaco** (`anaco-ob`) recoge piezas de conocimiento de la web y las conecta con tus notas de Obsidian.
 

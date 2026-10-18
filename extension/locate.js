@@ -21,9 +21,9 @@ if (!globalThis.AnacoObLocateImage) {
     target.scrollIntoView({behavior:"instant",block:"center",inline:"nearest"});
     overlay=document.createElement("div");overlay.id="anaco-ob-image-highlight";
     overlay.setAttribute("aria-hidden","true");
-    Object.assign(overlay.style,{position:"fixed",pointerEvents:"none",zIndex:"2147483647",border:"4px solid #b69aff",borderRadius:"8px",boxShadow:"0 0 0 5px #21162b55",boxSizing:"border-box"});
+    Object.assign(overlay.style,{position:"fixed",pointerEvents:"none",zIndex:"2147483647",border:"4px solid #ffca40",borderRadius:"8px",boxShadow:"0 0 0 5px #1c1b2055",boxSizing:"border-box"});
     label=document.createElement("span");label.textContent="Imagen "+(input.index+1);
-    Object.assign(label.style,{position:"absolute",left:"-4px",top:"-29px",background:"#7651b0",color:"white",padding:"3px 9px",borderRadius:"5px 5px 0 0",font:"600 12px/20px system-ui,sans-serif"});
+    Object.assign(label.style,{position:"absolute",left:"-4px",top:"-29px",background:"#ffca40",color:"#1c1b20",padding:"3px 9px",borderRadius:"5px 5px 0 0",font:"600 12px/20px system-ui,sans-serif"});
     overlay.append(label);document.documentElement.append(overlay);
     window.addEventListener("scroll",position,true);window.addEventListener("resize",position);position();
     return {found:true};

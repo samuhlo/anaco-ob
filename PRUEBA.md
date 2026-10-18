@@ -4,7 +4,7 @@ Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/a
 
 ## Nombre y nueva ubicación: comprobar 0.9.2
 
-El proyecto está en `/home/samuh/Projects/anaco-ob/`. Carga `extension/manifest.json` desde esta nueva carpeta en `about:debugging#/runtime/this-firefox`; debe aparecer **Anaco** con una «o» facetada violeta. La ruta de carga del complemento temporal debe apuntar a la nueva ubicación.
+El proyecto está en `/home/samuh/Projects/anaco-ob/`. Carga `extension/manifest.json` desde esta nueva carpeta en `about:debugging#/runtime/this-firefox`; debe aparecer **Anaco** con un cristal facetado amarillo sobre fondo oscuro. La ruta de carga del complemento temporal debe apuntar a la nueva ubicación.
 
 El servicio ya utiliza `~/.local/share/anaco-ob/`. El instalador migra la configuración, capturas e historial existentes y mantiene los alias necesarios para los trabajos pendientes. Comprueba tus opciones y la lista de pendientes; abre una captura para revisar y guardar como de costumbre.
 
@@ -171,7 +171,7 @@ La revisión muestra el origen de cada pie —HTML, nombre de archivo, visión o
 1. Abre un artículo que tenga relación con algo que ya guardas en el vault.
 2. Pulsa el icono de la extensión.
 3. Despliega **Revisar contenido capturado** y comprueba que aparece el artículo correcto.
-4. Selecciona solo las imágenes que aportan valor. Cada fila tiene número y, cuando se puede obtener sin permisos adicionales, una miniatura. Al pasar el cursor o enfocar su casilla con el teclado, se centra la imagen en el artículo y aparece un marco violeta temporal. La extensión puede pedir permiso para descargar las imágenes de los dominios elegidos.
+4. Selecciona solo las imágenes que aportan valor. Cada fila tiene número y, cuando se puede obtener sin permisos adicionales, una miniatura. Al pasar el cursor o enfocar su casilla con el teclado, se centra la imagen en el artículo y aparece un marco amarillo temporal. La extensión puede pedir permiso para descargar las imágenes de los dominios elegidos.
 5. Escribe opcionalmente por qué quieres guardarlo.
 6. Pulsa **Preparar y abrir revisión**. La primera solicitud puede tardar. Se abrirá una pestaña nueva con la nota renderizada.
 7. Lee el resumen en la vista amplia. Usa **Editar Markdown** para modificarlo; las propiedades, el destino y las conexiones están al lado.
