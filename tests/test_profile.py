@@ -108,3 +108,35 @@ class ProfileTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ProfileChangesTest(unittest.TestCase):
+    setUp = ProfileTest.setUp
+    tearDown = ProfileTest.tearDown
+
+    def test_moved_or_changed_instructions_and_missing_destinations_ask_for_review(self):
+        manual = self.vault / "00_Sistema/MANUAL_VAULT.md"
+        manual.parent.mkdir(parents=True)
+        manual.write_text("Manual original")
+        install(self.app, {**CLASSIC, "instructions": ["00_Sistema/MANUAL_VAULT.md"]}, "99_Recursos/anaco/perfil.json")
+        self.assertEqual(self.app.vault_profile().problems(), [])
+        status = self.app.handle({"action": "status"})
+        self.assertEqual(status["profile"]["problems"], [])
+        manual.write_text("Manual reescrito")
+        self.assertTrue(any("ha cambiado" in p for p in self.app.vault_profile().problems()))
+        (self.vault / "99_Recursos/guias").mkdir(parents=True)
+        manual.rename(self.vault / "99_Recursos/guias/MANUAL_VAULT.md")
+        problems = self.app.handle({"action": "status"})["profile"]["problems"]
+        self.assertTrue(any("00_Sistema/MANUAL_VAULT.md" in p and "no existe" in p for p in problems), problems)
+        (self.vault / "04_Cajon_Ideas").rmdir()
+        self.assertTrue(any("04_Cajon_Ideas" in p for p in self.app.vault_profile().problems()))
+
+    def test_a_destination_removed_after_drafting_blocks_saving_clearly(self):
+        install(self.app, CLASSIC, "99_Recursos/anaco/perfil.json")
+        c = self.app.stage({"kind": "article", "url": "https://example.org/x", "title": "Idea", "text": "Texto suficiente para una nota de prueba sobre una idea concreta."})
+        self.app.draft(c["id"], provider="manual")
+        folder = self.app.load(c["id"])["draft"]["folder"]
+        import shutil
+        shutil.rmtree(self.vault / folder)
+        with self.assertRaisesRegex(UserError, "destino"):
+            self.app.save(c["id"], {})

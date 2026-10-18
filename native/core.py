@@ -137,6 +137,13 @@ def schema(note_types):
     return {"type": "object", "properties": properties, "required": list(properties), "additionalProperties": False}
 
 
+def suggested_path(facts):
+    """Next to the vault's guides or skills when there are any, else at the root."""
+    docs = [d["path"] for d in facts["documents"] if d.get("suggested") and "/" in d["path"]]
+    base = docs[0].split("/")[0] if docs else ""
+    return (base + "/" if base else "") + "anaco/perfil.json"
+
+
 class App:
     def __init__(self, state=STATE):
         self.progress = lambda message: None
@@ -663,7 +670,7 @@ class App:
             self.vault()
             try:
                 profile = self.vault_profile();folders = profile.destinations()
-                state = {"path": profile.path, "hash": self.guide()["hash"]}
+                state = {"path": profile.path, "hash": self.guide()["hash"], "problems": profile.problems()}
             except UserError as exc:
                 folders, state = [], {"missing": True, "message": str(exc)}
             return {"version": "0.10.0", "config": self.config(), "folders": folders, "pending": self.pending(), 'jobs':pending(self), "profile": state, "profile_hash": state.get("hash")}
@@ -683,6 +690,24 @@ class App:
             if action not in methods:
                 raise UserError('Operación de lector desconocida.')
             return methods[action](message)
+        if action in ("profile_scan", "profile_interpret", "profile_get", "profile_save"):
+            from vault_scan import scan, propose, interpret
+            from vault_profile import install, locate
+            if action == "profile_scan":
+                facts = scan(self)
+                proposal = propose(facts)
+                return {"documents": facts["documents"], "roles": facts["roles"], "excluded": facts["excluded"], "notes": facts["notes"],
+                        "folders": sorted(facts["folders"]), "proposal": proposal, "suggested_path": suggested_path(facts)}
+            if action == "profile_interpret":
+                return interpret(self, [clean(p, 500) for p in message.get("documents", [])][:40])
+            if action == "profile_get":
+                try:
+                    profile = self.vault_profile()
+                except UserError as exc:
+                    return {"missing": True, "message": str(exc), "path": locate(self)}
+                return {"profile": profile.data, "path": profile.path, "problems": profile.problems(), "folders": profile.destinations()}
+            profile = install(self, message.get("profile"), message.get("path"))
+            return {"profile": profile.data, "path": profile.path, "problems": profile.problems(), "folders": profile.destinations()}
         if action == "capture":
             return self.stage(message["capture"])
         if action == "load":

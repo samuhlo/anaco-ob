@@ -4,6 +4,7 @@ Destinations, note types, file names, frontmatter, attachments, relation roots
 and instruction documents come from a JSON file stored inside the vault, so the
 rules travel with it. Notes that already exist are never rewritten.
 """
+import hashlib
 import json
 import os
 import re
@@ -206,6 +207,25 @@ class Profile:
                 missing.append(rel)
         return found, missing
 
+    # =========================================================================
+    # [CORE] CHANGES SINCE CONFIRMATION
+    # =========================================================================
+
+    def problems(self):
+        """What changed in the vault since the profile was confirmed."""
+        out, recorded = [], self.data.get("fingerprint", {}).get("instructions", {})
+        for rel in self.data["instructions"]:
+            path = safe_path(self.vault, rel)
+            if not path.is_file():
+                out.append(f"El documento {rel} ya no existe: puede haberse movido. Revisa el perfil.")
+            elif recorded.get(rel) and recorded[rel] != digest(path):
+                out.append(f"El documento {rel} ha cambiado desde que confirmaste el perfil.")
+        destinations = self.destinations()
+        for rule in self.data["destinations"]:
+            if not any(matches(rule["pattern"], folder) for folder in destinations):
+                out.append(f"El destino {rule['pattern']} no tiene ninguna carpeta en el vault.")
+        return out
+
     def section(self, key):
         return self.data["sections"].get(key) or SECTIONS[key]
 
@@ -260,6 +280,10 @@ def validate(vault, data):
     return data
 
 
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def check_pattern(pattern, kind):
     if not isinstance(pattern, str) or not pattern.endswith(".md") or "/" in pattern or "\\" in pattern or pattern.startswith("."):
         raise UserError(f"Perfil del vault: el nombre de archivo de {kind} no es válido.")
@@ -308,6 +332,7 @@ def install(app, data, rel):
     if not rel.endswith(".json"):
         raise UserError("El perfil del vault se guarda como archivo .json.")
     profile = Profile(vault, json.loads(json.dumps(data)), rel)
+    profile.data["fingerprint"] = {"instructions": {doc: digest(safe_path(vault, doc)) for doc in profile.data["instructions"] if safe_path(vault, doc).is_file()}}
     # A new vault receives the folders the confirmed profile asked to create.
     for rule in profile.data["destinations"]:
         if rule.get("create") and not any(ch in rule["pattern"] for ch in "*?"):

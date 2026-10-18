@@ -194,3 +194,20 @@ class VaultInterpretationTest(unittest.TestCase):
             result = interpret(app, ["AGENTS.md"])
         self.assertFalse(result["assisted"])
         self.assertEqual(result["profile"], propose(scan(app))["profile"])
+
+
+class ProfileActionsTest(unittest.TestCase):
+    setUp = VaultScanTest.setUp
+    tearDown = VaultScanTest.tearDown
+    app_for = VaultScanTest.app_for
+
+    def test_scan_review_and_save_round_trip(self):
+        app = self.app_for(second_brain(self.root))
+        self.assertTrue(app.handle({"action": "profile_get"})["missing"])
+        scanned = app.handle({"action": "profile_scan"})
+        self.assertEqual(scanned["suggested_path"], "99_Recursos/anaco/perfil.json")
+        self.assertNotIn(SECRET, json.dumps(scanned, ensure_ascii=False))
+        saved = app.handle({"action": "profile_save", "profile": scanned["proposal"]["profile"], "path": scanned["suggested_path"]})
+        self.assertEqual(saved["path"], "99_Recursos/anaco/perfil.json")
+        self.assertEqual(app.handle({"action": "profile_get"})["path"], saved["path"])
+        self.assertIn("02_Cerebro/Tech_&_Codigo", app.handle({"action": "status"})["folders"])
