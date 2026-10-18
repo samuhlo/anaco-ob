@@ -65,7 +65,7 @@ class InstallerTest(unittest.TestCase):
         self.assertIn("ANACO_OB_STATE", launcher.read_text())
         manifest = self.state / f"{HOST_NAME}.json"
         self.check_manifest(manifest, launcher)
-        self.assertEqual(registry.values[rf"Software\Mozilla\NativeMessagingHosts\{HOST_NAME}"], str(manifest))
+        self.assertEqual(Path(registry.values[rf"Software\Mozilla\NativeMessagingHosts\{HOST_NAME}"]).resolve(), manifest.resolve())
         self.assertIn(rf"HKCU\Software\Mozilla\NativeMessagingHosts\{HOST_NAME}", result["registered"])
 
     def test_uninstall_removes_registrations_and_keeps_data_unless_purged(self):
