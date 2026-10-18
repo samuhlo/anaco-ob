@@ -1,0 +1,5 @@
+<html><title>Reproductor privado</title><video controls id="video"></video><script>
+              const mode=new URL(location.href).searchParams.get('mode'),v=document.getElementById('video');
+              v.src=mode==='blocked'?'/session-media/denied.mp4?signature=DO_NOT_COPY':mode==='hls'?'/session-media/master.m3u8':'/session-media/video.mp4';
+              if(mode==='captions'){const track=document.createElement('track');track.kind='subtitles';track.src='/session-media/captions.vtt';track.srclang='es';v.append(track);}
+            </script></html>

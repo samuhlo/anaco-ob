@@ -1,0 +1,23 @@
+def guidance(capture):
+    scope=capture.get('reader',{}).get('scope')
+    if scope=='batch':
+        return ('Esta es SOLO la lectura de un lote del libro. Conserva hechos, definiciones, mecanismos, contrastes, ejemplos y excepciones, con sus páginas. '
+                'No hagas todavía un resumen final ni dividas notas: strategy=reading, notes=[]. Organiza la lectura por contenido, sin la plantilla de artículos. ')
+    return (
+        'Actúa como editor de un Second Brain. Decide primero qué merece guardarse, el tipo de conocimiento y su destino. '
+        'Las plantillas del perfil son orientación y pueden estar anticuadas: adapta títulos, secciones y extensión a la fuente y al objetivo; no impongas un esquema único. '
+        'Un caso de diseño o artículo breve suele funcionar como fuente con resumen, decisiones y aprendizajes. '
+        'Un libro, módulo o clase necesita apuntes de estudio: explica con claridad conceptos, mecanismos y diferencias; conecta los apartados y conserva referencias. '
+        'Si hay varios temas sustantivos separables, devuelve una nota principal con síntesis global y entre 2 y 8 notas en notes, por apartados reales. '
+        'La aplicación añadirá el índice enlazado y las referencias recíprocas. No dividas por páginas ni por lotes de lectura. '
+        'Si el material es corto, repetitivo o trata una sola idea, crea una sola nota bien hecha, sin rellenar una colección artificial. '
+        'Un concepto reutilizable puede ser nota_atomica o referencia_tecnica; un mecanismo de razonamiento puede ser modelo_mental en Modelos_Mentales. '
+        'Para material de clase elige apunte, resumen, ejercicio o practica según su contenido. Un índice o mapa de clase puede usar indice como tipo. '
+        'Elige carpeta entre las proporcionadas y tipo compatible con esa carpeta. No crees carpetas. '
+        'Devuelve strategy y rationale para justificar la forma elegida; source_format describe la fuente real, incluido libro para un lector completo. '
+        'En las notas derivadas usa ids únicos breves; links contiene solo ids de otras notas de esta propuesta con una razón concreta. El id reservado de la principal es source. '
+        'Cada derivada conserva páginas reales en pages cuando existan; en otras fuentes copia un fragmento literal en source_evidence. '
+        'images son índices de figuras útiles de la captura, no páginas que hay que leer. No repitas toda la fuente en cada nota. '
+        'No escribas wikilinks en body: los enlaces verificados los añade el servicio. '
+    )
+

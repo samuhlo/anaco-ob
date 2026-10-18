@@ -1,0 +1,59 @@
+{
+  "manifest_version": 2,
+  "name": "Second Brain Capture",
+  "version": "0.9.1",
+  "description": "Artículos, PDF, vídeos e imágenes para Obsidian, con transcripción, descripciones visuales y relaciones revisables.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "second-brain-capture@samuh.local",
+      "strict_min_version": "133.0"
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "menus",
+    "storage",
+    "nativeMessaging",
+    "tabs",
+    "webNavigation"
+  ],
+  "optional_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": [
+      "media-source.js",
+      "detection.js",
+      "stream.js",
+      "background.js"
+    ],
+    "persistent": true
+  },
+  "browser_action": {
+    "default_title": "Capturar en Second Brain",
+    "default_icon": "icon.svg"
+  },
+  "sidebar_action": {
+    "default_title": "Second Brain",
+    "default_panel": "panel.html",
+    "default_icon": "icon.svg",
+    "open_at_install": false
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "48": "icon.svg",
+    "96": "icon.svg"
+  },
+  "commands": {
+    "capture-page": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Capturar página en Second Brain"
+    }
+  },
+  "content_security_policy": "script-src 'self'; object-src 'none'"
+}
