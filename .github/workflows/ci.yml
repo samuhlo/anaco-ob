@@ -23,6 +23,7 @@ jobs:
   service:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: ["3.12", "3.13"]
     steps:
@@ -30,6 +31,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      # PDF and media tests call Poppler and FFmpeg.
-      - run: sudo apt-get update && sudo apt-get install -y poppler-utils ffmpeg
+      # PDF fixtures need Ghostscript (ps2pdf); PDF and media tests call Poppler and FFmpeg.
+      - run: sudo apt-get update && sudo apt-get install -y poppler-utils ffmpeg ghostscript
       - run: python -m unittest discover -s tests -v
