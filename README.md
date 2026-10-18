@@ -22,7 +22,8 @@
 [Guía de prueba](PRUEBA.md) ·
 [Historial](docs/HISTORIAL.md) ·
 [Validación](docs/VALIDACION.md) ·
-[Notas técnicas](docs/TECNICO.md)
+[Notas técnicas](docs/TECNICO.md) ·
+[Privacidad](PRIVACY.md)
 
   <code style="color:#737373;">// anaco: un trozo, una pieza que merece quedarse //</code>
 
@@ -94,7 +95,7 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 - **Imágenes con criterio**: aprovecha los pies del HTML y solo envía a análisis visual las imágenes que lo necesitan.
 - **Relaciones verificables**: cada conexión con una nota existente se apoya en fragmentos literales de ambas notas, y la aceptas o la descartas tú.
 - **Una o varias notas**: una nota con apartados, varias enlazadas por temas o que decida la IA, con división e integración revisables.
-- **Privacidad**: el vault no se envía completo; la IA recibe la captura y fragmentos de las notas candidatas.
+- **Privacidad**: sin servidores propios ni telemetría. El vault no se envía completo; la IA recibe la captura y fragmentos de las notas candidatas. Detalle en [PRIVACY.md](PRIVACY.md).
 
 ---
 
@@ -102,7 +103,7 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 
 | CAPA | TECNOLOGÍA |
 | :--- | :--- |
-| **Extensión** | WebExtension Manifest V2 para Zen y Firefox (133+), JavaScript sin framework |
+| **Extensión** | WebExtension Manifest V2 para Zen y Firefox (140+), JavaScript sin framework |
 | **Vista previa** | Marked y DOMPurify empaquetados en `extension/vendor/` |
 | **Servicio** | Python 3 estándar vía Native Messaging (`org.samuh.anaco_ob`) |
 | **IA** | `codex exec` con tu sesión de ChatGPT, salida estructurada y sin herramientas de shell |

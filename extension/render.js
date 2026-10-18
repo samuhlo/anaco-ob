@@ -2,7 +2,8 @@
 globalThis.AnacoObRender = (root,markdown,assets,onImage,vaultName="") => {
   const body=markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/,"");
   const html=marked.parse(body,{gfm:true,breaks:false});
-  root.innerHTML=DOMPurify.sanitize(html,{USE_PROFILES:{html:true},FORBID_TAGS:["img","style","iframe","form","input","button","video","audio","source"],FORBID_ATTR:["style"]});
+  // A sanitized DOM fragment, never an HTML string assigned to the page.
+  root.replaceChildren(DOMPurify.sanitize(html,{USE_PROFILES:{html:true},FORBID_TAGS:["img","style","iframe","form","input","button","video","audio","source"],FORBID_ATTR:["style"],RETURN_DOM_FRAGMENT:true}));
   for(const a of root.querySelectorAll("a")){
     const href=a.getAttribute("href")||"";
     if(!/^https?:\/\//i.test(href)&&!href.startsWith("#"))a.removeAttribute("href");

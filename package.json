@@ -5,10 +5,12 @@
   "license": "MIT",
   "scripts": {
     "vendor": "node scripts/vendor.mjs",
-    "test": "node --test tests/*.test.cjs"
+    "test": "node --test tests/*.test.cjs",
+    "lint": "addons-linter extension"
   },
   "devDependencies": {
     "dompurify": "3.4.17",
-    "marked": "18.1.1"
+    "marked": "18.1.1",
+    "addons-linter": "10.14.0"
   }
 }

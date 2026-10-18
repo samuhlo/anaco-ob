@@ -48,7 +48,7 @@ def main():
     launcher.chmod(0o700)
     # Keep the installation ID so renaming preserves browser preferences and edits.
     manifest = {"name": "org.samuh.anaco_ob", "description": "Anaco local host",
-                "path": str(launcher), "type": "stdio", "allowed_extensions": ["second-brain-capture@samuh.local"]}
+                "path": str(launcher), "type": "stdio", "allowed_extensions": ["anaco-ob@samuhlo"]}
     for directory in (Path.home() / ".mozilla/native-messaging-hosts", Path.home() / ".config/zen/native-messaging-hosts"):
         target = directory / "org.samuh.anaco_ob.json"
         json_dump(target, manifest)

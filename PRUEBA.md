@@ -100,7 +100,7 @@ Recarga la extensión, cierra y abre el panel donde quieras utilizarlo. Abre des
 
 Con el panel cerrado, abrir una pestaña no lo vuelve a abrir. Si una preparación termina cuando ya estás en otra pestaña o ventana, su revisión queda en segundo plano en la ventana de origen; puedes acceder a ella al volver o desde los pendientes. La detección de un panel sigue las pestañas de su propia ventana.
 
-Esta corrección utiliza el cierre del documento lateral disponible desde Firefox 133; el mínimo declarado es ahora 133 y se ha verificado con Zen 1.22.3b.
+Esta corrección utiliza el cierre del documento lateral disponible desde Firefox 133; el mínimo declarado pasó entonces a 133 (hoy es 140) y se verificó con Zen 1.22.3b.
 
 ## Primera revisión de 0.7.0
 

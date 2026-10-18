@@ -5,8 +5,13 @@
   "description": "Artículos, PDF, vídeos e imágenes para Obsidian, con transcripción, descripciones visuales y relaciones revisables.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "second-brain-capture@samuh.local",
-      "strict_min_version": "133.0"
+      "id": "anaco-ob@samuhlo",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": [
+          "websiteContent"
+        ]
+      }
     }
   },
   "permissions": [
@@ -32,12 +37,18 @@
   },
   "browser_action": {
     "default_title": "Capturar con Anaco",
-    "default_icon": "icon.svg"
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
   },
   "sidebar_action": {
     "default_title": "Anaco",
     "default_panel": "panel.html",
-    "default_icon": "icon.svg",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    },
     "open_at_install": false
   },
   "options_ui": {
@@ -45,8 +56,9 @@
     "open_in_tab": true
   },
   "icons": {
-    "48": "icon.svg",
-    "96": "icon.svg"
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
   },
   "commands": {
     "capture-page": {
@@ -57,5 +69,8 @@
     }
   },
   "content_security_policy": "script-src 'self'; object-src 'none'",
-  "short_name": "Anaco"
+  "short_name": "Anaco",
+  "incognito": "not_allowed",
+  "homepage_url": "https://github.com/samuhlo/anaco-ob",
+  "author": "samuhlo"
 }
