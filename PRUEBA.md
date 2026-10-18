@@ -37,7 +37,7 @@ Una demo que carga texturas u otros recursos al ejecutarse puede seguir necesita
 
 ## Nombre y nueva ubicación: comprobar 0.9.2
 
-El proyecto está en `/home/samuh/Projects/anaco-ob/`. Carga `extension/manifest.json` desde esta nueva carpeta en `about:debugging#/runtime/this-firefox`; debe aparecer **Anaco** con un cristal facetado amarillo sobre fondo oscuro. La ruta de carga del complemento temporal debe apuntar a la nueva ubicación.
+El proyecto está en la carpeta `anaco-ob/`. Carga `extension/manifest.json` desde esta nueva carpeta en `about:debugging#/runtime/this-firefox`; debe aparecer **Anaco** con un cristal facetado amarillo sobre fondo oscuro. La ruta de carga del complemento temporal debe apuntar a la nueva ubicación.
 
 El servicio ya utiliza `~/.local/share/anaco-ob/`. El instalador migra la configuración, capturas e historial existentes y mantiene los alias necesarios para los trabajos pendientes. Comprueba tus opciones y la lista de pendientes; abre una captura para revisar y guardar como de costumbre.
 
@@ -151,7 +151,7 @@ El modelo de texto sigue siendo `gpt-6-luna`: en la prueba real ha distinguido c
 Desde una terminal:
 
 ```bash
-cd /home/samuh/Projects/anaco-ob
+cd anaco-ob
 python3 scripts/install.py
 ```
 
@@ -163,7 +163,7 @@ Elige tu vault mediante detección automática o ruta manual en Opciones. Despu�
 
 1. Abre `about:debugging#/runtime/this-firefox` en Zen.
 2. Pulsa **Cargar complemento temporal**.
-3. Selecciona `/home/samuh/Projects/anaco-ob/extension/manifest.json`.
+3. Selecciona `extension/manifest.json` dentro de la carpeta del proyecto.
 4. Abre una página web y pulsa el icono de **Anaco** en el menú de extensiones. Se abrirá el panel lateral con la captura.
 
 También puedes capturar una página con `Alt+Mayús+S` o usar los menús contextuales sobre una frase seleccionada o una imagen. Si otro atajo del sistema usa esa combinación, puedes cambiarla desde la gestión de atajos de extensiones de Zen.
@@ -305,7 +305,7 @@ Si encuentras un fallo, apunta URL, tipo de captura, pasos, mensaje mostrado y r
 
 ## 9. Archivos locales
 
-- Código y documentación: `/home/samuh/Projects/anaco-ob/`.
+- Código y documentación: la carpeta del proyecto, `anaco-ob/`.
 - Configuración, cola e historial: `~/.local/share/anaco-ob/`.
 - Contrato editorial de la aplicación: `skills/anaco-ob/SKILL.md`, dentro del proyecto. Se incorpora al contexto de generación junto con los documentos del vault que selecciona su perfil, que mandan sobre él.
 - Perfil del vault: el `.json` que eliges al confirmarlo, por ejemplo `99_Recursos/anaco/perfil.json`. La ruta se recuerda en la configuración local y, en otro ordenador, se encuentra buscando `anaco/perfil.json`.
@@ -327,7 +327,7 @@ Las órdenes de smoke con IA consumen solicitudes con contenido de prueba. La ú
 ## Comprobar la localización del vault (0.3.2)
 
 1. Recarga la extensión y abre Opciones. Se conserva la ruta que ya tenías; las configuraciones anteriores aparecen como manuales.
-2. Cambia a **Detectar automáticamente**. En este equipo debe aparecer `/home/samuh/Second_Brain`, registrado en Obsidian. Si hay varios resultados, selecciona el correcto.
+2. Cambia a **Detectar automáticamente**. Debe aparecer tu vault registrado en Obsidian. Si hay varios resultados, selecciona el correcto.
 3. Pulsa **Guardar opciones** y vuelve a abrir Opciones: deben conservarse el modo y la ruta.
 4. Para una ubicación fuera de la búsqueda, elige **Introducir la ruta manualmente**, escribe la carpeta concreta del vault y guarda. Una carpeta inexistente muestra un error sin sustituir la configuración válida.
 

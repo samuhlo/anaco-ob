@@ -67,6 +67,7 @@ def main():
     parser.add_argument("--manual-import", action="store_true", help="Check the separate manual importer and its review")
     parser.add_argument("--detection", action="store_true", help="Exercise active-tab detection and nested authenticated course resources")
     parser.add_argument("--options", action="store_true", help="Exercise vault discovery and manual configuration in Options")
+    parser.add_argument('--readme-shots',action='store_true',help='Network: README screenshots of the profile, the panel, a highlighted clip and the review on the real Codrops spotlight')
     parser.add_argument('--profile',action='store_true',help='Vault without profile: scan in Options, confirm, save a note with the vault frontmatter and detect a moved guide')
     parser.add_argument('--embeds-live',action='store_true',help='Network: capture the real Codrops spotlight with its tweets, pens and clips')
     parser.add_argument('--embeds',action='store_true',help='Embedded posts, CodePen and silent clips in a web article; course mode keeps the previous detection')
@@ -89,6 +90,7 @@ def main():
     if args.embeds:out=ROOT/'.test-artifacts'/('zen-embeds-live' if args.embeds_live else 'zen-embeds');out.mkdir(parents=True,exist_ok=True)
     if args.review_menu:out=ROOT/'.test-artifacts/zen-review-menu';out.mkdir(parents=True,exist_ok=True)
     if args.profile:out=ROOT/'.test-artifacts/zen-profile';out.mkdir(parents=True,exist_ok=True)
+    if args.readme_shots:out=ROOT/'.test-artifacts/readme-shots';out.mkdir(parents=True,exist_ok=True)
     if args.split_review:out=ROOT/'.test-artifacts/zen-split-review';out.mkdir(parents=True,exist_ok=True)
     run_dir = Path(tempfile.mkdtemp(prefix="run-",dir=out))
     vault = run_dir / "Vault"
@@ -98,7 +100,7 @@ def main():
     (vault / "02_Cerebro/Tech_&_Codigo/recuperacion_paquetes.md").write_text("# Recuperación de paquetes\n\nLa recuperación de paquetes perdidos utiliza retransmisión en redes de ordenadores. Los routers conectan equipos.")
     app = App(run_dir / "state")
     app.set_config({"vault":str(vault), "provider":"codex" if args.ai else "manual",'note_structure':'linked' if args.editorial or args.workflow or args.review_menu else 'single'})
-    if args.profile:
+    if args.profile or args.readme_shots:
         # A reduced copy of the reorganized second_brain, with no profile yet.
         sys.path.insert(0,str(ROOT/'tests'))
         from test_vault_scan import second_brain
@@ -140,7 +142,7 @@ def main():
                     manifest=json.loads(p.read_text());manifest["permissions"].append("http://127.0.0.1/*")
                     if args.copy_error:manifest["permissions"].append("clipboardRead")
                     # Pre-granted so the selection click does not open a permission prompt.
-                    if args.embeds:manifest["permissions"]+=["https://codepen.io/*","https://cdpn.io/*"]+(["https://tympanus.net/*"] if args.embeds_live else [])
+                    if args.embeds or args.readme_shots:manifest["permissions"]+=["https://codepen.io/*","https://cdpn.io/*"]+(["https://tympanus.net/*"] if args.embeds_live or args.readme_shots else [])
                     archive.writestr(relative,json.dumps(manifest))
                 else:archive.write(p,relative)
         if args.book_ai or args.editorial or args.workflow or args.split_review or args.review_menu:
@@ -673,6 +675,54 @@ def main():
             driver.save_screenshot(str(out/'accepted.png'));finish_and_return('save',c['source']['tabId'])
             report={'passed':True,'suggestion_does_not_change_draft':True,'discard_preserves_note_and_edits':True,'accept_requires_user_click':True,'code_and_personal_annotation_preserved':True,'accepted_split_survives_reload':True,'review_before_save':True,'saved_new_notes':3,'vault':str(vault)}
             (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,indent=2));return
+        if args.readme_shots:
+            shots=ROOT/'docs/assets';shots.mkdir(parents=True,exist_ok=True)
+            def shot(name,selector=None,pad=24):
+                time.sleep(1.2);path=out/(name+'.png');driver.save_screenshot(str(path))
+                if selector:
+                    box=driver.execute_script('const r=document.querySelector(arguments[0]).getBoundingClientRect();return [r.left,r.top,r.width,r.height,devicePixelRatio];',selector)
+                    x,y,w,h,ratio=[v*box[4] for v in box[:4]]+[box[4]]
+                    subprocess.run(['magick',str(path),'-crop',f'{int(w+2*pad*ratio)}x{int(min(h,1400)+2*pad*ratio)}+{max(0,int(x-pad*ratio))}+{max(0,int(y-pad*ratio))}','+repage',str(path)],check=True)
+                shutil.copyfile(path,shots/(name+'.png'))
+            # 1. Profile: scan the vault and read the automatic proposal.
+            driver.set_window_size(1000,1100);panel_url=driver.current_url;driver.get(panel.replace('panel.html','options.html'))
+            wait.until(lambda d:'aún no tiene perfil' in d.find_element(By.ID,'profileStatus').text)
+            driver.find_element(By.ID,'profileScan').click();wait.until(lambda d:d.find_element(By.ID,'profileDocs').is_displayed())
+            driver.find_element(By.ID,'profileAutomatic').click();wait.until(lambda d:d.find_element(By.ID,'profileReview').is_displayed())
+            driver.execute_script('document.getElementById("profileReview").scrollIntoView({block:"start"});window.scrollBy(0,-90)')
+            shot('perfil','#profileReview')
+            driver.find_element(By.ID,'profileSave').click();wait.until(lambda d:'Perfil guardado' in d.find_element(By.ID,'message').text)
+            # 2. Panel at sidebar width on the real article, scrolled to its embedded resources.
+            driver.set_window_size(470,1250);driver.get(panel_url)
+            live='https://tympanus.net/codrops/2026/10/16/ksenia-kondrashova/'
+            c=capture({},live)
+            for _ in range(20):
+                if len(c.get('embeds',[]))>=12:break
+                time.sleep(1.5);c=capture({},live)
+            wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'#embeds input[type=checkbox]'))==len(c['embeds']))
+            driver.execute_script('window.scrollTo(0,0)');shot('panel')
+            driver.execute_script('document.getElementById("embedSection").scrollIntoView({block:"start"});window.scrollBy(0,-12)');shot('recursos')
+            # 3. The article with a clip outlined, as on hover.
+            # Retried detections opened extra article tabs: keep only the captured one.
+            driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.query({}).then(t=>browser.tabs.remove(t.filter(x=>x.url.startsWith(arguments[0])&&x.id!==arguments[1]).map(x=>x.id))).then(()=>done(true));',live,c['source']['tabId'])
+            time.sleep(1)
+            clip=next(e for e in c['embeds'] if e['type']=='clip')
+            article=next(h for h in driver.window_handles if (driver.switch_to.window(h) or True) and driver.current_url.startswith(live))
+            driver.set_window_size(1200,900);driver.switch_to.window(panel_handle)
+            # Closing tabs re-detects the article; use the capture now in storage.
+            time.sleep(3);c=driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("currentCapture").then(s=>done(s.currentCapture));')
+            clip=next(e for e in c['embeds'] if e['type']=='clip')
+            found=message({'type':'locateImage','token':c['token'],'index':clip['index'],'embed':True,'label':'Clip 1'})
+            assert found.get('found'),found
+            driver.switch_to.window(article);time.sleep(1.5);shot('resaltado')
+            driver.switch_to.window(panel_handle);driver.set_window_size(470,1250)
+            message({'type':'locateImage','token':c['token'],'index':clip['index'],'embed':True,'clear':True})
+            # 4. Review of the prepared note (manual mode: no AI in screenshots).
+            Select(field('provider')).select_by_value('manual')
+            driver.execute_script('[...document.querySelectorAll("#embeds input[type=checkbox]")].slice(3).forEach(b=>{if(b.checked)b.click();})')
+            driver.find_element(By.ID,'prepare').click();open_review(allow_blocked=True)
+            driver.set_window_size(1300,1000);driver.execute_script('window.scrollTo(0,0)');shot('revision')
+            print(json.dumps({'shots':sorted(p.name for p in shots.glob('*.png'))},indent=2));return
         if args.profile:
             wait.until(lambda d:not d.find_element(By.ID,'profileNotice').get_attribute('hidden'))
             assert 'aún no tiene perfil' in driver.find_element(By.ID,'profileNoticeText').text

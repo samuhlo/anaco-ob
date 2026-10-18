@@ -1,85 +1,165 @@
-# Anaco
+<div align="center">
+  <br />
+  <img src="extension/logo.svg" alt="Logo de Anaco: «Anac» con la O sustituida por un cristal facetado amarillo" height="56" />
+  <h1><code>./ANACO.sh</code></h1>
 
-<img src="extension/logo.svg" alt="Logo de Anaco: «Anac» con la O sustituida por un cristal facetado amarillo" height="64">
+**Captura artículos, cursos, PDF y vídeos desde el navegador y los convierte en notas revisadas para tu vault de Obsidian, con su procedencia, sus recursos y relaciones que puedes comprobar.**
+<br /><br />
 
-**Anaco** (`anaco-ob`) recoge piezas de conocimiento de la web y las conecta con tus notas de Obsidian.
+  <img src="https://img.shields.io/badge/STATUS-ACTIVE-FFCA40?style=for-the-badge&labelColor=000000" alt="Status" />
+  <img src="https://img.shields.io/badge/VERSIÓN-0.11.0-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
+  <br/>
+  <img src="https://img.shields.io/badge/Zen_·_Firefox-0C0011?style=for-the-badge&logo=firefoxbrowser&logoColor=FFCA40&labelColor=000000" alt="Zen y Firefox" />
+  <img src="https://img.shields.io/badge/Obsidian-0C0011?style=for-the-badge&logo=obsidian&logoColor=FFCA40&labelColor=000000" alt="Obsidian" />
+  <br/>
+  <img src="https://img.shields.io/badge/JavaScript-0C0011?style=for-the-badge&logo=javascript&logoColor=FFCA40&labelColor=000000" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/Python-0C0011?style=for-the-badge&logo=python&logoColor=FFCA40&labelColor=000000" alt="Python" />
+  <img src="https://img.shields.io/badge/Codex-0C0011?style=for-the-badge&logo=openai&logoColor=FFCA40&labelColor=000000" alt="Codex" />
+  <img src="https://img.shields.io/badge/Whisper_local-0C0011?style=for-the-badge&labelColor=000000" alt="Whisper local" />
+  <br/><br/>
 
-Extensión personal para Zen/Firefox con servicio local en Python. Captura artículos, frases e imágenes, propone notas y relaciones revisables y guarda Markdown en Obsidian.
+[Guía de prueba](PRUEBA.md) ·
+[Idea](IDEA.md) ·
+[Historial](docs/HISTORIAL.md) ·
+[Validación](docs/VALIDACION.md) ·
+[Notas técnicas](docs/TECNICO.md)
 
-La versión 0.2.0 permite localizar imágenes del artículo al pasar por sus filas en el panel y revisar la nota en una pestaña amplia. Guardar o descartar cierra la revisión y devuelve al artículo de origen.
+  <code style="color:#737373;">// anaco: un trozo, una pieza que merece quedarse //</code>
 
-La versión 0.3.0 añade PDF, subtítulos y archivos de vídeo/audio, análisis visual y pies de imagen generados. Distingue texto y páginas procesadas, transcribe localmente con Whisper y ofrece exploración de visores incrustados para cursos. Los reproductores privados concretos requieren validación dentro de la sesión del usuario.
+  <br /><br />
+  <img src="docs/assets/revision.png" alt="Revisión de una nota capturada de Codrops: la nota a la izquierda y sus propiedades, destino y conexiones a la derecha" width="820" />
 
-La versión 0.3.1 aprovecha primero los pies HTML y metadatos de cada imagen. No adjunta imágenes ya descritas y conserva el modelo ligero cuando puede; reutiliza descripciones visuales por huella del archivo y permite desactivar o forzar visión. Las páginas PDF y fotogramas mantienen el análisis de contenido en automático.
+  <br />
+</div>
 
-La versión 0.3.2 permite detectar vaults desde el registro de Obsidian y ubicaciones habituales, elegir entre varios resultados o introducir la ruta manualmente. La selección se aplica al guardar las opciones.
+---
 
-La versión 0.4.0 sigue la pestaña actual y muestra solo las acciones del contenido detectado. Lee marcos anidados con permisos por dominio, reconoce PDF sin extensión en el visor nativo y recursos de reproductores dinámicos. Si no puede capturar, muestra un motivo y un diagnóstico. La importación manual queda en Opciones.
+## // 00_ LA_FRICCIÓN
 
-La versión 0.4.1 añade botones pequeños para copiar errores y diagnósticos, con confirmación visual y un campo seleccionado como alternativa si el portapapeles está bloqueado.
+Guardar lo que aprendes en la web suele acabar en marcadores que no vuelves a abrir o en notas copiadas sin contexto. Un artículo con tuits, demos de CodePen y clips se convierte en un texto plano sin lo que lo hacía útil. Una lección de un curso vive dentro de un visor que no se deja copiar. Y cada vault tiene sus carpetas, sus metadatos y su forma de relacionar notas.
 
-La versión 0.4.2 añade lectores HTML con páginas dibujadas, detección de PDF descargados por el visor y corrección de permisos falsos tras redirecciones. El diagnóstico distingue marcos de autenticación, contenido y superficies gráficas.
+Anaco lee lo que estás viendo, prepara una propuesta de nota que respeta las reglas de tu vault y no escribe nada hasta que la revisas.
 
-La versión 0.5.0 separa libros y figuras: extrae todas las páginas de un lector con progreso, OCR y transferencia por fragmentos; las lee por lotes y sintetiza el libro completo. Conserva los lotes para reintentos y evita la recaptura continua que hacía parpadear el panel.
+---
 
-La versión 0.6.0 adapta el resultado al contenido y a la intención: fuente, apuntes de estudio, referencia técnica o modelo mental. Un curso con temas distintos puede proponer una síntesis y varios apuntes enlazados, revisables por separado. Puedes editar, renombrar y excluir notas antes del guardado; los enlaces se ajustan a la selección. Las plantillas orientan la redacción sin imponer un esquema fijo. Durante una extracción o generación, el panel mantiene el origen y el progreso aunque cambies de pestaña.
+## // 01_ QUÉ_HACE
 
-La versión 0.6.1 conserva el marco del reproductor en las descargas de vídeo, subtítulos y HLS. Intenta leer desde el contexto de la página antes de recurrir al de la extensión, para respetar la sesión y el referente del reproductor. El diagnóstico de un fallo identifica el recurso por dominio y los contextos intentados, sin incluir cookies ni enlaces firmados.
+| PIEZA | QUÉ ES |
+| :--- | :--- |
+| **Panel lateral** | Detecta el contenido de la pestaña actual: artículo, frase, imagen, PDF, vídeo, lector de un curso o recursos incrustados. Eliges qué incluir. |
+| **Recursos incrustados** | Publicaciones de X, demos de CodePen y clips silenciosos. Al pasar el ratón por cada uno, el artículo lo resalta. En la nota aparecen en su sitio. |
+| **Revisión** | Una pestaña amplia con la nota, sus propiedades, destino, imágenes y conexiones. Puedes editar, ajustar apartados, dividir en varias notas o integrarlas. |
+| **Perfil del vault** | Escanea tu vault y, con tus propias instrucciones, propone dónde guardar, qué tipos y nombres usar y cómo rellenar el frontmatter. Lo confirmas tú. |
+| **Servicio local** | Python sin dependencias externas: busca relaciones, llama a la IA, transcribe en local y escribe en el vault solo tras tu revisión. |
 
-La versión 0.6.2 añade una tarjeta de trabajo visible con fase, tiempo transcurrido y avance medido del audio durante la transcripción. La galería del panel tiene scroll propio y contador: enumera todas las imágenes de artículo detectadas, conservando el límite de ocho seleccionadas. Los reproductores antiguos `youtube.googleapis.com/v/…` se identifican como YouTube y se normalizan; las direcciones de API no se tratan como vídeos. El motor local sigue usando CPU; no utiliza automáticamente una GPU AMD.
+<div align="center">
+  <img src="docs/assets/recursos.png" alt="Panel lateral con la lista de clips de vídeo de un artículo de Codrops" width="300" />
+  &nbsp;&nbsp;
+  <img src="docs/assets/resaltado.png" alt="Artículo con un clip rodeado en amarillo y la etiqueta Clip 1" width="480" />
+</div>
 
-La versión 0.7.0 incorpora criterios editoriales revisados y una evaluación comparada en seis fuentes ficticias; revisión por apartados con comparación y deshacer; integración de notas; relaciones tipadas y descartables; ampliaciones revisadas de notas existentes; y cancelación con recuperación de transcripciones y preparaciones. La extracción puede abrir la propuesta automáticamente. El diseño se adapta a paneles estrechos, títulos largos, tablas y código, sin desplazar horizontalmente la página completa.
+---
 
-La versión 0.7.1 evita que una ventana nueva herede el panel abierto y limita la detección de cada panel a su ventana. Si terminas una tarea mientras trabajas en otra pestaña o ventana, la revisión queda en segundo plano en la ventana de origen, sin cambiarte el foco. El icono, el atajo y los menús contextuales siguen abriendo el plugin de forma explícita.
-
-La versión 0.7.2 añade **Volver a la captura** en Opciones, siempre visible al hacer scroll. Regresa a la pestaña de origen y conserva localmente los cambios pendientes hasta que decidas guardarlos.
-
-La versión 0.7.3 distingue el vault detectado de la ruta aplicada, añade **Guardar y volver** en la barra superior y actualiza los paneles abiertos tras guardar la configuración, retirando el error anterior de vault inexistente.
-
-La versión 0.8.0 permite elegir una nota, varias notas enlazadas o automático, con una nota como valor predeterminado. Los tutoriales técnicos seleccionan código cuando aporta comprensión o consulta y explican su función, parámetros y límites. La captura conserva el lenguaje, las líneas en blanco y los delimitadores del código. Se han probado la captura y las dos formas de organización con el artículo de Codrops sobre Ghost Trails.
-
-La versión 0.8.1 ajusta la tarjeta de trabajo a paneles estrechos y divide los mensajes largos para evitar scroll horizontal. Los botones Lectura / Editar Markdown permanecen en su posición dentro de la nota y dejan de seguir el desplazamiento.
-
-La versión 0.8.2 añade **Proponer división en notas** desde la revisión. Antes de reorganizar muestra el motivo, los temas y su contenido para aceptar o conservar la nota actual. Distribuye los apartados editados sin reescribir su código o anotaciones y mantiene las imágenes y sus pies. Tras aceptar se revisan las notas enlazadas antes del guardado final.
-
-La versión 0.9.0 busca conexiones por cada tema con evidencia literal de la nota revisada y de las candidatas del vault. Añade relaciones verificables y recíprocas entre temas, permite actualizar enlaces sin regenerar el texto y conserva las decisiones de revisión. Mientras haya una revisión abierta en la ventana, el panel lateral ofrece navegación, selección de notas, edición, conexiones, división y guardado; al cerrarla vuelve a la captura.
-
-La versión 0.9.1 concentra los controles de revisión en el panel lateral. La página conserva la nota, los campos editables y las propuestas por confirmar, sin repetir navegación, selección, lectura/edición, división, búsqueda de conexiones o guardado. **Abrir panel lateral** permite recuperar el menú si se cierra.
-
-La versión 0.9.2 adopta el nombre **Anaco**, el proyecto `anaco-ob` y una «o» de cristal como icono. Actualiza rutas, módulos, skill, servicio local y paquetes. El instalador migra configuración, pendientes e historial a `~/.local/share/anaco-ob/`.
-
-La versión 0.10.0 reconoce los recursos incrustados de un artículo: publicaciones de X, demos de CodePen y clips silenciosos en bucle. Se eligen en el panel como las imágenes y la nota los inserta donde aparecían. Las publicaciones usan el embed nativo de Obsidian y conservan su texto. Los clips se guardan como mp4 en el vault, con aviso si pesan más de 20 MB o no se conoce su tamaño, y ya no se ofrecen para transcribir. Cada demo guarda su código y una copia ejecutable sin conexión con sus librerías y módulos, que se ve en la nota con el plugin HTML Prototype Viewer. Los marcos de esos servicios ya no sustituyen al artículo ni piden permisos. Un selector de **Modo de captura** ofrece Automático, Artículo web y Curso; Curso conserva la detección anterior para los cursos.
-
-La versión 0.11.0 adapta Anaco a cualquier vault mediante un **perfil del vault**. En Opciones, un escaneo lee carpetas, nombres y metadatos sin sacar del ordenador el contenido de las notas. Después la IA interpreta las instrucciones, skills, guías y plantillas que elijas y propone dónde guardar, qué tipos y nombres usar, de dónde sale cada campo del frontmatter, la carpeta de adjuntos y dónde buscar relaciones. Revisas cada regla con su evidencia y la confirmas. El perfil se guarda como `.json` dentro del vault, de modo que viaja con la sincronización. El panel avisa cuando el vault cambia de forma que afecta al perfil. Las notas existentes nunca se modifican. Un vault sin convenciones recibe un perfil mínimo: el título como nombre y frontmatter básico. También corrige **Guardar y volver** cuando se pulsaba mientras se actualizaba la vista previa: la orden se descartaba sin aviso.
-
-- [Cómo instalar y probar](PRUEBA.md).
-- [Idea del producto](IDEA.md).
-- [Plan de desarrollo](PLAN.md).
-- [Contrato editorial de la IA](skills/anaco-ob/SKILL.md).
-- [Resultados y alcance de las pruebas](docs/VALIDACION.md).
-
-## Estructura
+## // 02_ EL_FLUJO
 
 ```text
-extension/     WebExtension: captura, revisión, opciones y comunicación nativa
-native/        Servicio local: perfil, búsqueda, generación y guardado
-skills/        Criterios de redacción y organización del Second Brain
-scripts/       Instalación y comprobaciones reproducibles
-tests/         Pruebas del servicio y recorridos en Zen
-docs/          Evidencias y limitaciones de la entrega
+pestaña → panel: detectar contenido y recursos → elegir imágenes, clips, demos y publicaciones
+        → preparar: IA (Codex) o captura manual → revisión: editar, conectar, dividir
+        → guardar en el vault según su perfil → volver al artículo
 ```
 
-El servicio no requiere dependencias de Python externas. La IA utiliza `codex exec`, con la sesión existente de ChatGPT, salida estructurada y herramientas de shell, aplicaciones y agentes deshabilitadas. El proceso de generación tiene acceso de solo lectura; la escritura la realiza el servicio después de la revisión del usuario.
+La barra de rayitas bajo el logo sigue el avance de la nota: detectada, preparándose, en revisión y guardada.
 
-La ampliación multimedia utiliza Poppler, FFmpeg y `yt-dlp`. Whisper se ejecuta en `.media-venv/`, separado del servicio. `scripts/install-media.sh` fija Faster Whisper 1.2.1 y PyAV 16.1.0 por compatibilidad con su API de decodificación. El audio no se envía a una API de transcripción.
+> _note: nada se escribe en el vault sin pasar por la revisión. las notas existentes solo se amplían con un aporte que apruebas explícitamente._
 
-La recuperación inicial busca en archivos locales y lee fragmentos relevantes. No se mantiene un índice semántico ni se envía el vault completo al proveedor. Se ha elegido una extensión pequeña propia para integrar la cola local y la revisión explícita de relaciones; las plantillas e interpretación de Obsidian Web Clipper sirvieron de referencia, sin crear un fork que hubiera que mantener.
+---
 
-La vista previa utiliza Marked y DOMPurify empaquetados en `extension/vendor/`, con sus licencias. No carga scripts de una CDN. Para regenerar esas copias en desarrollo: `npm ci` y `npm run vendor`. No hace falta npm para cargar la extensión entregada.
+## // 03_ PERFIL_DEL_VAULT
 
-## Identidad y compatibilidad
+<div align="center">
+  <img src="docs/assets/perfil.png" alt="Propuesta de perfil del vault: resumen de destinos, tipos, metadatos, adjuntos y documentos, con secciones plegables" width="620" />
+</div>
 
-- Proyecto y repositorio: `anaco-ob`. Nombre visible: **Anaco**.
-- Paquete: `dist/anaco-ob-<versión>.zip`. Servicio: `org.samuh.anaco_ob`.
-- Datos locales: `~/.local/share/anaco-ob/`. El instalador conserva un alias de la ubicación anterior para las rutas de trabajos pendientes y registra el servicio anterior como alias si ya estaba instalado.
-- El identificador interno de Firefox se mantiene estable para conservar las preferencias y ediciones de las instalaciones existentes. El nuevo nombre se aplica a títulos, menús y listados de extensiones.
+En **Opciones → Perfil del vault** pulsas **Escanear el vault**. Anaco lee carpetas, nombres de archivo y metadatos, nunca el contenido de tus notas. Te enseña qué instrucciones, skills, guías y plantillas ha encontrado para que elijas cuáles puede leer la IA. La propuesta empieza por un resumen de lo que hará; cada regla se ajusta en su desplegable, con la evidencia que la justifica.
+
+El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `99_Recursos/anaco/perfil.json`, de modo que viaja con tu sincronización. Si mueves una guía o desaparece un destino, el panel pide **Revisar perfil**.
+
+---
+
+## // 04_ CARACTERÍSTICAS
+
+- **Cursos y visores**: lee marcos anidados con permisos por dominio, lectores HTML con páginas dibujadas y PDF del visor. El modo **Curso** conserva la detección clásica.
+- **Vídeo y audio**: usa subtítulos cuando existen y, si no, transcribe en tu equipo con Whisper. El audio no sale a una API.
+- **Demos sin conexión**: cada pen de CodePen se guarda como un `index.html` con sus librerías y módulos ES, para verlo en la nota con el plugin HTML Prototype Viewer.
+- **Imágenes con criterio**: aprovecha los pies del HTML y solo envía a análisis visual las imágenes que lo necesitan.
+- **Relaciones verificables**: cada conexión con una nota existente se apoya en fragmentos literales de ambas notas, y la aceptas o la descartas tú.
+- **Una o varias notas**: una nota con apartados, varias enlazadas por temas o que decida la IA, con división e integración revisables.
+- **Privacidad**: el vault no se envía completo; la IA recibe la captura y fragmentos de las notas candidatas.
+
+---
+
+## // 05_ STACK
+
+| CAPA | TECNOLOGÍA |
+| :--- | :--- |
+| **Extensión** | WebExtension Manifest V2 para Zen y Firefox (133+), JavaScript sin framework |
+| **Vista previa** | Marked y DOMPurify empaquetados en `extension/vendor/` |
+| **Servicio** | Python 3 estándar vía Native Messaging (`org.samuh.anaco_ob`) |
+| **IA** | `codex exec` con tu sesión de ChatGPT, salida estructurada y sin herramientas de shell |
+| **Multimedia** | Poppler, FFmpeg, `yt-dlp` y Faster Whisper en `.media-venv/` |
+| **Pruebas** | `node:test`, `unittest` y Selenium sobre Zen real |
+
+---
+
+## // 06_ INICIO_RÁPIDO
+
+```bash
+# 1. Registra el servicio local y prepara el ZIP de la extensión
+python3 scripts/install.py
+
+# 2. Opcional: PDF, subtítulos, vídeo y transcripción local
+scripts/install-media.sh
+
+# 3. Opcional: IA con tu cuenta de ChatGPT (sin ella, usa la captura manual)
+codex login
+```
+
+Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`. Abre **Opciones**, elige tu vault y confirma su **Perfil del vault**. La guía completa, paso a paso, está en [PRUEBA.md](PRUEBA.md).
+
+| COMANDO | PARA QUÉ |
+| :--- | :--- |
+| `python3 scripts/install.py` | Registrar el servicio y generar `dist/anaco-ob-<versión>.zip` |
+| `npm test` | Pruebas unitarias de la extensión |
+| `python3 -m unittest discover -s tests` | Pruebas del servicio |
+| `python3 tests/e2e_zen.py --profile` | Recorrido real en Zen: perfil, captura y guardado |
+| `python3 tests/e2e_zen.py --readme-shots` | Regenerar las capturas de este README (usa la red) |
+
+---
+
+## // 07_ BLUEPRINT
+
+```text
+extension/     # WebExtension: panel, captura, recursos incrustados, revisión y opciones
+native/        # Servicio local: perfil y escaneo del vault, IA, relaciones y guardado
+skills/        # Contrato editorial genérico que recibe la IA
+scripts/       # Instalación y comprobaciones reproducibles
+tests/         # Pruebas unitarias, fixtures y recorridos en Zen
+docs/          # Historial, validación, notas técnicas y capturas
+```
+
+---
+
+## // 08_ TESTS · DOCS · ESTADO
+
+- **Estado:** 0.11.0, en uso diario. Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
+- **Docs:** [guía de prueba](PRUEBA.md), [idea del producto](IDEA.md), [plan](PLAN.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md) y [contrato editorial de la IA](skills/anaco-ob/SKILL.md).
+- **Licencia:** todavía sin licencia publicada.
+
+---
+
+<div align="center">
+<br />
+
+<code>DESIGNED & CODED BY <a href="https://github.com/samuhlo">samuhlo</a></code>
+
+</div>
