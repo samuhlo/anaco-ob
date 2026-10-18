@@ -1,8 +1,8 @@
 /* Isolated content-script helper. Leaves page styles and layout untouched. */
 if (!globalThis.AnacoObLocateImage) {
-  let overlay, target, label;
+  let overlay, target, label, frame;
   function clear() {
-    overlay?.remove();overlay=null;target=null;
+    overlay?.remove();overlay=null;target=null;cancelAnimationFrame(frame);
     window.removeEventListener("scroll",position,true);
     window.removeEventListener("resize",position);
   }
@@ -29,7 +29,9 @@ if (!globalThis.AnacoObLocateImage) {
     label=document.createElement("span");label.textContent=input.label||"Imagen "+(input.index+1);
     Object.assign(label.style,{position:"absolute",left:"-4px",top:"-29px",background:"#ffca40",color:"#1c1b20",padding:"3px 9px",borderRadius:"5px 5px 0 0",font:"600 12px/20px system-ui,sans-serif"});
     overlay.append(label);document.documentElement.append(overlay);
-    window.addEventListener("scroll",position,true);window.addEventListener("resize",position);position();
+    window.addEventListener("scroll",position,true);window.addEventListener("resize",position);
+    // Lazy embeds (posts, demos) keep shifting the layout after the scroll: follow the target.
+    const follow=()=>{position();if(overlay)frame=requestAnimationFrame(follow);};follow();
     return {found:true};
   };
 }
