@@ -1,11 +1,11 @@
 ---
 name: anaco-ob
-description: Convertir fuentes de navegación en notas para el Second_Brain de Samuh, eligiendo estructura, tipo, destino y conexiones según el contenido y la intención de estudio.
+description: Convertir fuentes de navegación en notas para un vault de Obsidian, eligiendo estructura, tipo, destino y conexiones según el contenido, la intención y el perfil del vault.
 ---
 
-# Anaco: captura para Second_Brain
+# Anaco: captura para un vault de Obsidian
 
-El servicio incorpora contexto del vault y sus plantillas. Úsalos para entender su vocabulario y organización; el usuario considera las plantillas orientativas y algunas están anticuadas. No conviertas su estructura en un formato obligatorio para todas las fuentes.
+Este es el contrato editorial común a cualquier vault. El servicio añade los documentos que el perfil del vault selecciona: sus instrucciones, guías, skills y plantillas. **Cuando esos documentos y este contrato difieran en estructura, tono, metadatos o forma de relacionar, mandan los del vault.** Las plantillas orientan; no conviertas su estructura en un formato obligatorio para todas las fuentes.
 
 ## Decisión editorial
 
@@ -19,9 +19,9 @@ El servicio incorpora contexto del vault y sus plantillas. Úsalos para entender
 
 ## Destino y metadatos
 
-El material de clase se organiza en los destinos existentes de `07_Clases/curso/asignatura/`. El conocimiento destilado se propone en las categorías existentes de `02_Cerebro/`. Los proyectos activos y las ideas en desarrollo tienen su propia finalidad.
+Los destinos y los tipos admitidos en cada uno vienen del perfil del vault. Elige la carpeta por la finalidad del contenido según las instrucciones del vault: material de estudio, conocimiento destilado, proyectos o ideas suelen tener lugares distintos.
 
-Elige un tipo compatible con el contenido y el destino. La aplicación valida los tipos y nombres admitidos; no inventes carpetas. Los campos de procedencia, fechas y asistencia de IA preservan trazabilidad. Los encabezados y el desarrollo de cada nota se adaptan al tema; los metadatos no obligan a repetir una plantilla de artículo.
+Elige un tipo compatible con el contenido y el destino. La aplicación valida los tipos, nombres y metadatos del perfil; no inventes carpetas ni campos. Los campos de procedencia, fechas y asistencia de IA preservan trazabilidad. Los encabezados y el desarrollo de cada nota se adaptan al tema; los metadatos no obligan a repetir una plantilla de artículo.
 
 ## Conexiones
 

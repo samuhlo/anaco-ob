@@ -867,3 +867,33 @@ Comparación de las pruebas de cursos y vídeo entre `main` y esta rama:
 Los tres fallos comunes son anteriores a esta versión y no dependen de los recursos incrustados.
 
 El visor del plugin HTML Prototype Viewer 1.0.1 compila sin cambios. Su analizador acepta el bloque `[[ruta]]` con `height:` que genera la nota, y carga el archivo con la ruta de recursos del vault, de modo que las librerías relativas se resuelven junto al `index.html`. No se ha comprobado dentro de Obsidian ni en las sesiones privadas de AWS y Xunta.
+
+## Versión 0.11.0 — Perfil del vault
+
+**132 pruebas de Python y 48 de JavaScript superadas.** Cubren:
+- **Perfil:** el perfil clásico reproduce las reglas anteriores. Se comprueban el perfil genérico, la validación y el descubrimiento del archivo, el rechazo de rutas peligrosas, los cambios del vault y que un perfil roto muestra su error.
+- **Escaneo:** sobre un fixture con la forma del second_brain reorganizado y sobre vaults sin convenciones o vacíos. Se comprueba que el cuerpo de las notas no entra en los hechos.
+- **Propuesta con IA:** solo los documentos elegidos, nada inventado y sin IA en modo manual.
+- **Acciones del servicio** para Opciones.
+
+Recorrido real en Zen (`e2e_zen.py --profile`):
+1. Un vault con la forma del second_brain y sin perfil muestra el aviso en el panel.
+2. El escaneo en Opciones lista `AGENTS.md`, el skill y las guías, y no las notas de `00_Sistema`.
+3. La propuesta automática se revisa y se guarda en `99_Recursos/anaco/perfil.json`.
+4. La nota guardada lleva `tipo`, `zona`, `area` y `relacionadas: []`, y no los campos antiguos.
+5. Al mover `MANUAL_VAULT.md`, el panel pide revisar el perfil.
+
+[Informe](../.test-artifacts/zen-profile/report.json) y [nota](../.test-artifacts/zen-profile/note.md).
+
+Codex real sobre el fixture acepta el esquema estricto, deduce `curso` y `asignatura` de la ruta y toma los encabezados de la plantilla. El escaneo determinista del vault real del usuario (423 notas, solo lectura) detecta plantillas, diario, adjuntos, archivo y sistema, y propone sus destinos y su frontmatter. No se ha enviado a la IA ningún documento del vault real: esa elección corresponde al usuario en Opciones.
+
+Al validar se corrigió un fallo previo a esta versión. Al editar la nota, la revisión publicaba que se podía guardar antes de desactivar el guardado. Una orden **Guardar y volver** enviada mientras se actualizaba la vista previa se descartaba sin aviso. Ahora el estado se publica después y la orden espera a la vista previa. Ese era el fallo intermitente que hacía fallar varios recorridos e2e.
+
+| Escenario | 0.10.0 (`main`) | 0.11.0 |
+|---|---|---|
+| `--profile`, `--embeds` | — / supera | supera |
+| recorrido por defecto, `--detection`, `--options`, `--fresh-permissions` | fallan al reabrir o guardar la revisión | superan |
+| `--media`, `--reader`, `--book`, `--code`, `--manual-import` | superan | superan |
+| `--session-video` | falla al guardar | falla al guardar: dos vídeos con el mismo título el mismo día chocan con una nota existente, un límite de la prueba |
+
+No se ha comprobado dentro de Obsidian ni con las sesiones privadas de AWS y Xunta.

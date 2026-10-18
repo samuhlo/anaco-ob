@@ -194,8 +194,14 @@ async function scanTab(tab, input = {}) {
   return AnacoObDetection.merge(pages, tab, blocked, {frameReferencesUnmatched:unmatched,captureMode}, {preferTop:captureMode==='article'});
 }
 let activeDetection;
+// The capture mode is part of the key, so changing it starts a new detection.
+// GUARD -> capture() stays synchronous: an await here would let a later automatic
+// detection start first and replace the capture the user asked for.
+let captureModeCache='auto';
+Promise.resolve(browser.storage.local.get('captureMode')).then(v=>{captureModeCache=v?.captureMode||'auto';},()=>{});
+browser.storage.onChanged?.addListener((changes,area)=>{if(area==='local'&&changes.captureMode)captureModeCache=changes.captureMode.newValue||'auto';});
 function capture(tab,input={},options={}){
-  const key=tab?keyFor(tab)+JSON.stringify(input):'';
+  const key=tab?keyFor(tab)+JSON.stringify(input)+captureModeCache:'';
   if(activeDetection?.key===key)return activeDetection.promise;
   const promise=performCapture(tab,input,options).finally(()=>{if(activeDetection?.promise===promise)activeDetection=null;});
   activeDetection={key,promise};
@@ -279,9 +285,14 @@ async function imageData(image) {
 // Clips and CodePen demos are copied when the note is prepared, never during
 // detection. Each failure becomes a warning; the rest of the capture continues.
 // =============================================================================
+// Native messages are bounded: bytes travel as ordered base64 chunks.
+async function uploadParts(upload,parts){
+  let offset=0;
+  for(const bytes of parts){for(let start=0;start<bytes.length;start+=393216){const piece=bytes.subarray(start,start+393216);let binary='';for(let i=0;i<piece.length;i+=8192)binary+=String.fromCharCode(...piece.subarray(i,i+8192));await native({action:'upload_chunk',upload,offset,data:btoa(binary)});offset+=piece.length;}}
+}
 async function uploadAsset(name,parts,size){
-  const begin=await native({action:'upload_begin',purpose:'asset',name,size});let offset=0;
-  for(const bytes of parts){for(let start=0;start<bytes.length;start+=393216){const piece=bytes.subarray(start,start+393216);let binary='';for(let i=0;i<piece.length;i+=8192)binary+=String.fromCharCode(...piece.subarray(i,i+8192));await native({action:'upload_chunk',upload:begin.upload,offset,data:btoa(binary)});offset+=piece.length;}}
+  const begin=await native({action:'upload_begin',purpose:'asset',name,size});
+  await uploadParts(begin.upload,parts);
   return native({action:'finish_asset',upload:begin.upload});
 }
 async function clipAsset(item,source){
@@ -566,8 +577,8 @@ async function importResource(message){
       }else{
         ({parts,size}=await resourceBytes(message.url,source,message.frameId||0,100000000,diagnostic));
       }
-      const begin=await native({action:"upload_begin",name:message.name||(message.kind==="pdf"?"documento.pdf":"video.mp4"),size,url:message.pageUrl||message.url});let offset=0;
-      for(const bytes of parts){for(let start=0;start<bytes.length;start+=393216){const piece=bytes.subarray(start,start+393216);let binary="";for(let i=0;i<piece.length;i+=8192)binary+=String.fromCharCode(...piece.subarray(i,i+8192));await native({action:"upload_chunk",upload:begin.upload,offset,data:btoa(binary)});offset+=piece.length;}}
+      const begin=await native({action:"upload_begin",name:message.name||(message.kind==="pdf"?"documento.pdf":"video.mp4"),size,url:message.pageUrl||message.url});
+      await uploadParts(begin.upload,parts);
       await browser.storage.local.set({operation:message.kind==='pdf'?'Leyendo las páginas del PDF…':'Preparando el archivo de audio…',operationProgress:null});
       c=await native({action:"upload_finish",upload:begin.upload,pages:message.pages||""});
     }

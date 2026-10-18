@@ -20,7 +20,7 @@ TOKENS = {"date": r"\d{4}-\d{2}-\d{2}", "slug_": r"[a-z0-9_]+", "slug-": r"[a-z0
 FORBIDDEN = re.compile(r'[\\/:*?"<>|#^\[\]]')
 SECTIONS = {"summary": "Resumen", "intent": "Intención personal", "quote": "Cita", "quote_context": "Contexto de la cita",
             "relations": "Notas relacionadas", "resources": "Recursos de la fuente", "source": "Fuente", "warning": "Alcance de la captura"}
-NOT_FOUND = "Este vault no tiene perfil de Anaco. Abre Opciones → Perfil del vault para escanearlo y confirmar sus reglas."
+NOT_FOUND = "Este vault aún no tiene perfil de Anaco: escanéalo en Opciones → Perfil del vault antes de guardar notas."
 
 
 def relative(vault, value, what):

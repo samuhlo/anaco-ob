@@ -27,7 +27,8 @@ globalThis.AnacoObProfileCard = (() => {
       provider = settings.config.provider;
       $("profileInterpret").hidden = provider !== "codex";
       if (current.missing) {
-        $("profileStatus").textContent = "Este vault aún no tiene perfil. Escanéalo para que Anaco sepa dónde y cómo guardar.";
+        // A broken file is not a missing profile: show its own error.
+        $("profileStatus").textContent = current.path ? current.message : "Este vault aún no tiene perfil. Escanéalo para que Anaco sepa dónde y cómo guardar.";
         $("profileProblems").hidden = true;
         return;
       }

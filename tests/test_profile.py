@@ -140,3 +140,16 @@ class ProfileChangesTest(unittest.TestCase):
         shutil.rmtree(self.vault / folder)
         with self.assertRaisesRegex(UserError, "destino"):
             self.app.save(c["id"], {})
+
+
+class InvalidProfileTest(unittest.TestCase):
+    setUp = ProfileTest.setUp
+    tearDown = ProfileTest.tearDown
+
+    def test_a_broken_profile_reports_its_error_instead_of_looking_missing(self):
+        install(self.app, GENERIC, "Anaco/perfil.json")
+        (self.vault / "Anaco/perfil.json").write_text('{"schema": "anaco-profile/1", "types": ')
+        status = self.app.handle({"action": "status"})["profile"]
+        self.assertTrue(status["missing"])
+        self.assertIn("ilegible", status["message"])
+        self.assertEqual(self.app.handle({"action": "profile_get"})["path"], "Anaco/perfil.json")

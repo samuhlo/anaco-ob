@@ -1,6 +1,23 @@
-# Probar Anaco 0.10.0
+# Probar Anaco 0.11.0
 
 Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/audio. Prepara una propuesta editable y guarda Markdown y adjuntos en tu vault. Las relaciones, las imágenes recomendadas y sus descripciones se revisan antes de guardar.
+
+## Perfil del vault: comprobar 0.11.0
+
+Recarga la extensión y abre el panel. Mientras el vault no tenga perfil verás **Este vault aún no tiene perfil** con **Revisar perfil**.
+
+1. En **Opciones → Perfil del vault**, pulsa **Escanear el vault**. Se leen carpetas, nombres y metadatos; el contenido de tus notas no sale del ordenador.
+2. Revisa **Documentos que puede leer la IA**. En tu vault deberían aparecer marcados `AGENTS.md`, el skill `second-brain-vault`, tus guías de `99_Recursos/guias/` y las plantillas. Tus notas de `00_Sistema` no aparecen. Desmarca lo que no quieras enviar.
+3. Pulsa **Proponer con IA**: la IA lee esos documentos y las estadísticas y propone el perfil. Con **Usar la propuesta automática** no se usa IA.
+4. Revisa el formulario. Cada regla muestra su evidencia:
+   - destinos y tipos por carpeta;
+   - nombres de archivo;
+   - frontmatter, con el origen de cada campo (`zona` y `area` según la carpeta, `relacionadas` desde las relaciones aceptadas…);
+   - adjuntos, carpetas de relaciones, documentos para redactar y encabezados.
+   Desmarca lo que sobre o ajusta el JSON.
+5. Pulsa **Confirmar perfil**. Se guarda en la ruta indicada (propuesta: `99_Recursos/anaco/perfil.json`), que LiveSync sincroniza.
+6. Captura una página y guárdala: la nota sigue las reglas del perfil y la estructura de tus plantillas. Tus notas existentes no se modifican.
+7. Mueve o edita una guía del perfil: el panel avisará con **Revisar perfil**. Si un destino deja de existir, guardar en él muestra un error claro.
 
 ## Recursos incrustados y modo de captura: comprobar 0.10.0
 
@@ -14,8 +31,8 @@ Recarga la extensión. Bajo el estado del servicio aparece **Modo de captura**:
 2. Desmarca lo que no quieras y pulsa **Preparar**. La extensión pedirá acceso a `codepen.io`, `cdpn.io` y al dominio de los clips si aún no lo tiene.
 3. En la nota guardada cada recurso aparece donde estaba en el artículo. Los que la IA no haya colocado van a **Recursos de la fuente**, al final:
    - Publicación: `![](https://twitter.com/…/status/…)`, que Obsidian muestra de forma nativa, y una cita con el texto.
-   - Clip: el mp4 en `99_Recursos/adjuntos/anaco-ob/clips/` y `![[…mp4]]`.
-   - Demo: enlace al pen, código HTML/CSS/JS plegado y una copia ejecutable en `99_Recursos/adjuntos/anaco-ob/codepen/<usuario>-<pen>/index.html`, con sus librerías al lado.
+   - Clip: el mp4 en `clips/` dentro de la carpeta de adjuntos del perfil y `![[…mp4]]`.
+   - Demo: enlace al pen, código HTML/CSS/JS plegado y una copia ejecutable en `codepen/<usuario>-<pen>/index.html` dentro de la carpeta de adjuntos, con sus librerías al lado.
 4. Para ver la demo dentro de la nota sin conexión instala el plugin **HTML Prototype Viewer** ([Gloumi/obsidian-html-prototype-viewer](https://github.com/Gloumi/obsidian-html-prototype-viewer)). No está en la lista oficial ni publica `main.js`: clónalo, ejecuta `npm install && npm run build` y copia `main.js`, `manifest.json` y `styles.css` en `<vault>/.obsidian/plugins/html-prototype-viewer/`; después actívalo en Plugins de la comunidad. La versión 1.0.1 compila sin cambios. Por defecto el plugin ejecuta la demo con el mismo origen que Obsidian: el código del pen puede acceder a la API de Obsidian y a su almacenamiento local. Activa **Strict isolation** en sus ajustes si no confías en el autor. Con esa opción, las demos con módulos ES pueden no cargar sus archivos locales; ábrelas entonces con **Abrir la demo sin conexión**. Interpreta los bloques `html-preview` que apuntan a un archivo del vault. No lo combines con el plugin oficial «HTML-Preview»: usa el mismo nombre de bloque y espera el HTML dentro de la nota. Sin plugin, **Abrir la demo sin conexión** abre el archivo en el navegador.
 5. Comprueba un curso de AWS y otro de la Xunta en Automático: la detección, los vídeos y la transcripción deben comportarse como en 0.9.2. Si no es así, cambia a **Curso** y avísame.
 
@@ -143,7 +160,7 @@ python3 scripts/install.py
 
 El instalador registra el servicio de usuario para Firefox/Zen y prepara el ZIP de la extensión. No modifica tus notas ni tus pestañas. La aplicación utiliza Python estándar; Selenium solo se usa en las pruebas de desarrollo.
 
-Elige tu vault mediante detección automática o ruta manual en Opciones. Las instalaciones nuevas usan `99_Recursos/adjuntos/anaco-ob/` para las imágenes; las instalaciones anteriores conservan su carpeta de adjuntos configurada.
+Elige tu vault mediante detección automática o ruta manual en Opciones. Después confirma su **Perfil del vault** en Opciones: define los destinos, tipos, nombres, metadatos, carpeta de adjuntos y carpetas de relaciones. Sin perfil, el panel lo avisa y no se pueden preparar notas.
 
 ## 2. Cargar la extensión en Zen
 
@@ -293,7 +310,8 @@ Si encuentras un fallo, apunta URL, tipo de captura, pasos, mensaje mostrado y r
 
 - Código y documentación: `/home/samuh/Projects/anaco-ob/`.
 - Configuración, cola e historial: `~/.local/share/anaco-ob/`.
-- Skill utilizada por la aplicación: `skills/anaco-ob/SKILL.md`, dentro del proyecto. Se incorpora explícitamente al contexto de generación.
+- Contrato editorial de la aplicación: `skills/anaco-ob/SKILL.md`, dentro del proyecto. Se incorpora al contexto de generación junto con los documentos del vault que selecciona su perfil, que mandan sobre él.
+- Perfil del vault: el `.json` que eliges al confirmarlo, por ejemplo `99_Recursos/anaco/perfil.json`. La ruta se recuerda en la configuración local y, en otro ordenador, se encuentra buscando `anaco/perfil.json`.
 - Manifiestos del servicio: `~/.mozilla/native-messaging-hosts/org.samuh.anaco_ob.json` y `~/.config/zen/native-messaging-hosts/org.samuh.anaco_ob.json`.
 
 La aplicación no guarda claves de API. Utiliza la autenticación gestionada por tu instalación de Codex.

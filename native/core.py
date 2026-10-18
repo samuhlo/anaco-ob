@@ -673,7 +673,7 @@ class App:
                 state = {"path": profile.path, "hash": self.guide()["hash"], "problems": profile.problems()}
             except UserError as exc:
                 folders, state = [], {"missing": True, "message": str(exc)}
-            return {"version": "0.10.0", "config": self.config(), "folders": folders, "pending": self.pending(), 'jobs':pending(self), "profile": state, "profile_hash": state.get("hash")}
+            return {"version": "0.11.0", "config": self.config(), "folders": folders, "pending": self.pending(), 'jobs':pending(self), "profile": state, "profile_hash": state.get("hash")}
         if action == "settings":
             cfg = self.config()
             return {"config": cfg, "vault_available": Path(cfg["vault"]).expanduser().is_dir()}
