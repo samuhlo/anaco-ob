@@ -15,4 +15,4 @@ La vista previa utiliza Marked y DOMPurify empaquetados en `extension/vendor/`, 
 - Proyecto y repositorio: `anaco-ob`. Nombre visible: **Anaco**.
 - Paquete: `dist/anaco-ob-<versión>.zip`. Servicio: `org.samuh.anaco_ob`.
 - Datos locales: `~/.local/share/anaco-ob/`. El instalador conserva un alias de la ubicación anterior para las rutas de trabajos pendientes y registra el servicio anterior como alias si ya estaba instalado.
-- El identificador interno de Firefox se mantiene estable para conservar las preferencias y ediciones de las instalaciones existentes. El nuevo nombre se aplica a títulos, menús y listados de extensiones.
+- Identificador de la extensión: `anaco-ob@samuhlo` desde la versión publicable. Las instalaciones anteriores usaban `second-brain-capture@samuh.local`: tras actualizar hay que volver a ejecutar el instalador para que el servicio acepte el nuevo identificador. El nombre se aplica a títulos, menús y listados de extensiones.

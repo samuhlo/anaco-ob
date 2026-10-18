@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Unit tests of the extension modules.
+      - run: npm test
+      # Mozilla's validator: errors block signing on addons.mozilla.org.
+      - run: npm run lint
+
+  service:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      # PDF and media tests call Poppler and FFmpeg.
+      - run: sudo apt-get update && sudo apt-get install -y poppler-utils ffmpeg
+      - run: python -m unittest discover -s tests -v
