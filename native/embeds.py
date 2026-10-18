@@ -172,7 +172,7 @@ def block(app, item, attachments):
     return "\n".join(parts), files
 
 
-def apply(app, c, body, attachments, root):
+def apply(app, c, body, attachments, root, heading="Recursos de la fuente"):
     """Replace tokens in body; the root note also receives unplaced resources."""
     values = c.get("embeds") or []
     assets, used = [], set()
@@ -198,7 +198,7 @@ def apply(app, c, body, attachments, root):
             sections.append(text)
             assets.extend(files)
         if sections:
-            rest = "## Recursos de la fuente\n\n" + "\n\n".join(sections)
+            rest = "## " + heading + "\n\n" + "\n\n".join(sections)
     return body, rest, assets
 
 

@@ -7,61 +7,11 @@ import re
 from urllib.parse import quote
 from core import UserError, clean, safe_path, slug, write_new_atomic
 
-TYPES = {
-    'fuente_externa':'Fuente externa', 'nota_atomica':'Nota de conocimiento',
-    'modelo_mental':'Modelo mental', 'referencia_tecnica':'Referencia técnica',
-    'indice':'Índice', 'apunte':'Apunte', 'resumen':'Resumen', 'ejercicio':'Ejercicio',
-    'practica':'Práctica', 'examen':'Examen', 'otro':'Otro material de clase',
-    'idea':'Idea', 'proyecto':'Proyecto'
-}
-CLASS_TYPES = ('apunte','resumen','ejercicio','practica','examen','otro','indice')
 RELATION_KINDS=('relaciona','explica','aplica','contrasta','amplia','requisito','ejemplo')
 
 
-def allowed_types(folder):
-    if folder.startswith('07_Clases/'):
-        return list(CLASS_TYPES)
-    if folder.startswith('02_Cerebro/'):
-        values=['fuente_externa','nota_atomica','referencia_tecnica','indice']
-        if folder.endswith('/Modelos_Mentales'):
-            values.insert(2,'modelo_mental')
-        return values
-    return ['fuente_externa','nota_atomica','referencia_tecnica','indice','idea','proyecto']
-
-
-def note_type(folder, value=None):
-    value=value or ('resumen' if folder.startswith('07_Clases/') else 'fuente_externa')
-    if value not in allowed_types(folder):
-        raise UserError('El tipo de nota no encaja con el destino. Revisa el tipo y la carpeta.')
-    return value
-
-
-def filename(capture, title, folder, kind=None):
-    kind=note_type(folder,kind)
-    if folder.startswith('07_Clases/'):
-        return f"{kind}_{capture['created'][:10]}_{slug(title,'-')}.md"
-    if kind=='fuente_externa':
-        suffix=('_frase_' if capture['kind']=='quote' else '_imagen_' if capture['kind']=='image' else '')
-        if suffix:suffix+=capture.get('source_fingerprint',capture['fingerprint'])[:6]
-        return f"fuente_{capture['created'][:10]}_{slug(title)}{suffix}.md"
-    if kind=='indice':
-        return f'nota_indice_{slug(title)}.md'
-    return f'nota_{slug(title)}.md'
-
-
-def validate_filename(name, kind, folder):
-    if folder.startswith('07_Clases/'):
-        pattern=rf'{kind}_\d{{4}}-\d{{2}}-\d{{2}}_[a-z0-9-]+\.md'
-    elif kind=='fuente_externa':
-        pattern=r'fuente_\d{4}-\d{2}-\d{2}_[a-z0-9_]+\.md'
-    else:
-        pattern=r'nota_[a-z0-9_]+\.md'
-    if not re.fullmatch(pattern,name):
-        raise UserError('El nombre del archivo no corresponde al tipo de nota y destino elegidos.')
-
-
-def extend_schema(properties, relation):
-    types={'type':'string','enum':list(TYPES)}
+def extend_schema(properties, relation, note_types):
+    types={'type':'string','enum':list(note_types)}
     links={'type':'array','items':{'type':'object','properties':{'id':{'type':'string'},'reason':{'type':'string'},'kind':{'type':'string','enum':list(RELATION_KINDS)}},'required':['id','reason','kind'],'additionalProperties':False}}
     child={k:{'type':'string'} for k in ('id','title','context','body','folder','source_evidence')}
     child['id']={'type':'string','pattern':'^tema-[a-z0-9-]{1,50}$'}
@@ -100,8 +50,9 @@ class Editorial:
         return found
 
     def build(self,c,result,root,candidates,folders):
-        root['note_type']=note_type(root['folder'],result.get('note_type'))
-        root['filename']=filename(c,root['title'],root['folder'],root['note_type'])
+        profile=self.app.vault_profile()
+        root['note_type']=profile.note_type(root['folder'],result.get('note_type'))
+        root['filename']=profile.filename(c,root['title'],root['folder'],root['note_type'])
         root['strategy']=result.get('strategy') or ('study' if c.get('reader') or c['kind'] in ('pdf','video') else 'source')
         root['rationale']=clean(result.get('rationale'),1600)
         root['source_format']=result.get('source_format') or ('libro' if c.get('reader') else 'video' if c['kind']=='video' else 'documento' if c['kind'] in ('pdf','image') else 'articulo')
@@ -115,7 +66,7 @@ class Editorial:
             ids.add(key)
             folder=child.get('folder')
             if folder not in folders:raise UserError('Una nota propone una carpeta que no existe.')
-            typ=note_type(folder,child.get('note_type'))
+            typ=profile.note_type(folder,child.get('note_type'),derived=True)
             title=clean(child.get('title'),300).strip();body=clean(child.get('body'),50000).strip()
             if not title or not body:raise UserError('Una nota derivada no tiene título o contenido.')
             body=re.sub(r'!?\[\[([^\]]+)\]\]',lambda m:m.group(1).split('|')[-1],body)
@@ -127,9 +78,9 @@ class Editorial:
             if not isinstance(images,list) or any(type(n) is not int or not 0<=n<len(c['images']) for n in images):raise UserError('Una nota contiene una figura inexistente.')
             images=[n for n in dict.fromkeys(images) if n in root['selected_images']]
             note={**copy.deepcopy(root),'id':key,'title':title,'context':clean(child.get('context'),1000),'body':body,'folder':folder,
-                  'note_type':typ,'filename':filename(c,title,folder,typ),'tags':self.app.tags(child.get('tags',[])),
+                  'note_type':typ,'filename':profile.filename(c,title,folder,typ),'tags':self.app.tags(child.get('tags',[])),
                   'relations':self.validate_relations(c,child.get('relations',[]),candidates),'selected_images':images,
-                  'source_pages':sorted(set(pages)),'source_evidence':evidence,'links':child.get('links') or [],'strategy':'study' if folder.startswith('07_Clases/') else 'concept'}
+                  'source_pages':sorted(set(pages)),'source_evidence':evidence,'links':child.get('links') or [],'strategy':'study' if profile.study(folder) else 'concept'}
             total+=len(body);notes.append(note)
         if total>160000:raise UserError('La propuesta es demasiado extensa; pide una síntesis más compacta.')
         for note in notes:
@@ -151,8 +102,8 @@ class Editorial:
             root['strategy']='source'
             root['rationale']='Una sola nota, según tu elección; los apartados se conservan juntos.'
             if root['note_type']=='indice':
-                root['note_type']='resumen' if root['folder'].startswith('07_Clases/') else 'fuente_externa'
-                root['filename']=filename(c,root['title'],root['folder'],root['note_type'])
+                root['note_type']=profile.default_type(root['folder'])
+                root['filename']=profile.filename(c,root['title'],root['folder'],root['note_type'])
             notes=[]
         if notes:
             c['source_fingerprint']=c.get('source_fingerprint',c['fingerprint'])
@@ -168,6 +119,7 @@ class Editorial:
     def drafts(self,c):return {'source':c['draft'],**{v['id']:v for v in c.get('bundle',{}).get('notes',[])}}
 
     def render_all(self,c,fields):
+        profile=self.app.vault_profile()
         from updates import Updates
         drafts=self.drafts(c);edits=fields.get('notes',{});selected=fields.get('selected_notes',list(drafts));active=fields.get('active_note','source');merged=fields.get('merged_into',{})
         if not isinstance(edits,dict) or any(k not in drafts for k in edits):raise UserError('La edición no corresponde a la propuesta.')
@@ -178,9 +130,10 @@ class Editorial:
         for key in dict.fromkeys([*selected,active]):
             d=drafts[key];value=edits.get(key,{})
             if not isinstance(value,dict):raise UserError('Campos de nota no válidos.')
-            folder=value.get('folder',d['folder']);typ=note_type(folder,value.get('note_type',d.get('note_type')));name=value.get('filename',d['filename'])
-            if folder not in self.app.folders():raise UserError('Destino no admitido.')
-            validate_filename(name,typ,folder);paths[key]=value.get('target_path') if value.get('save_mode')=='append' else folder+'/'+name
+            folder=value.get('folder',d['folder'])
+            if folder not in profile.destinations():raise UserError('Destino no admitido.')
+            typ=profile.note_type(folder,value.get('note_type',d.get('note_type')),derived=key!='source');name=value.get('filename',d['filename'])
+            profile.validate_filename(name,typ,folder);paths[key]=value.get('target_path') if value.get('save_mode')=='append' else folder+'/'+name
             if not isinstance(paths[key],str) or any(ch in paths[key] for ch in '[]|#^'):raise UserError('Ruta no válida para Obsidian.')
             effective[key]={**value,'note_type':typ}
             if value.get('save_mode')=='append':effective[key]['relations']=[p for p in value.get('relations',[]) if p!=paths[key]]
@@ -197,7 +150,7 @@ class Editorial:
             else:
                 if 'source' in selected:links.append({'id':'source','reason':'Síntesis y mapa de esta fuente','kind':'relaciona'})
                 links.extend(v for member in groups[key] for v in drafts[member].get('links',[]))
-            graph=[];planned=[];seen=set()
+            graph=[];planned=[];targets=[];seen=set()
             for value in links:
                 target=canonical(value['id'])
                 if target not in selected or target==key or target in seen:continue
@@ -207,10 +160,10 @@ class Editorial:
                 valid=(not evidence or evidence in current_body) and (not target_evidence or target_evidence in other_body)
                 accepted=tuple(sorted((canonical(key),target))) not in excluded and valid;kind=value.get('kind','relaciona')
                 graph.append({'id':target,'title':label,'kind':kind,'reason':value['reason'],'accepted':accepted,'source_evidence':evidence,'target_evidence':target_evidence,'stale':not valid})
-                if accepted:planned.append(f"- [[{paths[target].removesuffix('.md')}|{label}]] — {kind.capitalize()}: {clean(value['reason'],700)}")
+                if accepted:planned.append(f"- [[{paths[target].removesuffix('.md')}|{label}]] — {kind.capitalize()}: {clean(value['reason'],700)}");targets.append((paths[target],label))
             pages=sorted({p for member in groups[key] for p in drafts[member].get('source_pages',[])})
             d['source_pages']=pages
-            local={**c,'draft':d,'_planned_links':planned,'_semantic_links':any(v['accepted'] and v['source_evidence'] for v in graph)}
+            local={**c,'draft':d,'_planned_links':planned,'_planned_targets':targets,'_semantic_links':any(v['accepted'] and v['source_evidence'] for v in graph)}
             if key!='source' and pages:local['media']={'type':'section','pages':pages,'coverage':'Apunte de estas páginas de la fuente'}
             value=self.app.render(local,effective[key]);value['internal_links']=graph
             if effective[key].get('save_mode')=='append':value=Updates(self.app).render(c,value,effective[key])

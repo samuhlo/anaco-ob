@@ -8,12 +8,13 @@ import sys
 import tempfile
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'native'))
 from core import App
+from fixture_vault import classic_profile
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--ai',action='store_true');args=parser.parse_args()
     if not args.ai:parser.error('--ai utiliza el modelo con datos ficticios.')
     out=ROOT/'.test-artifacts/revisions-ai';out.mkdir(parents=True,exist_ok=True);run=Path(tempfile.mkdtemp(prefix='run-',dir=out));vault=run/'Vault';folder='02_Cerebro/Tech_&_Codigo';(vault/folder).mkdir(parents=True)
-    app=App(run/'state');app.set_config({'vault':str(vault)})
+    app=App(run/'state');app.set_config({'vault':str(vault)});classic_profile(app)
     source='Una identidad solicita acceso a un recurso. La política establece las acciones permitidas sobre ese recurso. El mínimo privilegio limita esas acciones a lo necesario. Un rol puede proporcionar permisos temporales a un servicio. La fuente no ofrece una configuración concreta.'
     c=app.stage({'url':'https://example.org/permissions','title':'Permisos y roles','text':source});app.draft(c['id'],provider='manual');c=app.load(c['id']);c['draft'].update(folder=folder,body='## Permisos\nLa política decide acciones permitidas.\n\n## Comentario personal\nMI COMENTARIO: revisar este punto con el profesor.')
     other=copy.deepcopy(c['draft']);other.update(id='roles',title='Roles temporales',filename='nota_roles_temporales.md',note_type='referencia_tecnica',body='## Roles\nUn rol puede proporcionar permisos temporales a un servicio.',links=[],source_pages=[],source_evidence=source,selected_images=[])

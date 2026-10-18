@@ -11,12 +11,13 @@ sys.path[:0]=[str(ROOT/'native'),str(ROOT/'tests')]
 from core import App
 from media import Media
 from media_fixtures import make_pdf
+from fixture_vault import classic_profile
 
 parser=argparse.ArgumentParser();parser.add_argument('--vision',action='store_true');parser.add_argument('--audio',type=Path)
 args=parser.parse_args()
 out=ROOT/'.test-artifacts/media';out.mkdir(parents=True,exist_ok=True)
 run_dir=Path(tempfile.mkdtemp(prefix='run-',dir=out));vault=run_dir/'Vault';(vault/'02_Cerebro/Tech_&_Codigo').mkdir(parents=True)
-app=App(run_dir/'state');app.set_config({'vault':str(vault),'provider':'codex' if args.vision else 'manual'})
+app=App(run_dir/'state');app.set_config({'vault':str(vault),'provider':'codex' if args.vision else 'manual'});classic_profile(app)
 pdf=make_pdf(run_dir/'fixtures');capture=Media(app).pdf(pdf,'AWS: identidad y permisos','https://example.org/aws.pdf')
 assert 'Least privilege' in capture['text'] and len(capture['images'])==2
 result=app.draft(capture['id'],'Quiero estudiar IAM y entender el diagrama de permisos.',provider='codex' if args.vision else 'manual')

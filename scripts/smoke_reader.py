@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'native'))
 from core import App
 from reader import Reader
+from fixture_vault import classic_profile
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--source-state', type=Path, required=True)
@@ -26,7 +27,7 @@ vault = run / 'Vault'
 (vault / '02_Cerebro/Cloud').mkdir(parents=True)
 (vault / '99_Recursos').mkdir()
 app = App(run / 'state')
-app.set_config({'vault': str(vault), 'provider': 'codex'})
+app.set_config({'vault': str(vault), 'provider': 'codex'});classic_profile(app)
 app.progress = lambda message: print(message, flush=True)
 reader = Reader(app)
 job = reader.begin({'url': 'https://example.org/synthetic-book', 'title': 'Libro de prueba: identidad, política y recursos', 'count': 3, 'identity': 'synthetic-three-pages'})['job']

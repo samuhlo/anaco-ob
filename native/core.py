@@ -22,7 +22,6 @@ from vaults import discover_vaults
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_VAULT = Path.home() / "Second_Brain"
 STATE = Path(os.environ.get("ANACO_OB_STATE") or os.environ.get("ZEN_BRAIN_STATE") or Path.home() / ".local/share/anaco-ob")
-ALLOWED_ROOTS = ("02_Cerebro", "03_Proyectos", "04_Cajon_Ideas", "07_Clases")
 STOP = set("para como este esta esto estas estos sobre desde entre donde cuando porque pero una uno unos unas del los las por con sin que sus son ser mas muy hay the and for with from that this into your you have has not".split())
 
 
@@ -123,7 +122,7 @@ def write_new_atomic(path, data):
             temporary.unlink(missing_ok=True)
 
 
-def schema():
+def schema(note_types):
     relation = {"type": "object", "properties": {k: {"type": "string"} for k in
                 ("path", "reason", "source_evidence", "note_evidence")},
                 "required": ["path", "reason", "source_evidence", "note_evidence"], "additionalProperties": False}
@@ -134,7 +133,7 @@ def schema():
     properties["relations"] = {"type": "array", "items": relation}
     properties["image_captions"]={"type":"array","items":{"type":"object","properties":{"index":{"type":"integer"},"description":{"type":"string"},"useful":{"type":"boolean"}},"required":["index","description","useful"],"additionalProperties":False}}
     from editorial import extend_schema
-    extend_schema(properties, relation)
+    extend_schema(properties, relation, note_types)
     return {"type": "object", "properties": properties, "required": list(properties), "additionalProperties": False}
 
 
@@ -152,8 +151,7 @@ class App:
 
     def config(self):
         path = self.state / "config.json"
-        default = {"vault": str(DEFAULT_VAULT), "vault_mode": "auto", "note_structure": "single", "attachments": "99_Recursos/adjuntos/anaco-ob",
-                   "read_roots": ["02_Cerebro", "03_Proyectos", "07_Clases"],
+        default = {"vault": str(DEFAULT_VAULT), "vault_mode": "auto", "note_structure": "single",
                    "model": "gpt-6-luna", "vision_model":"gpt-6.1-sol", "describe_images":True,"vision_policy":"auto",
                    "reader_batch_pages":6,"pdf_page_limit":60,"pdf_visual_pages":6,"video_minutes":120,"video_frames":3,"asr_model":"base",
                    "provider": "codex", "codex": shutil.which("codex") or "codex"}
@@ -173,7 +171,7 @@ class App:
 
     def set_config(self, values):
         cfg = self.config()
-        for key in ("vault", "vault_mode", "note_structure", "attachments", "model", "vision_model", "describe_images", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model", "provider", "read_roots"):
+        for key in ("vault", "vault_mode", "note_structure", "model", "vision_model", "describe_images", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model", "provider"):
             if key in values:
                 cfg[key] = values[key]
         if "vault" in values and "vault_mode" not in values:
@@ -190,9 +188,9 @@ class App:
             raise UserError("No encuentro esa carpeta. Busca de nuevo el vault o corrige la ruta manual.") from exc
         if not vault.is_dir() or vault == Path.home() or vault == Path("/"):
             raise UserError("Selecciona la carpeta concreta de un vault, no tu carpeta personal.")
+        if cfg.get("vault") != str(vault) and "vault" in values:
+            cfg.pop("profile_path", None)
         cfg["vault"] = str(vault)
-        if not isinstance(cfg["read_roots"], list) or not cfg["read_roots"] or any(x not in ALLOWED_ROOTS for x in cfg["read_roots"]):
-            raise UserError("Selecciona carpetas de lectura admitidas.")
         if cfg["provider"] not in ("codex", "manual"):
             raise UserError("Proveedor desconocido.")
         if not re.fullmatch(r"[a-zA-Z0-9_.-]{1,80}", clean(cfg["model"])):
@@ -202,37 +200,26 @@ class App:
             if type(cfg[key]) is not int or not 1<=cfg[key]<=maximum:raise UserError("Límite multimedia no válido: "+key)
         if type(cfg["describe_images"]) is not bool or cfg["asr_model"] not in ("tiny","base","small"):raise UserError("Opciones de análisis visual/transcripción no válidas.")
         if cfg["vision_policy"] not in ('auto','metadata','always'):raise UserError("Política de análisis visual no válida.")
-        safe_path(vault, cfg["attachments"])
-        if PurePosixPath(cfg["attachments"]).parts[0] != "99_Recursos":
-            raise UserError("En esta versión, configura los adjuntos dentro de 99_Recursos.")
         json_dump(self.state / "config.json", cfg)
         return cfg
 
-    def folders(self):
-        vault = self.vault()
-        result = []
-        for root_name in ALLOWED_ROOTS:
-            root = vault / root_name
-            if not root.is_dir() or root.is_symlink():
-                continue
-            for directory, dirs, _ in os.walk(root, followlinks=False):
-                dirs[:] = sorted(d for d in dirs if not d.startswith(".") and not (Path(directory) / d).is_symlink())
-                rel = Path(directory).relative_to(vault).as_posix()
-                # Match the vault's depth rules. Classes save into course/subject.
-                depth = len(PurePosixPath(rel).parts)
-                if (root_name == "02_Cerebro" and depth == 2) or (root_name == "07_Clases" and depth == 3) or root_name in ("03_Proyectos", "04_Cajon_Ideas"):
-                    result.append(rel)
-        return sorted(result)
+    def vault_profile(self):
+        """The validated profile of the current vault, reloaded when its file changes."""
+        from vault_profile import load, locate
+        rel = locate(self)
+        stamp = (str(self.vault()), rel, safe_path(self.vault(), rel).stat().st_mtime_ns if rel else None)
+        if getattr(self, "_profile_stamp", None) != stamp:
+            self._profile, self._profile_stamp = load(self), stamp
+        return self._profile
 
-    def profile(self):
-        vault = self.vault()
-        texts = {}
-        for rel in ("00_Sistema/MANUAL_VAULT.md", "99_Recursos/templates/template_fuente_externa.md", "99_Recursos/templates/template_nota_atomica.md"):
-            p = safe_path(vault, rel)
-            if p.is_file():
-                texts[rel] = read_note(p)[:22000]
+    def folders(self):
+        return self.vault_profile().destinations()
+
+    def guide(self):
+        """Editorial context for the model: the plugin contract and the vault's own instructions."""
+        texts, _ = self.vault_profile().instructions()
         if not texts:
-            texts["fallback"] = "Fuente externa: tipo, formato, tags, estado, contexto, fuente_url, fuente_autor, creado, modificado, version, llm_asistido. Clases: resumen, curso, asignatura."
+            texts["fallback"] = "El vault no tiene instrucciones propias. Usa los tipos, destinos y metadatos del perfil."
         skill = (ROOT / "skills/anaco-ob/SKILL.md").read_text()
         from prompts import VERSION
         digest = hashlib.sha256((VERSION+skill + json.dumps(texts, sort_keys=True)).encode()).hexdigest()
@@ -242,7 +229,7 @@ class App:
         vault = self.vault()
         query = tokens(capture["title"] + " " + capture["text"] + " " + capture.get("intent", ""))
         found = []
-        for root_name in self.config()["read_roots"]:
+        for root_name in self.vault_profile().relation_roots:
             root = vault / root_name
             if not root.is_dir() or root.is_symlink():
                 continue
@@ -363,11 +350,12 @@ class App:
             from reader import Reader
             return Reader(self).generate(capture, candidates, folders)
         cfg = self.config()
-        profile = self.profile()
+        profile = self.guide()
         chosen=self.prepare_captions(capture)
         vision=bool(chosen)
         model=cfg["vision_model"] if vision else cfg["model"]
-        from editorial import guidance,allowed_types
+        from editorial import guidance
+        vault_profile = self.vault_profile()
         from embeds import for_prompt,guidance as embed_guidance
         prompt = (getattr(self,'editorial_guidance',guidance)(capture)+"Transforma esta captura en una propuesta adecuada a su contenido e intención. Devuelve solo el JSON solicitado. "
                   "No uses herramientas, comandos ni acceso a archivos: todo el contexto necesario está aquí. "
@@ -383,8 +371,8 @@ class App:
                   "Si falta evidencia o no hay candidatas, relations=[]. Escribe en español.\n\n" +
                   embed_guidance(capture)+
                   json.dumps({"profile": profile, "capture": {k: (for_prompt(v) if k=="embeds" else v) for k, v in self.public(capture).items() if k not in ("fingerprint", "id")},
-                              "candidates": candidates, "folders": folders,"note_types_by_folder":{folder:allowed_types(folder) for folder in folders}}, ensure_ascii=False))
-        return self.codex_json(prompt,schema(),model,[{**capture['images'][i],'_prompt_index':i} for i in chosen])
+                              "candidates": candidates, "folders": folders,"note_types_by_folder":{folder:vault_profile.types_for(folder) for folder in folders}}, ensure_ascii=False))
+        return self.codex_json(prompt,schema(list(vault_profile.labels())),model,[{**capture['images'][i],'_prompt_index':i} for i in chosen])
 
     def codex_json(self,prompt,spec,model=None,images=None):
         cfg=self.config();model=model or cfg["model"]
@@ -449,9 +437,9 @@ class App:
                 raise UserError("Faltan campos en la propuesta de IA.")
         else:
             result = {"title": c["title"], "context": c["intent"] or "Captura pendiente de elaboración personal.",
-                      "folder": next((f for f in folders if f.startswith("02_Cerebro/")), folders[0]),
+                      "folder": self.vault_profile().default_destination(folders),
                       "tags": ["fuente"], "relations": [],
-                      "body": "## // RESUMEN\n\n" + (c["text"] if c["kind"] in ("article","pdf","video") else "Escribe aquí tu interpretación o descripción.")}
+                      "body": "## "+self.vault_profile().section("summary")+"\n\n" + (c["text"] if c["kind"] in ("article","pdf","video") else "Escribe aquí tu interpretación o descripción.")}
         recommended=list(c["selected_images"])
         described=set()
         for item in result.get("image_captions",[]):
@@ -485,7 +473,7 @@ class App:
                  "filename": self.filename(c, title, folder), "model": result.get("_model",self.config()["model"]) if provider == "codex" else reused_model,
                  "selected_images":recommended,
                  "visual_image_count":len(visual) if provider=='codex' else 0,
-                 "assisted": provider == "codex" or bool(reused_model), "profile_hash": self.profile()["hash"]}
+                 "assisted": provider == "codex" or bool(reused_model), "profile_hash": self.guide()["hash"]}
         draft['provider']=provider
         draft=editorial.build(c,result,draft,candidates,folders)
         c.update({"draft": draft, "status": "draft"})
@@ -499,8 +487,7 @@ class App:
         return list(dict.fromkeys(t for v in values[:12] if (t := slug(v, "-")) and not t.isdigit()))[:8]
 
     def filename(self, capture, title, folder, note_type=None):
-        from editorial import filename
-        return filename(capture,title,folder,note_type)
+        return self.vault_profile().filename(capture,title,folder,note_type)
 
     def duplicate(self, c):
         row = self.db.execute("SELECT path FROM saves WHERE fingerprint=?", (c["fingerprint"],)).fetchone()
@@ -508,16 +495,16 @@ class App:
 
     def render(self, c, fields):
         original = c["draft"]
+        profile = self.vault_profile()
         folder = clean(fields.get("folder", original["folder"]), 1000)
-        if folder not in self.folders():
+        if folder not in profile.destinations():
             raise UserError("El destino no existe o no respeta la estructura del vault.")
         name = clean(fields.get("filename", original["filename"]), 180)
-        from editorial import note_type,validate_filename,format_pages
+        from editorial import format_pages
         requested=fields.get('note_type',original.get('note_type'))
         if 'folder' in fields and folder!=original['folder'] and 'note_type' not in fields:requested=None
-        typ=note_type(folder,requested)
-        validate_filename(name,typ,folder)
-        is_class=folder.startswith('07_Clases/')
+        typ=profile.note_type(folder,requested,derived=bool(original.get("id")))
+        profile.validate_filename(name,typ,folder)
         body = clean(fields.get("body", original["body"]), 100000)
         if re.search(r"!?\[\[", body):
             raise UserError("Añade los enlaces internos desde la lista de relaciones para poder verificarlos.")
@@ -526,51 +513,15 @@ class App:
             raise UserError("El título y el contenido no pueden estar vacíos.")
         intent_date=c.get('save_intent',{}).get('date') if isinstance(c.get('save_intent'),dict) else None
         today = c.get('_render_date') or intent_date or dt.date.today().isoformat()
-        link_assisted=bool(original.get('connection_model') and (fields.get('relations') or c.get('_semantic_links')))
-        fm = {"tipo": typ,
-              "tags": self.tags(fields.get("tags", original["tags"])) + ["ano-" + today[:4]],
-              "estado": "activo", "contexto": clean(fields.get("context", original["context"]), 1000),
-              "creado": c["created"][:10], "modificado": today, "version": "V1", "llm_asistido": original["assisted"] or bool(fields.get('revision_model')) or link_assisted}
-        if is_class:
-            fm["tags"]=list(dict.fromkeys(["clase",*fm["tags"]]))
-            parts = PurePosixPath(folder).parts
-            fm.update({"curso": re.sub(r"^\d+_", "", parts[1]).replace("_", " "),
-                       "asignatura": re.sub(r"^\d+_", "", parts[2]).replace("_", " ")})
-        else:
-            if typ=="fuente_externa":fm["formato"]=original.get("source_format") or ("video" if c["kind"]=="video" else "documento" if c["kind"] in ("image","pdf") else "articulo")
-            if c["url"].startswith(("http://","https://")):fm["fuente_url"]=c["url"]
-            if c["author"]:
-                fm["fuente_autor"] = c["author"]
-        if fm['llm_asistido']:
-            fm.update({"llm_modelo": clean(fields.get('revision_model') or original["model"] or original.get('connection_model'),80), "llm_modificado": today})
-        yaml = "\n".join(k + ": " + json.dumps(v, ensure_ascii=False) for k, v in fm.items())
-        # Angle-bracket link target prevents title and URL Markdown breakouts.
-        source = c["url"].replace("<", "%3C").replace(">", "%3E").replace("\n", "")
-        source_line="[Abrir original](<"+source+">)" if source.startswith(("http://","https://")) else "Archivo local: "+source.removeprefix("local-file:")
-        classic=original.get('strategy','source') in ('source','quote','image') and typ=='fuente_externa'
-        chunks=["---\n"+yaml+"\n---","# "+title]
-        if classic:
-            chunks.append("## // FICHA RAPIDA\n\n- Fuente: "+source_line+"\n- Capturado: "+c['created'][:10])
-        if c.get('media') and classic:
-            labels={"total_pages":"Páginas del documento","pages":"Páginas procesadas","method":"Obtención del contenido","coverage":"Cobertura","duration_seconds":"Duración (segundos)","language":"Idioma","reading_models":"Modelos de lectura y síntesis","reading_mode":"Modo de lectura"}
-            chunks.append("## // ALCANCE Y METODO\n\n"+"\n".join("- "+labels.get(k,k)+": "+(format_pages(v) if k in ('pages','visual_pages') and isinstance(v,list) else str(v)) for k,v in c['media'].items() if k!='type'))
-        if c['intent']:
-            chunks.append(("## // POR QUE LO GUARDO" if classic else "## Intención personal")+"\n\n"+c['intent'])
-        if c['warnings'] and (classic or not original.get('source_pages')):
-            chunks.append("> [!warning] Alcance de la captura\n"+"\n".join("> "+x.replace('\n',' ') for x in c['warnings']))
-        if c["kind"] == "quote":
-            chunks.append("## // CITA LITERAL\n\n" + "\n".join("> " + line for line in c["text"].split("\n")))
-            if c["context"]:
-                chunks.append("## // CONTEXTO DE LA CITA\n\n" + c["context"])
+        attachments = profile.attachments.rstrip("/")
         from embeds import apply as apply_embeds
-        body,resources,embedded=apply_embeds(self,c,body,self.config()["attachments"].rstrip("/"),not original.get("id"))
-        chunks.append(body)
-        if resources:chunks.append(resources)
+        body,resources,embedded=apply_embeds(self,c,body,attachments,not original.get("id"),profile.section("resources"))
+        # [DATA] Accepted relations are verified before they reach links or frontmatter.
         selected = fields.get("relations", [])
         if not isinstance(selected, list):
             raise UserError("Lista de relaciones no válida.")
         known = {r["path"]: r for r in original["relations"]}
-        links = []
+        links, related = [], list(c.get('_planned_targets',[]))
         for rel_path in dict.fromkeys(selected):
             if rel_path not in known:
                 raise UserError("Una relación no forma parte de la propuesta verificada.")
@@ -589,20 +540,42 @@ class App:
             from editorial import RELATION_KINDS
             if kind not in RELATION_KINDS:raise UserError('Tipo de relación no válido.')
             links.append(f"- [[{link}]] — {kind.capitalize()}: {relation['reason']}")
+            related.append((rel_path, relation.get('title') or PurePosixPath(link).name))
+        link_assisted=bool(original.get('connection_model') and (fields.get('relations') or c.get('_semantic_links')))
+        assisted=original["assisted"] or bool(fields.get('revision_model')) or link_assisted
+        fm = profile.frontmatter({"type": typ, "folder": folder, "title": title, "tags": self.tags(fields.get("tags", original["tags"])),
+                                  "context": clean(fields.get("context", original["context"]), 1000), "created": c["created"][:10], "today": today,
+                                  "url": c["url"], "author": c["author"],
+                                  "source_format": original.get("source_format") or ("video" if c["kind"]=="video" else "documento" if c["kind"] in ("image","pdf") else "articulo"),
+                                  "assisted": assisted, "model": clean(fields.get('revision_model') or original["model"] or original.get('connection_model'),80) if assisted else "",
+                                  "relations": related})
+        yaml = "\n".join(k + ": " + json.dumps(v, ensure_ascii=False) for k, v in fm.items())
+        # Angle-bracket link target prevents title and URL Markdown breakouts.
+        source = c["url"].replace("<", "%3C").replace(">", "%3E").replace("\n", "")
+        source_line="[Abrir original](<"+source+">)" if source.startswith(("http://","https://")) else "Archivo local: "+source.removeprefix("local-file:")
+        chunks=["---\n"+yaml+"\n---" if fm else "","# "+title]
+        if c['intent']:
+            chunks.append("## "+profile.section("intent")+"\n\n"+c['intent'])
+        if c['warnings'] and not original.get('source_pages'):
+            chunks.append("> [!warning] "+profile.section("warning")+"\n"+"\n".join("> "+x.replace('\n',' ') for x in c['warnings']))
+        if c["kind"] == "quote":
+            chunks.append("## "+profile.section("quote")+"\n\n" + "\n".join("> " + line for line in c["text"].split("\n")))
+            if c["context"]:
+                chunks.append("## "+profile.section("quote_context")+"\n\n" + c["context"])
+        chunks.append(body)
+        if resources:chunks.append(resources)
         planned=c.get('_planned_links',[])
         if planned or links:
-            chunks.append(("## // RELACIONES EN CEREBRO" if classic else "## Notas relacionadas")+"\n\n"+"\n".join([*planned,*links]))
-        elif classic:chunks.append("## // RELACIONES EN CEREBRO\n\nPendiente de relación: no se han aceptado conexiones verificadas.")
-        if not classic:
-            source_detail=source_line
-            if c.get('media',{}).get('pages'):source_detail+=" · páginas "+format_pages(c['media']['pages'])
-            if c.get('reader',{}).get('analyzed_pages') and not original.get('source_pages'):source_detail+=f" · {c['reader']['analyzed_pages']} páginas leídas"
-            media=c.get('media',{})
-            details=[]
-            for key,label in (('coverage','Cobertura'),('method','Obtención'),('reading_mode','Lectura'),('reading_models','Modelos'),('language','Idioma'),('duration_seconds','Duración en segundos')):
-                if media.get(key):details.append(label+': '+(', '.join(media[key]) if isinstance(media[key],list) else str(media[key])))
-            if details:source_detail+='\n\n'+' · '.join(details)
-            chunks.append("## Fuente\n\n"+source_detail)
+            chunks.append("## "+profile.section("relations")+"\n\n"+"\n".join([*planned,*links]))
+        source_detail=source_line
+        if c.get('media',{}).get('pages'):source_detail+=" · páginas "+format_pages(c['media']['pages'])
+        if c.get('reader',{}).get('analyzed_pages') and not original.get('source_pages'):source_detail+=f" · {c['reader']['analyzed_pages']} páginas leídas"
+        media=c.get('media',{})
+        details=[]
+        for key,label in (('coverage','Cobertura'),('method','Obtención'),('reading_mode','Lectura'),('reading_models','Modelos'),('language','Idioma'),('duration_seconds','Duración en segundos')):
+            if media.get(key):details.append(label+': '+(', '.join(media[key]) if isinstance(media[key],list) else str(media[key])))
+        if details:source_detail+='\n\n'+' · '.join(details)
+        chunks.append("## "+profile.section("source")+"\n\n"+source_detail)
         assets = list(embedded)
         selection = fields.get("images", original.get("selected_images",list(range(len(c["images"])))))
         if not isinstance(selection, list) or any(not isinstance(i, int) or i < 0 or i >= len(c["images"]) for i in selection):
@@ -610,13 +583,13 @@ class App:
         for i in dict.fromkeys(selection):
             im = c["images"][i]
             raw, ext = image_bytes(im)
-            rel = self.config()["attachments"].rstrip("/") + "/" + hashlib.sha256(raw).hexdigest() + ext
+            rel = attachments + "/" + hashlib.sha256(raw).hexdigest() + ext
             safe_path(self.vault(), rel)
             captions=fields.get("captions",{})
             alt = clean(captions.get(str(i),im.get("caption") or im.get("alt")),1800).replace("\n", " ").replace("]", "")
             assets.append((rel, raw))
-            chunks.append(("## // IMAGEN\n\n" if classic else "")+"![["+rel+"]]\n\n"+(alt or "Imagen de la fuente; descripción pendiente."))
-        return {"markdown": "\n\n".join(chunks).strip() + "\n", "relative": folder + "/" + name, "assets": assets}
+            chunks.append("![["+rel+"]]\n\n"+(alt or "Imagen de la fuente; descripción pendiente."))
+        return {"markdown": "\n\n".join(x for x in chunks if x).strip() + "\n", "relative": folder + "/" + name, "assets": assets}
 
     def preview(self, capture_id, fields):
         c = self.load(capture_id)
@@ -687,7 +660,13 @@ class App:
             return job.update(status=message.get('status','complete'))
         if action == "status":
             from jobs import pending
-            return {"version": "0.10.0", "config": self.config(), "folders": self.folders(), "pending": self.pending(), 'jobs':pending(self), "profile_hash": self.profile()["hash"]}
+            self.vault()
+            try:
+                profile = self.vault_profile();folders = profile.destinations()
+                state = {"path": profile.path, "hash": self.guide()["hash"]}
+            except UserError as exc:
+                folders, state = [], {"missing": True, "message": str(exc)}
+            return {"version": "0.10.0", "config": self.config(), "folders": folders, "pending": self.pending(), 'jobs':pending(self), "profile": state, "profile_hash": state.get("hash")}
         if action == "settings":
             cfg = self.config()
             return {"config": cfg, "vault_available": Path(cfg["vault"]).expanduser().is_dir()}
@@ -720,7 +699,8 @@ class App:
             if action=="video_url":return media.video_url(message)
             return media.transcript_capture(subtitles(message.get("text","")),clean(message.get("title"),300),normalized_url(message.get("url","")),"Subtítulos recuperados desde la sesión del navegador",metadata={"coverage":"Subtítulos disponibles; puede haber tramos sin texto"})
         if action == 'review_data':
-            from editorial import TYPES,allowed_types,RELATION_KINDS
+            from editorial import RELATION_KINDS
+            profile=self.vault_profile()
             from linking import review_candidates
             c=self.load(message['id'])
             if c['status']!='draft' or not c.get('draft'):raise UserError('La captura no tiene una propuesta pendiente.')
@@ -729,7 +709,7 @@ class App:
             # Review receives rendered content separately; avoid duplicating
             # the capture text, drafts and relationship evidence in its reply.
             for key in ('text','draft','bundle'):public.pop(key,None)
-            return {'capture':public,'draft':c['draft'],'bundle':c.get('bundle'),'folders':folders,'note_types':TYPES,'types_by_folder':{f:allowed_types(f) for f in folders},'relation_kinds':list(RELATION_KINDS),'candidates':review_candidates(self,c)}
+            return {'capture':public,'draft':c['draft'],'bundle':c.get('bundle'),'folders':folders,'note_types':profile.labels(),'types_by_folder':{f:profile.types_for(f) for f in folders},'rules_by_folder':{f:{'default':profile.default_type(f),'derived':profile.default_type(f,derived=True),'filenames':profile.patterns(f)} for f in folders},'relation_kinds':list(RELATION_KINDS),'candidates':review_candidates(self,c)}
         if action=='revise':
             from editing import revise
             return revise(self,message)
@@ -762,6 +742,6 @@ class App:
             raw, ext = image_bytes(c["images"][index])
             return {"data": data[offset:offset+262144], "total": len(data),
                     "mime": {".png":"image/png", ".jpg":"image/jpeg", ".gif":"image/gif", ".webp":"image/webp"}[ext],
-                    "relative": self.config()["attachments"].rstrip("/")+"/"+hashlib.sha256(raw).hexdigest()+ext}
+                    "relative": self.vault_profile().attachments.rstrip("/")+"/"+hashlib.sha256(raw).hexdigest()+ext}
         raise UserError("Acción desconocida.")
 

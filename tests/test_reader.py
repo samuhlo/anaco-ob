@@ -72,9 +72,9 @@ class ReaderTest(core_tests.unittest.TestCase):
         reader,job=self.book(7);c=reader.finish({'job':job});calls=[]
         with patch.object(self.app,'codex_generate',side_effect=self.fake_generation(calls)):
             self.app.draft(c['id'],provider='codex')
-        original_profile=self.app.profile;profile=original_profile();profile['hash']='updated-editorial-guidance'
+        original_profile=self.app.guide;profile=original_profile();profile['hash']='updated-editorial-guidance'
         calls=[]
-        with patch.object(self.app,'profile',return_value=profile),patch.object(self.app,'codex_generate',side_effect=self.fake_generation(calls)):
+        with patch.object(self.app,'guide',return_value=profile),patch.object(self.app,'codex_generate',side_effect=self.fake_generation(calls)):
             self.app.draft(c['id'],provider='codex')
             self.app.draft(c['id'],provider='codex')
         self.assertEqual([scope for scope,_,_ in calls],['synthesis','synthesis'])

@@ -30,7 +30,7 @@ def effective_notes(c,fields):
 
 
 def candidates_for(app,c,notes):
-    known={};allowed={root+'/' for root in app.config()['read_roots']}
+    known={};allowed={root+'/' for root in app.vault_profile().relation_roots}
     for note in notes.values():
         query={**c,'title':note['title'],'text':note['body'],'intent':note['context']+' '+' '.join(note['tags'])}
         for candidate in app.candidates(query)[:6]:known.setdefault(candidate['path'],candidate)

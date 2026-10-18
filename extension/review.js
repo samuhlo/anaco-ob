@@ -34,7 +34,8 @@ function typeOptions(folder,value){
   $('noteType').replaceChildren();
   for(const type of data.types_by_folder[folder]||[]){const option=document.createElement('option');option.value=type;option.textContent=data.note_types[type]||type;$('noteType').append(option);}
   const allowed=data.types_by_folder[folder]||[];
-  $('noteType').value=allowed.includes(value)?value:folder.startsWith('07_Clases/')?(activeNote==='source'?'resumen':'apunte'):(activeNote==='source'?'fuente_externa':'nota_atomica');
+  const rule=data.rules_by_folder?.[folder];
+  $('noteType').value=allowed.includes(value)?value:rule?(activeNote==='source'?rule.default:rule.derived):allowed[0];
 }
 function relations(){
   $('relations').replaceChildren();
@@ -112,11 +113,15 @@ async function finish(decision){
     if(result?.returnError){finished=Boolean(result.completed);$('success').textContent=decision==='save'?'Propuesta guardada. '+result.returnError:result.returnError;$('success').hidden=false;$('back').disabled=false;$('operation').hidden=true;closingReview=false;publishReview();}
   }catch(e){error(e);$('operation').hidden=true;for(const id of ['discard','back'])$(id).disabled=false;closingReview=false;await preview();error(e);}
 }
+// Same tokens as the vault profile in native/vault_profile.py.
 function updateFilename(){
-  const old=$('filename').value,date=old.match(/\d{4}-\d{2}-\d{2}/)?.[0]||new Date().toISOString().slice(0,10),folder=$('folder').value,type=$('noteType').value;
-  const sep=folder.startsWith('07_Clases/')?'-':'_',slug=$('title').value.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,sep).replace(/^[-_]+|[-_]+$/g,'').slice(0,100)||'captura';
-  const suffix=type==='fuente_externa'&&['quote','image'].includes(data.capture.kind)?'_'+(data.capture.kind==='quote'?'frase':'imagen')+'_'+(data.capture.source_fingerprint||data.capture.fingerprint).slice(0,6):'';
-  $('filename').value=folder.startsWith('07_Clases/')?`${type}_${date}_${slug}.md`:type==='fuente_externa'?`fuente_${date}_${slug}${suffix}.md`:`nota_${type==='indice'?'indice_':''}${slug}.md`;
+  const folder=$('folder').value,type=$('noteType').value,pattern=data.rules_by_folder?.[folder]?.filenames?.[type];if(!pattern)return;
+  const title=$('title').value,date=(data.capture.created||new Date().toISOString()).slice(0,10);
+  const slug=sep=>title.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,sep).replace(/^[-_]+|[-_]+$/g,'').slice(0,100)||'captura';
+  const plain=title.replace(/[\\/:*?"<>|#^\[\]]/g,' ').replace(/\s+/g,' ').trim().replace(/^\.+/,'').slice(0,120).trim()||'Captura';
+  const variant=['quote','image'].includes(data.capture.kind)?'_'+(data.capture.kind==='quote'?'frase':'imagen')+'_'+(data.capture.source_fingerprint||data.capture.fingerprint).slice(0,6):'';
+  const values={date,'slug_':slug('_'),'slug-':slug('-'),title:plain,type,variant};
+  $('filename').value=pattern.replace(/\{(date|slug_|slug-|title|type|variant)\}/g,(_,key)=>values[key]);
 }
 function internalLinks(values){
   $('newRelations').replaceChildren();internalNote=activeNote;

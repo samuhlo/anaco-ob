@@ -168,7 +168,7 @@ class Reader:
         if not visual and any(not p['text'].strip() for p in pages):
             raise UserError('Hay páginas gráficas sin texto. Activa visión para leer el libro completo; no se resumirá una parte como si fuera todo.')
         key = hashlib.sha256(json.dumps([meta['pages'], cfg['model'], cfg['vision_model'], visual, batch_size,
-                                        capture.get('intent', ''), self.app.profile()['hash']], sort_keys=True).encode()).hexdigest()[:24]
+                                        capture.get('intent', ''), self.app.guide()['hash']], sort_keys=True).encode()).hexdigest()[:24]
         previous_profile=capture.get('draft',{}).get('profile_hash')
         previous_key=hashlib.sha256(json.dumps([meta['pages'],cfg['model'],cfg['vision_model'],visual,batch_size,capture.get('intent',''),previous_profile],sort_keys=True).encode()).hexdigest()[:24] if previous_profile else None
         summaries, captions, models = [], {}, set()

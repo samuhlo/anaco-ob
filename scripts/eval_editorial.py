@@ -9,6 +9,7 @@ import sys
 ROOT=Path(__file__).resolve().parents[1];sys.path[:0]=[str(ROOT/'native'),str(ROOT/'tests')]
 from core import App
 from test_core import PNG
+from fixture_vault import classic_profile
 
 CASES=[
 ('curso','pdf','Fundamentos AWS','[Página 1] Una identidad solicita acceso a un recurso. Una política decide las acciones permitidas. El mínimo privilegio limita los permisos a lo necesario. Un rol proporciona permisos temporales a un servicio.\n[Página 2] Una instancia EC2 ejecuta una aplicación. Su capacidad se elige según la carga. Los grupos de seguridad controlan el tráfico permitido. Detener y terminar tienen efectos distintos, que esta fuente no detalla.\n[Página 3] S3 almacena objetos en buckets y cada objeto tiene una clave. El versionado conserva versiones. Las reglas de ciclo de vida pueden mover o eliminar objetos. En una web, EC2 ejecuta la aplicación y S3 guarda archivos.','Apuntes de estudio por temas con síntesis y relaciones.'),
@@ -30,7 +31,7 @@ def main():
             if file.exists():outputs[version]=json.loads(file.read_text());continue
             vault=directory/version/'Vault'
             for rel in ('02_Cerebro/Tech_&_Codigo','02_Cerebro/Modelos_Mentales','07_Clases/01_AWS/01_Fundamentos','99_Recursos'):(vault/rel).mkdir(parents=True,exist_ok=True)
-            app=App(directory/version/'state');app.set_config({'vault':str(vault),'provider':'codex'})
+            app=App(directory/version/'state');app.set_config({'vault':str(vault),'provider':'codex'});classic_profile(app)
             if version=='baseline':app.editorial_guidance=ns['guidance']
             generator=app.codex_generate
             def record(c,*args,**kwargs):

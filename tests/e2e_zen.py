@@ -96,6 +96,8 @@ def main():
     (vault / "02_Cerebro/Tech_&_Codigo/recuperacion_paquetes.md").write_text("# Recuperación de paquetes\n\nLa recuperación de paquetes perdidos utiliza retransmisión en redes de ordenadores. Los routers conectan equipos.")
     app = App(run_dir / "state")
     app.set_config({"vault":str(vault), "provider":"codex" if args.ai else "manual",'note_structure':'linked' if args.editorial or args.workflow or args.review_menu else 'single'})
+    from vault_profile import install
+    install(app, json.loads((ROOT/'tests/fixtures/profile-classic.json').read_text()), '99_Recursos/anaco/perfil.json')
     app.db.close()
     (ROOT / "tests/fixtures/diagram.png").write_bytes(fixture_png())
     if args.media or args.detection:

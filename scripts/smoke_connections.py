@@ -12,6 +12,7 @@ sys.path.insert(0,str(ROOT/'native'))
 from core import App
 from editorial import Editorial
 from linking import calculate
+from fixture_vault import classic_profile
 
 
 def main():
@@ -30,7 +31,7 @@ def main():
         (vault/'02_Cerebro/Tech_&_Codigo/nota_gsap_ticker.md').write_text('# GSAP: ticker y limpieza\n\nEl ticker de GSAP registra callbacks que actualizan el renderizado en cada cuadro. Cuando se desmonta un componente se debe retirar su callback con gsap.ticker.remove para evitar duplicar ciclos de dibujo. Los tweens cambian valores de estado que el renderizador puede leer, en vez de animar necesariamente nodos DOM.')
         (vault/'02_Cerebro/Tech_&_Codigo/nota_estado_y_render.md').write_text('# Separar estado y dibujo\n\nUn bucle de animación puede actualizar el estado y dejar que cada renderizador interprete esos valores. Un progreso entre cero y uno puede controlar tanto una transición dibujada en Canvas como un uniforme que determina la revelación de una imagen en un shader.')
         (vault/'02_Cerebro/Tech_&_Codigo/nota_gsap_noticias.md').write_text('# Noticias de GSAP\n\nEsta nota únicamente registra que se mencionó la marca en una reunión. No contiene técnicas, mecanismos de animación ni documentación de implementación.')
-        app=App(run/'state');app.set_config({'vault':str(vault),'provider':'codex'})
+        app=App(run/'state');app.set_config({'vault':str(vault),'provider':'codex'});classic_profile(app)
         source=json.loads((ROOT/'.test-artifacts/code-notes-eval/linked/proposal.json').read_text())
         c=app.stage({'kind':'article','title':source['title'],'url':source['url'],'text':source['text']});c=app.load(c['id'])
         c.update(draft=copy.deepcopy(source['draft']),bundle=copy.deepcopy(source['bundle']),status='draft');app.store(c)

@@ -10,6 +10,7 @@ import sys
 import tempfile
 import uuid
 import base64
+from fixture_vault import classic_profile
 ROOT=Path(__file__).resolve().parents[1]
 
 def encode(value):
@@ -26,7 +27,7 @@ def main():
     if not args.real:parser.error('--real ejecuta Whisper local con voz de prueba.')
     out=ROOT/'.test-artifacts/recovery';out.mkdir(parents=True,exist_ok=True);run=Path(tempfile.mkdtemp(prefix='run-',dir=out));vault=run/'Vault';(vault/'02_Cerebro/Tech_&_Codigo').mkdir(parents=True)
     sys.path.insert(0,str(ROOT/'native'));from core import App
-    app=App(run/'state');app.set_config({'vault':str(vault),'provider':'manual'});app.db.close()
+    app=App(run/'state');app.set_config({'vault':str(vault),'provider':'manual'});classic_profile(app);app.db.close()
     audio=run/'speech.flac';subprocess.run(['ffmpeg','-v','error','-y','-stream_loop','10','-i',str(ROOT/'.test-artifacts/jfk.flac'),'-t','75','-ar','16000',str(audio)],check=True)
     env={**os.environ,'ANACO_OB_STATE':str(run/'state')};host=subprocess.Popen([sys.executable,str(ROOT/'native/host.py')],stdin=subprocess.PIPE,stdout=subprocess.PIPE,env=env)
     def request(value):

@@ -1,0 +1,48 @@
+{
+  "schema": "anaco-profile/1",
+  "types": {
+    "fuente_externa": {"label": "Fuente externa", "filename": "fuente_{date}_{slug_}{variant}.md"},
+    "nota_atomica": {"label": "Nota de conocimiento", "filename": "nota_{slug_}.md"},
+    "modelo_mental": {"label": "Modelo mental", "filename": "nota_{slug_}.md"},
+    "referencia_tecnica": {"label": "Referencia técnica", "filename": "nota_{slug_}.md"},
+    "indice": {"label": "Índice", "filename": "nota_indice_{slug_}.md"},
+    "apunte": {"label": "Apunte", "filename": "{type}_{date}_{slug-}.md"},
+    "resumen": {"label": "Resumen", "filename": "{type}_{date}_{slug-}.md"},
+    "ejercicio": {"label": "Ejercicio", "filename": "{type}_{date}_{slug-}.md"},
+    "practica": {"label": "Práctica", "filename": "{type}_{date}_{slug-}.md"},
+    "examen": {"label": "Examen", "filename": "{type}_{date}_{slug-}.md"},
+    "otro": {"label": "Otro material de clase", "filename": "{type}_{date}_{slug-}.md"},
+    "idea": {"label": "Idea", "filename": "nota_{slug_}.md"},
+    "proyecto": {"label": "Proyecto", "filename": "nota_{slug_}.md"}
+  },
+  "destinations": [
+    {"pattern": "02_Cerebro/Modelos_Mentales", "types": ["fuente_externa", "nota_atomica", "modelo_mental", "referencia_tecnica", "indice"], "default": "fuente_externa", "derived": "nota_atomica"},
+    {"pattern": "02_Cerebro/*", "types": ["fuente_externa", "nota_atomica", "referencia_tecnica", "indice"], "default": "fuente_externa", "derived": "nota_atomica"},
+    {"pattern": "07_Clases/*/*", "types": ["apunte", "resumen", "ejercicio", "practica", "examen", "otro", "indice"], "default": "resumen", "derived": "apunte", "study": true,
+     "filenames": {"indice": "{type}_{date}_{slug-}.md"}},
+    {"pattern": "03_Proyectos/**", "types": ["fuente_externa", "nota_atomica", "referencia_tecnica", "indice", "idea", "proyecto"], "default": "fuente_externa", "derived": "nota_atomica"},
+    {"pattern": "04_Cajon_Ideas/**", "types": ["fuente_externa", "nota_atomica", "referencia_tecnica", "indice", "idea", "proyecto"], "default": "fuente_externa", "derived": "nota_atomica"}
+  ],
+  "frontmatter": [
+    {"key": "tipo", "from": "type"},
+    {"key": "tags", "from": "tags", "prepend": ["clase"], "append": ["ano-{year}"], "when": {"folders": ["07_Clases/"]}},
+    {"key": "tags", "from": "tags", "append": ["ano-{year}"]},
+    {"key": "estado", "from": "constant", "value": "activo"},
+    {"key": "contexto", "from": "context"},
+    {"key": "creado", "from": "created"},
+    {"key": "modificado", "from": "today"},
+    {"key": "version", "from": "constant", "value": "V1"},
+    {"key": "llm_asistido", "from": "assisted"},
+    {"key": "curso", "from": "path_segment", "index": 1, "when": {"folders": ["07_Clases/"]}},
+    {"key": "asignatura", "from": "path_segment", "index": 2, "when": {"folders": ["07_Clases/"]}},
+    {"key": "formato", "from": "source_format", "when": {"types": ["fuente_externa"]}},
+    {"key": "fuente_url", "from": "url", "when": {"not_folders": ["07_Clases/"]}},
+    {"key": "fuente_autor", "from": "author", "when": {"not_folders": ["07_Clases/"]}},
+    {"key": "llm_modelo", "from": "model", "when": {"assisted": true}},
+    {"key": "llm_modificado", "from": "today", "when": {"assisted": true}}
+  ],
+  "attachments": "99_Recursos/adjuntos/anaco-ob",
+  "relation_roots": ["02_Cerebro", "03_Proyectos", "07_Clases"],
+  "instructions": ["00_Sistema/MANUAL_VAULT.md", "99_Recursos/templates/template_fuente_externa.md", "99_Recursos/templates/template_nota_atomica.md"],
+  "sections": {}
+}

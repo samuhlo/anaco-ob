@@ -9,6 +9,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "native"))
 from core import App
+from fixture_vault import classic_profile
 
 
 def main():
@@ -22,7 +23,7 @@ def main():
     (folder / "recuperacion_activa.md").write_text("# Recuperación activa\n\nIntentar recordar sin mirar fortalece la memoria. Las pruebas sin apuntes ayudan a detectar lagunas y corregir errores.\n")
     (folder / "redes_de_ordenadores.md").write_text("# Redes de ordenadores\n\nLa recuperación de paquetes perdidos utiliza retransmisión. Un router conecta redes y transmite datos entre equipos.\n")
     app = App(args.output / "state")
-    app.set_config({"vault":str(vault), "provider":"codex"})
+    app.set_config({"vault":str(vault), "provider":"codex"});classic_profile(app)
     capture = app.stage({"kind":"article", "url":"https://example.org/aprender", "title":"Aprender recordando", "text":"La recuperación activa mejora el aprendizaje. Intentar recordar una explicación sin mirar permite comprobar qué sabemos. Después de estudiar, cierra los apuntes y explica el concepto con tus propias palabras. Revisa los errores y repite la prueba otro día. Combinar recuperación activa y repetición espaciada ayuda a conservar conceptos a largo plazo."})
     result = app.draft(capture["id"],"Quiero estudiar mejor y entender cómo repasar.",provider="codex")
     paths = [r["path"] for r in result["draft"]["relations"]]

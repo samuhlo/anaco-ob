@@ -12,6 +12,9 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "native"))
 from core import App, UserError, image_bytes, normalized_url, safe_path
 from host import read_exact
+from vault_profile import install
+
+CLASSIC = Path(__file__).resolve().parent / "fixtures/profile-classic.json"
 
 PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a3i8AAAAASUVORK5CYII=")
 
@@ -25,6 +28,8 @@ class CoreTest(unittest.TestCase):
             (self.vault / folder).mkdir(parents=True, exist_ok=True)
         self.app = App(self.root / "state")
         self.app.set_config({"vault": str(self.vault), "provider": "manual"})
+        # The previous built-in conventions, now expressed as a vault profile.
+        install(self.app, json.loads(CLASSIC.read_text()), "99_Recursos/anaco/perfil.json")
 
     def tearDown(self):
         self.app.db.close()
@@ -45,7 +50,8 @@ class CoreTest(unittest.TestCase):
         note = Path(result["path"]).read_text()
         self.assertIn('llm_asistido: false', note)
         self.assertNotIn('llm_modelo:', note)
-        self.assertIn('Pendiente de relación', note)
+        # Without accepted relations there is no empty relations section.
+        self.assertNotIn('## Notas relacionadas', note)
         self.assertTrue(result["obsidian_url"].startswith("obsidian://open?"))
 
     def test_quote_is_literal_and_context_retained(self):

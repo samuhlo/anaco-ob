@@ -15,6 +15,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'native'))
 from core import App
 from editorial import Editorial
+from fixture_vault import classic_profile
 
 
 def main():
@@ -31,7 +32,7 @@ def main():
         for path in ('02_Cerebro/Tech_&_Codigo','02_Cerebro/Modelos_Mentales','99_Recursos'):(vault/path).mkdir(parents=True,exist_ok=True)
         app=App(directory/'state')
         try:
-            app.set_config({'vault':str(vault),'provider':'codex','note_structure':mode})
+            app.set_config({'vault':str(vault),'provider':'codex','note_structure':mode});classic_profile(app)
             c=app.stage({'kind':'article','url':'https://tympanus.net/codrops/2026/10/13/scroll-driven-ghost-trails/' if name!='no-code' else 'https://example.org/design','title':captured['title'] if name!='no-code' else 'Decisiones editoriales','text':text})
             app.draft(c['id'],intent='Entender las técnicas y poder consultar después los ejemplos que aporten valor.',provider='codex')
             c=app.load(c['id']);(directory/'proposal.json').write_text(json.dumps(c,ensure_ascii=False,indent=2))

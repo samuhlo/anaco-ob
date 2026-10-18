@@ -10,13 +10,14 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'native'))
 from core import App
 from reader import Reader
+from fixture_vault import classic_profile
 
 parser=argparse.ArgumentParser();parser.add_argument('--ai',action='store_true');parser.add_argument('--resume-run',type=Path);args=parser.parse_args()
 if not args.ai:parser.error('Pass --ai to consume model requests with the synthetic cases.')
 out=ROOT/'.test-artifacts/editorial-ai';out.mkdir(parents=True,exist_ok=True)
 run=args.resume_run.resolve() if args.resume_run else Path(tempfile.mkdtemp(prefix='run-',dir=out));vault=run/'Vault'
 for rel in ('02_Cerebro/Modelos_Mentales','02_Cerebro/Tech_&_Codigo','07_Clases/01_AWS/01_Fundamentos','99_Recursos'):(vault/rel).mkdir(parents=True,exist_ok=True)
-app=App(run/'state');app.set_config({'vault':str(vault),'provider':'codex'});app.progress=lambda message:print(message,flush=True)
+app=App(run/'state');app.set_config({'vault':str(vault),'provider':'codex'});classic_profile(app);app.progress=lambda message:print(message,flush=True)
 reader=Reader(app)
 generate=app.codex_generate
 def record(c,*args,**kwargs):

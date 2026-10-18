@@ -12,6 +12,7 @@ sys.path.insert(0,str(ROOT/'native'))
 from core import App
 from editorial import Editorial
 from splitting import blocks
+from fixture_vault import classic_profile
 
 
 def main():
@@ -23,7 +24,7 @@ def main():
     for folder in ('02_Cerebro/Tech_&_Codigo','02_Cerebro/Modelos_Mentales','99_Recursos'):(vault/folder).mkdir(parents=True,exist_ok=True)
     app=App(run/'state')
     try:
-        app.set_config({'vault':str(vault),'provider':'codex'})
+        app.set_config({'vault':str(vault),'provider':'codex'});classic_profile(app)
         c=app.stage({'kind':'article','url':source['url'],'title':source['title'],'text':source['text']})
         c=app.load(c['id']);c['draft']=copy.deepcopy(source['draft']);c['status']='draft';app.store(c)
         body=c['draft']['body']+'\n\n## Comentario personal\nMI ANOTACIÓN: probar una letra antes de ampliar la composición.\n'
