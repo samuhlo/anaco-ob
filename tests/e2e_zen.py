@@ -14,6 +14,7 @@ import shlex
 import re
 from pathlib import Path
 import struct
+import time
 import subprocess
 import sys
 import threading
@@ -66,6 +67,8 @@ def main():
     parser.add_argument("--manual-import", action="store_true", help="Check the separate manual importer and its review")
     parser.add_argument("--detection", action="store_true", help="Exercise active-tab detection and nested authenticated course resources")
     parser.add_argument("--options", action="store_true", help="Exercise vault discovery and manual configuration in Options")
+    parser.add_argument('--embeds-live',action='store_true',help='Network: capture the real Codrops spotlight with its tweets, pens and clips')
+    parser.add_argument('--embeds',action='store_true',help='Embedded posts, CodePen and silent clips in a web article; course mode keeps the previous detection')
     parser.add_argument('--code',action='store_true',help='Capture cached real Codrops HTML and verify literal code and note organization')
     parser.add_argument('--review-menu',action='store_true',help='Review assistant menu, per-topic connections, manual close and sidebar save')
     parser.add_argument('--split-review',action='store_true',help='Review a split suggestion, discard it, then accept and save without losing edits')
@@ -81,6 +84,8 @@ def main():
     if args.workflow:out=ROOT/'.test-artifacts/zen-workflow';out.mkdir(parents=True,exist_ok=True)
     if args.windows:out=ROOT/'.test-artifacts/zen-windows';out.mkdir(parents=True,exist_ok=True)
     if args.code:out=ROOT/'.test-artifacts/zen-code';out.mkdir(parents=True,exist_ok=True)
+    args.embeds=args.embeds or args.embeds_live
+    if args.embeds:out=ROOT/'.test-artifacts'/('zen-embeds-live' if args.embeds_live else 'zen-embeds');out.mkdir(parents=True,exist_ok=True)
     if args.review_menu:out=ROOT/'.test-artifacts/zen-review-menu';out.mkdir(parents=True,exist_ok=True)
     if args.split_review:out=ROOT/'.test-artifacts/zen-split-review';out.mkdir(parents=True,exist_ok=True)
     run_dir = Path(tempfile.mkdtemp(prefix="run-",dir=out))
@@ -124,6 +129,8 @@ def main():
                 if p.name == "manifest.json":
                     manifest=json.loads(p.read_text());manifest["permissions"].append("http://127.0.0.1/*")
                     if args.copy_error:manifest["permissions"].append("clipboardRead")
+                    # Pre-granted so the selection click does not open a permission prompt.
+                    if args.embeds:manifest["permissions"]+=["https://codepen.io/*","https://cdpn.io/*"]+(["https://tympanus.net/*"] if args.embeds_live else [])
                     archive.writestr(relative,json.dumps(manifest))
                 else:archive.write(p,relative)
         if args.book_ai or args.editorial or args.workflow or args.split_review or args.review_menu:
@@ -647,6 +654,73 @@ def main():
             driver.save_screenshot(str(out/'accepted.png'));finish_and_return('save',c['source']['tabId'])
             report={'passed':True,'suggestion_does_not_change_draft':True,'discard_preserves_note_and_edits':True,'accept_requires_user_click':True,'code_and_personal_annotation_preserved':True,'accepted_split_survives_reload':True,'review_before_save':True,'saved_new_notes':3,'vault':str(vault)}
             (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,indent=2));return
+        if args.embeds_live:
+            live='https://tympanus.net/codrops/2026/10/16/ksenia-kondrashova/'
+            c=capture({},live)
+            for _ in range(20):
+                if len(c.get('embeds',[]))>=12:break
+                time.sleep(1.5);c=capture({},live)
+            counts={t:sum(e['type']==t for e in c['embeds']) for t in ('clip','pen','tweet')}
+            assert counts['clip']>=5 and counts['pen']>=1 and counts['tweet']>=1,counts
+            assert 'Ksenia' in c['text'] and not c.get('requiredOrigins'),(c['text'][:300],c.get('requiredOrigins'))
+            assert not any(v['url'].endswith('-optimized.mp4') for v in c['videos']),c['videos']
+            wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'#embeds input[type=checkbox]'))==len(c['embeds']))
+            driver.save_screenshot(str(out/'panel.png'))
+            # Keep the run light: two clips, every pen and post.
+            clips=[e['index'] for e in c['embeds'] if e['type']=='clip']
+            for box in driver.find_elements(By.CSS_SELECTOR,'#embeds input[type=checkbox]'):
+                if int(box.get_attribute('data-embed')) in clips[2:] and box.is_selected():driver.execute_script('arguments[0].click()',box)
+            Select(field('provider')).select_by_value('manual')
+            driver.find_element(By.ID,'prepare').click();open_review(allow_blocked=True)
+            current=message({'type':'native','message':{'action':'load','id':driver.current_url.split('capture=')[1]}})
+            driver.save_screenshot(str(out/'review.png'))
+            finish_and_return('save',c['source']['tabId'])
+            note=next(vault.rglob('fuente_*.md')).read_text();(out/'note.md').write_text(note)
+            pages=list(vault.rglob('index.html'))
+            report={'passed':True,'counts':counts,'text_chars':len(c['text']),'clips_saved':len(list(vault.rglob('*.mp4'))),'offline_demos':len(pages),
+                    'libraries':sorted(p.name for page in pages for p in page.parent.iterdir() if p.suffix in ('.js','.css')),'warnings':current['warnings']}
+            (out/'report.json').write_text(json.dumps(report,indent=2,ensure_ascii=False));print(json.dumps(report,indent=2,ensure_ascii=False));return
+        if args.embeds:
+            base=url.rsplit('/',1)[0]
+            def mode(value):
+                Select(driver.find_element(By.ID,'captureMode')).select_by_value(value)
+                wait.until(lambda d:d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("captureMode").then(s=>done(s.captureMode));')==value)
+            # Course mode is the previous detection: no embeds, the clip is a video to transcribe.
+            mode('course');classic=capture({},base+'/embeds-article.html')
+            assert not classic.get('embeds') and '{{recurso' not in classic['text'],classic.get('embeds')
+            assert any('lesson.mp4' in v['url'] for v in classic['videos']),classic['videos']
+            nested=capture({},base+'/widget-article.html');assert 'WIDGET TEXT' in nested['text'] and 'THE ARTICLE TEXT' not in nested['text']
+            mode('auto');auto_widget=capture({},base+'/widget-article.html');assert auto_widget['text']==nested['text']
+            mode('article');article=capture({},base+'/widget-article.html');assert 'THE ARTICLE TEXT' in article['text'] and 'WIDGET TEXT' not in article['text']
+            mode('auto');c=capture({},base+'/embeds-article.html')
+            types=[e['type'] for e in c['embeds']];assert sorted(types)==['clip','pen','tweet'],types
+            for e in c['embeds']:assert '{{recurso:%d}}'%e['index'] in c['text'],(e,c['text'])
+            text=c['text'];assert text.index('This introduction')<text.index('{{recurso:')<text.index('The conclusion')
+            assert not any('lesson.mp4' in v['url'] for v in c['videos']),c['videos']
+            assert not any('no se han transcrito' in w for w in c['warnings']),c['warnings']
+            tweet=next(e for e in c['embeds'] if e['type']=='tweet');assert tweet['url']=='https://twitter.com/uuuuuulala/status/1803039502136426656' and 'Packaging people' in tweet['text'],tweet
+            wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'#embeds input[type=checkbox]'))==3)
+            assert all(e.is_selected() for e in driver.find_elements(By.CSS_SELECTOR,'#embeds input[type=checkbox]'))
+            driver.save_screenshot(str(out/'panel.png'))
+            Select(field('provider')).select_by_value('manual')
+            driver.find_element(By.ID,'prepare').click();open_review()
+            current=message({'type':'native','message':{'action':'load','id':driver.current_url.split('capture=')[1]}})
+            stored={e['type']:e for e in current['embeds']}
+            assert stored['clip']['selected'] and stored['clip'].get('asset'),stored['clip']
+            assert stored['pen']['selected'],stored['pen']
+            driver.save_screenshot(str(out/'review.png'))
+            finish_and_return('save',c['source']['tabId'])
+            note=next(vault.rglob('fuente_*.md')).read_text()
+            assert '{{recurso' not in note and '![](https://twitter.com/uuuuuulala/status/1803039502136426656)' in note
+            clip=next(vault.rglob('*.mp4'));assert clip.read_bytes()==(ROOT/'tests/fixtures/lesson.mp4').read_bytes()
+            assert '![['+clip.relative_to(vault).as_posix()+']]' in note
+            assert 'https://codepen.io/ksenia-k/pen/rNXPZRN' in note
+            offline='html-preview' in note
+            if offline:
+                page=next(vault.rglob('index.html')).read_text();assert 'window.CP=' in page and 'unpkg.com/gsap' not in page
+            (out/'note.md').write_text(note)
+            report={'passed':True,'course_mode_unchanged':True,'nested_text_rule_kept_in_auto':True,'article_mode_prefers_page':True,'embeds_in_place':True,'clip_saved':True,'tweet_embed':True,'pen_offline_copy':offline,'warnings':current['warnings']}
+            (out/'report.json').write_text(json.dumps(report,indent=2,ensure_ascii=False));print(json.dumps(report,indent=2,ensure_ascii=False));return
         if args.code:
             edge=capture({},url.rsplit('/',1)[0]+'/edge-code.html')
             assert '````js\nconst text = "```";\n\n\nconst y = 2;\n````' in edge['text']

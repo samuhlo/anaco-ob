@@ -841,3 +841,29 @@ Evidencias: [asistente de Anaco](../.test-artifacts/zen-review-menu/report.json)
 También supera el recorrido de artículo, frase e imagen: captura, resaltado con ratón y teclado, renderizado saneado, imágenes locales, guardado, descarte y regreso al origen. [Informe de captura](../.test-artifacts/zen/report.json).
 
 El lector completo también supera la regresión de 55 páginas: se conserva la página final, el panel permanece estable durante las mutaciones del lector, mantiene el origen al cambiar de pestaña y restaura el scroll. [Informe del lector](../.test-artifacts/zen-book/report.json). Se comprueba además la importación de Faster Whisper desde el entorno multimedia trasladado.
+
+## Versión 0.10.0 — Recursos incrustados y modo de captura
+
+**48 pruebas de JavaScript y 117 de Python superadas.** Cubren hosts de incrustados frente a reproductores de cursos, URLs de publicaciones y pens, criterios de clip, avisos de peso, la opción de priorizar la página y la copia sin conexión de demos: import map, prefijos, importaciones relativas, ciclos y archivos que no se pueden copiar. En el servicio cubren la colocación en su sitio, recursos no elegidos o no colocados, validación de rutas y nombres, subida de recursos y que una captura sin recursos se presenta igual que antes.
+
+Recorrido real en Zen:
+
+- `--embeds`, fixture local. En **Curso** no hay recursos y el clip sigue siendo un vídeo que transcribir. Un iframe con texto sigue sustituyendo al artículo en Curso y en Automático (regla de los cursos) y no en **Artículo web**. En Automático, clip, publicación y pen quedan en su posición; se guardan el mp4, el embed y la copia de la demo. [Informe](../.test-artifacts/zen-embeds/report.json).
+- `--embeds-live`, con red, en <https://tympanus.net/codrops/2026/10/16/ksenia-kondrashova/>: 8 clips, 6 pens y 6 publicaciones; el texto es el del artículo (9.295 caracteres) y no se piden permisos de marcos. Se guardan 2 clips, 6 demos sin conexión con three.js, sus módulos, lil-gui y GSAP copiados. La demo «Three.js Blobby Apple» descarga un modelo `.glb` al ejecutarse y lo avisa como parte que necesita conexión. [Informe](../.test-artifacts/zen-embeds-live/report.json) y [nota](../.test-artifacts/zen-embeds-live/note.md).
+- Con la red bloqueada, Chromium ejecuta las copias: la demo de GSAP dibuja su canvas y la de three.js marca su renderizador.
+
+CodePen solo entrega la demo sin envoltorio con un referer de `codepen.io`. Sin él, la incluye escapada en un `srcdoc`, del que se extrae el documento original. Las CDN públicas responden con CORS `*`, que rechaza las cookies, así que las librerías se piden sin credenciales. El código procede de las pestañas del pen cuando su iframe ya está cargado; si no, del documento compilado, sin las protecciones de bucle de CodePen.
+
+Comparación de las pruebas de cursos y vídeo entre `main` y esta rama:
+
+| Escenario | main | rama |
+|---|---|---|
+| `--media`, `--reader`, `--book`, `--manual-import` | supera | supera |
+| `--code` | sin fixture en el worktree | supera |
+| `--fresh-permissions` | elemento obsoleto (intermitente) | supera |
+| recorrido por defecto, `--detection` | se agota la espera al reabrir la revisión | igual, en la misma instrucción |
+| `--session-video` | se agota la espera de la revisión tras transcribir | igual, en la misma instrucción |
+
+Los tres fallos comunes son anteriores a esta versión y no dependen de los recursos incrustados.
+
+El visor del plugin HTML Prototype Viewer 1.0.1 compila sin cambios. Su analizador acepta el bloque `[[ruta]]` con `height:` que genera la nota, y carga el archivo con la ruta de recursos del vault, de modo que las librerías relativas se resuelven junto al `index.html`. No se ha comprobado dentro de Obsidian ni en las sesiones privadas de AWS y Xunta.

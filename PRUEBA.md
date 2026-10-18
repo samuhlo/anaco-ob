@@ -1,6 +1,25 @@
-# Probar Anaco 0.9.2
+# Probar Anaco 0.10.0
 
 Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/audio. Prepara una propuesta editable y guarda Markdown y adjuntos en tu vault. Las relaciones, las imágenes recomendadas y sus descripciones se revisan antes de guardar.
+
+## Recursos incrustados y modo de captura: comprobar 0.10.0
+
+Recarga la extensión. Bajo el estado del servicio aparece **Modo de captura**:
+
+- **Automático**: artículos y cursos. Reconoce publicaciones de X, demos de CodePen y clips silenciosos en la página principal. Los marcos de esos servicios no sustituyen al artículo ni piden permiso. El resto de marcos sigue la regla de siempre, para no alterar los cursos.
+- **Artículo web**: además, el texto de la página principal tiene prioridad sobre cualquier marco con texto.
+- **Curso · detección clásica**: el comportamiento anterior a esta versión, sin ninguna novedad. Úsalo si una lección de AWS o de la Xunta se detecta peor que antes y avísame.
+
+1. Abre <https://tympanus.net/codrops/2026/10/16/ksenia-kondrashova/> en Automático. El texto extraído es el del artículo. En **Recursos incrustados** aparecen los clips de vídeo (duración y peso), las demos de CodePen y las publicaciones de X, todos marcados salvo los clips de más de 20 MB. Los clips con peso desconocido o excesivo muestran un aviso. Los clips ya no aparecen como vídeos que transcribir.
+2. Desmarca lo que no quieras y pulsa **Preparar**. La extensión pedirá acceso a `codepen.io`, `cdpn.io` y al dominio de los clips si aún no lo tiene.
+3. En la nota guardada cada recurso aparece donde estaba en el artículo. Los que la IA no haya colocado van a **Recursos de la fuente**, al final:
+   - Publicación: `![](https://twitter.com/…/status/…)`, que Obsidian muestra de forma nativa, y una cita con el texto.
+   - Clip: el mp4 en `99_Recursos/adjuntos/anaco-ob/clips/` y `![[…mp4]]`.
+   - Demo: enlace al pen, código HTML/CSS/JS plegado y una copia ejecutable en `99_Recursos/adjuntos/anaco-ob/codepen/<usuario>-<pen>/index.html`, con sus librerías al lado.
+4. Para ver la demo dentro de la nota sin conexión instala el plugin **HTML Prototype Viewer** ([Gloumi/obsidian-html-prototype-viewer](https://github.com/Gloumi/obsidian-html-prototype-viewer)). No está en la lista oficial ni publica `main.js`: clónalo, ejecuta `npm install && npm run build` y copia `main.js`, `manifest.json` y `styles.css` en `<vault>/.obsidian/plugins/html-prototype-viewer/`; después actívalo en Plugins de la comunidad. La versión 1.0.1 compila sin cambios. Por defecto el plugin ejecuta la demo con el mismo origen que Obsidian: el código del pen puede acceder a la API de Obsidian y a su almacenamiento local. Activa **Strict isolation** en sus ajustes si no confías en el autor. Con esa opción, las demos con módulos ES pueden no cargar sus archivos locales; ábrelas entonces con **Abrir la demo sin conexión**. Interpreta los bloques `html-preview` que apuntan a un archivo del vault. No lo combines con el plugin oficial «HTML-Preview»: usa el mismo nombre de bloque y espera el HTML dentro de la nota. Sin plugin, **Abrir la demo sin conexión** abre el archivo en el navegador.
+5. Comprueba un curso de AWS y otro de la Xunta en Automático: la detección, los vídeos y la transcripción deben comportarse como en 0.9.2. Si no es así, cambia a **Curso** y avísame.
+
+Una demo que carga texturas u otros recursos al ejecutarse puede seguir necesitando conexión para esa parte; la nota lo indica cuando una librería no se pudo copiar.
 
 ## Nombre y nueva ubicación: comprobar 0.9.2
 
@@ -267,7 +286,7 @@ Si encuentras un fallo, apunta URL, tipo de captura, pasos, mensaje mostrado y r
 - Las relaciones con notas existentes requieren aceptación y se revalidan antes de guardar. Los enlaces entre notas nuevas se revisan en su propuesta y se ajustan a las notas seleccionadas y sus rutas finales.
 - La vista de lectura de la pestaña admite Markdown estándar, tablas, listas, código, enlaces y las imágenes locales conservadas. Las funciones de plugins de Obsidian se comprueban en Obsidian.
 - Para localizar imágenes, el artículo debe seguir abierto y sin navegar a otro sitio. Tras recargar la extensión, realiza una captura nueva para volver a vincularla con su pestaña.
-- Las páginas con contenido dinámico o marcos incrustados pueden requerir seleccionar el fragmento relevante. El texto extraído se puede revisar antes de preparar.
+- Las páginas con contenido dinámico pueden requerir seleccionar el fragmento relevante. De los marcos incrustados se reconocen publicaciones de X, CodePen y clips silenciosos; otros widgets con texto pueden requerir el modo **Artículo web**. El texto extraído se puede revisar antes de preparar.
 - Aún no hay guardado automático ni aprendizaje de organización. La actualización de notas existentes se limita a añadir un aporte revisado; no reescribe su contenido previo. Las notas derivadas se proponen para revisión. Tampoco se garantiza acceso a todos los reproductores privados o protegidos.
 
 ## 9. Archivos locales

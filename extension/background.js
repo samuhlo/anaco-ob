@@ -84,7 +84,7 @@ browser.storage.local.get(["operation","activeWork"]).then(({operation,activeWor
 });
 function native(message, timeoutMs=2400000) {
   return new Promise((resolve, reject) => {
-    if(['capture','draft','revise','propose_split','refresh_links','upload_begin','upload_chunk','upload_finish','video_url','subtitles'].includes(message.action)||message.action?.startsWith('reader_'))try{checkWork();}catch(error){reject(error);return;}
+    if(['capture','draft','revise','propose_split','refresh_links','upload_begin','upload_chunk','upload_finish','finish_asset','video_url','subtitles'].includes(message.action)||message.action?.startsWith('reader_'))try{checkWork();}catch(error){reject(error);return;}
     if (!port) {
       port = browser.runtime.connectNative(HOST);
       port.onMessage.addListener(response => {
@@ -145,6 +145,7 @@ async function readFrame(tabId, frameId, input = {}) {
   const target = {frameId, matchAboutBlank:true};
   await browser.tabs.executeScript(tabId, {...target, file:"surfaces.js"});
   await browser.tabs.executeScript(tabId, {...target, file:"media-source.js"});
+  await browser.tabs.executeScript(tabId, {...target, file:"embeds.js"});
   await browser.tabs.executeScript(tabId, {...target, file:"capture.js"});
   const [result] = await browser.tabs.executeScript(tabId, {...target, code:`globalThis.AnacoObCapture(${JSON.stringify(input)})`});
   return {...result, frameId};
@@ -158,7 +159,10 @@ async function probePDF(url){
 async function scanTab(tab, input = {}) {
   if (AnacoObDetection.pdfURL(tab.url)) return pdfCapture(tab);
   const pages = [], blocked = [];
-  try { pages.push(await readFrame(tab.id, 0, input)); }
+  // Course mode is the previous detection, kept as an escape hatch for course players.
+  const {captureMode='auto'}=await browser.storage.local.get('captureMode');
+  const embeds=captureMode!=='course';
+  try { pages.push(await readFrame(tab.id, 0, embeds?{...input,embeds:true}:input)); }
   catch {
     const granted = await browser.permissions.contains({origins:[AnacoObDetection.origin(tab.url)].filter(Boolean)});
     if (granted && await probePDF(tab.url)) return pdfCapture(tab);
@@ -168,7 +172,7 @@ async function scanTab(tab, input = {}) {
   const all = await browser.webNavigation.getAllFrames({tabId:tab.id}).catch(() => []);
   // Read each frame independently. One denied domain must not hide other frames.
   const frames = (all || []).filter(f => f.frameId !== 0 && !f.errorOccurred &&
-    !/doubleclick|recaptcha|googlesyndication/i.test(f.url)).slice(0,40);
+    !/doubleclick|recaptcha|googlesyndication/i.test(f.url) && !(embeds&&AnacoObEmbeds.embedFrame(f.url))).slice(0,40);
   const results = await Promise.allSettled(frames.map(async frame => {
     if (AnacoObDetection.pdfURL(frame.url)) return {kind:'pdf',url:frame.url,frameId:frame.frameId,documents:[{url:frame.url,title:'PDF del curso'}]};
     try { return {...await readFrame(tab.id, frame.frameId),parentFrameId:frame.parentFrameId}; }
@@ -187,7 +191,7 @@ async function scanTab(tab, input = {}) {
   // its launch URL after a redirect, so it is not evidence of denied access.
   const unmatched=pages.flatMap(p=>(p.frames||[]).filter(f=>!all?.some(live=>live.url===f.url))).length;
 
-  return AnacoObDetection.merge(pages, tab, blocked, {frameReferencesUnmatched:unmatched});
+  return AnacoObDetection.merge(pages, tab, blocked, {frameReferencesUnmatched:unmatched,captureMode}, {preferTop:captureMode==='article'});
 }
 let activeDetection;
 function capture(tab,input={},options={}){
@@ -270,6 +274,79 @@ async function imageData(image) {
   } finally { clearTimeout(timer);workSignal?.removeEventListener('abort',abort); }
 }
 
+// =============================================================================
+// [FLOW] EMBEDDED RESOURCES
+// Clips and CodePen demos are copied when the note is prepared, never during
+// detection. Each failure becomes a warning; the rest of the capture continues.
+// =============================================================================
+async function uploadAsset(name,parts,size){
+  const begin=await native({action:'upload_begin',purpose:'asset',name,size});let offset=0;
+  for(const bytes of parts){for(let start=0;start<bytes.length;start+=393216){const piece=bytes.subarray(start,start+393216);let binary='';for(let i=0;i<piece.length;i+=8192)binary+=String.fromCharCode(...piece.subarray(i,i+8192));await native({action:'upload_chunk',upload:begin.upload,offset,data:btoa(binary)});offset+=piece.length;}}
+  return native({action:'finish_asset',upload:begin.upload});
+}
+async function clipAsset(item,source){
+  const {parts,size}=await resourceBytes(item.url,source,0,100000000);
+  const ext=(item.url.match(/\.(mp4|webm|mov)(?:[?#]|$)/i)?.[1]||'mp4').toLowerCase();
+  return uploadAsset('clip.'+ext,parts,size);
+}
+async function fetchBytes(url,limit,credentials='include'){
+  const response=await fetch(url,{credentials,signal:AbortSignal.timeout(30000)});
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const raw=new Uint8Array(await response.arrayBuffer());
+  if(raw.length>limit)throw new Error('supera el límite de tamaño');
+  return raw;
+}
+// Runs inside the CodePen embed frame: its tabs hold the original source.
+function readPenSource(){
+  const box=key=>document.querySelector('#'+key+'-box pre')?.textContent||'';
+  const code={html:box('html'),css:box('css'),js:box('js')};
+  return Object.values(code).some(Boolean)?code:null;
+}
+function compiledPenCode(doc){
+  const scripts=[...doc.querySelectorAll('script:not([src])')].filter(s=>!s.type||/javascript|module/i.test(s.type));
+  // CodePen's own boilerplate is short and mentions its runtime; the pen code is not.
+  const js=scripts.map(s=>s.textContent.trim()).filter(t=>t&&!(t.length<400&&/CP\.|codepen/i.test(t))).join('\n\n')
+    // Loop guards inserted by CodePen are not part of the author's code.
+    .replace(/\s*if \(window\.CP\.shouldStopExecution\(\d+\)\) break;/g,'').replace(/\s*window\.CP\.exitedLoop\(\d+\);/g,'');
+  const body=doc.body.cloneNode(true);for(const s of body.querySelectorAll('script:not([type]),script[type*=javascript],script[type=module]'))s.remove();
+  return {html:body.innerHTML.trim(),css:[...doc.querySelectorAll('style')].map(s=>s.textContent.trim()).join('\n\n'),js};
+}
+async function penPackage(item,source,warnings){
+  let code=null,code_source='source';
+  const frames=await browser.webNavigation.getAllFrames({tabId:source?.tabId}).catch(()=>[]);
+  const frame=(frames||[]).find(f=>/\/embed\//.test(f.url)&&AnacoObEmbeds.penFromURL(f.url)?.slug===item.slug);
+  if(frame){try{[code]=await browser.tabs.executeScript(source.tabId,{frameId:frame.frameId,code:`(${readPenSource})()`});}catch{/* Not loaded yet: use the compiled page below. */}}
+  let demo;
+  try{
+    const fetched=new TextDecoder().decode(await fetchBytes(`https://cdpn.io/${item.user}/fullembedgrid/${item.slug}?animations=run&type=embed`,5000000));
+    // Without a codepen.io referer the demo arrives escaped inside a warning page.
+    const shell=new DOMParser().parseFromString(fetched,'text/html');
+    const page=shell.querySelector('iframe[srcdoc]')?.getAttribute('srcdoc')||fetched,doc=page===fetched?shell:new DOMParser().parseFromString(page,'text/html');
+    if(!code){code=compiledPenCode(doc);code_source='compiled';}
+    // Public CDNs answer with a wildcard CORS header, which rejects cookies.
+    const offline=await AnacoObEmbeds.vendor(page,`https://cdpn.io/${item.user}/fullembedgrid/${item.slug}`,url=>{checkWork();return fetchBytes(url,10000000,'omit');});
+    if(offline.missing.length)warnings.push(`Demo «${item.title}»: ${offline.missing.length} archivos externos no se pudieron copiar; esa parte necesitará conexión.`);
+    const libs=[];
+    for(const file of offline.files)libs.push({url:file.url,name:file.name,...await uploadAsset(/\.css$/.test(file.name)?'lib.css':'lib.js',[file.bytes],file.bytes.length)});
+    const raw=new TextEncoder().encode(offline.page);
+    const html=await uploadAsset('index.html',[raw],raw.length);
+    demo={page:html.asset,libs:libs.map(l=>({url:l.url,name:l.name,asset:l.asset}))};
+  }catch(error){warnings.push(`Demo «${item.title}»: no se pudo guardar una copia sin conexión (${error.message}). Se conservan el enlace${code?' y el código':''}.`);}
+  return {...item,code:code||{},code_source,...(demo?{demo}:{})};
+}
+async function embedResources(c,selection,warnings){
+  const out=[],chosen=new Set(selection||[]);let done=0;const total=(c.embeds||[]).filter((e,i)=>chosen.has(i)&&e.type!=='tweet').length;
+  for(const [index,value] of (c.embeds||[]).entries()){
+    const {thumbnail,warning,index:_,...item}=value;const selected=chosen.has(index);
+    if(!selected||item.type==='tweet'){out.push({...item,selected});continue;}
+    checkWork();await browser.storage.local.set({operation:`Guardando recursos incrustados: ${++done} de ${total}…`});
+    if(item.type==='pen'){out.push({...await penPackage(item,c.source,warnings),selected});continue;}
+    try{out.push({...item,selected,...await clipAsset(item,c.source)});}
+    catch(error){warnings.push(`Clip «${item.title}»: no se pudo guardar (${error.message}).`);out.push({...item,selected:false});}
+  }
+  return out;
+}
+
 async function prepare(message,ownedCapture=null) {
   const {operation,currentCapture:capture}=await browser.storage.local.get(['operation','currentCapture']);
   if(operation||workClaim)throw new Error('Ya hay una nota preparándose.');
@@ -290,8 +367,9 @@ async function prepare(message,ownedCapture=null) {
         catch (e) { warnings.push("No se pudo conservar una imagen: " + e.message + ". Vuelve a capturar para reintentar."); }
       }
       if (c.kind === "image" && !images.length) throw new Error("No se pudo descargar la imagen. Esta versión admite PNG, JPEG, GIF y WebP accesibles desde el navegador.");
+      const embeds = c.embeds?.length ? await embedResources(c, message.embeds, warnings) : undefined;
       const source = c.source, token = c.token;
-      c = {...await native({action: "capture", capture: {...c, images, warnings}}), source, token};
+      c = {...await native({action: "capture", capture: {...c, images, warnings, embeds}}), source, token};
       selected=c.images.map((_,index)=>index);
       const {sources={}} = await browser.storage.local.get("sources");
       sources[c.id] = source || {url:c.url};

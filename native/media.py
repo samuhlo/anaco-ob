@@ -118,6 +118,15 @@ class Media:
     def begin(self,message):
         size=message.get("size")
         name=Path(clean(message.get("name"),200)).name
+        if message.get("purpose")=="asset":
+            from embeds import ASSET_TYPES
+            limit=ASSET_TYPES.get(Path(name).suffix.lower())
+            if not limit:raise UserError("Tipo de recurso incrustado no admitido.")
+            if type(size) is not int or not 0<size<=limit:raise UserError(f"El recurso supera el límite de {limit//1_000_000} MB.")
+            identifier=uuid.uuid4().hex;directory=self.upload_dir(identifier);directory.mkdir(parents=True,mode=0o700)
+            json_dump(directory/"meta.json",{"name":name,"size":size,"url":"","purpose":"asset"})
+            (directory/"data.part").touch(mode=0o600)
+            return {"upload":identifier}
         limit=MAX_FILE if Path(name).suffix.lower() in ('.pdf','.vtt','.srt') else 1_000_000_000
         if type(size) is not int or not 0<size<=limit:raise UserError("El archivo supera el límite: 100 MB para PDF/subtítulos y 1 GB para audio/vídeo local.")
         if Path(name).suffix.lower() not in (".pdf",".vtt",".srt",".mp3",".mp4",".m4a",".webm",".wav",".ogg",".flac",".mov"):
@@ -135,6 +144,14 @@ class Media:
             raise UserError("La transferencia del archivo está incompleta o desordenada. Reintenta la importación.")
         with path.open("ab") as stream:stream.write(raw)
         return {"offset":path.stat().st_size}
+
+    def finish_asset(self,message):
+        from embeds import store_asset
+        directory=self.upload_dir(message.get("upload"));meta=json.loads((directory/"meta.json").read_text());path=directory/"data.part"
+        if meta.get("purpose")!="asset":raise UserError("La subida no corresponde a un recurso incrustado.")
+        if not path.exists() or path.stat().st_size!=meta["size"]:raise UserError("Faltan fragmentos del recurso.")
+        result=store_asset(self.app,path,Path(meta["name"]).suffix.lower());shutil.rmtree(directory,ignore_errors=True)
+        return result
 
     def finish(self,message):
         directory=self.upload_dir(message.get("upload"));meta=json.loads((directory/"meta.json").read_text());path=directory/"data.part"

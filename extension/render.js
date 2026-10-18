@@ -25,7 +25,7 @@ globalThis.AnacoObRender = (root,markdown,assets,onImage,vaultName="") => {
           image.src=asset.url;image.alt=asset.alt||"Imagen de la fuente";image.tabIndex=0;image.setAttribute("role","button");image.setAttribute("aria-label","Ampliar: "+image.alt);
           image.onclick=()=>onImage(asset);image.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();onImage(asset);}};
           caption.textContent=asset.alt||"Imagen conservada localmente · pulsa para ampliar";figure.append(image,caption);fragment.append(figure);
-        }else{const p=document.createElement("span");p.className="muted";p.textContent="Imagen local: "+path;fragment.append(p);}
+        }else{const p=document.createElement("span");p.className="muted";p.textContent=(/\.(mp4|webm|mov)$/i.test(path)?"Clip de vídeo · se guardará en el vault: ":"Imagen local: ")+path.split("/").pop();fragment.append(p);}
       }else{
         const a=document.createElement("a");a.className="wiki-link";a.textContent=alias||path.split("/").pop();
         a.href="obsidian://open?vault="+encodeURIComponent(vaultName)+"&file="+encodeURIComponent(path);fragment.append(a);

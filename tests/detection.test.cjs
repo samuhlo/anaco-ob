@@ -8,6 +8,15 @@ const detect=ctx.detect;
 const page=(url,frameId,other={})=>({url,frameId,kind:'article',title:'Lesson',text:'',images:[],warnings:[],frames:[],documents:[],videos:[],contentReady:false,...other});
 const tab={url:'https://course.example/modules/items/123',title:'Course'};
 
+test('web article mode keeps the top article when nested frames also have text',()=>{
+ const article=page('https://blog.example/post',0,{text:'A long article about shaders and trails written by the author.',contentReady:true,embeds:[{type:'tweet',url:'https://twitter.com/a/status/1'}]});
+ const frame=page('https://widgets.example/post',3,{text:'Text that belongs to an embedded widget, not to the article.',contentReady:true});
+ const chosen=detect.merge([article,frame],{url:article.url,title:'Post'},[],{},{preferTop:true});
+ assert.equal(chosen.text,article.text);assert.deepEqual(chosen.embeds,article.embeds);
+ // Without the option, the established course rule still prefers nested content.
+ assert.equal(detect.merge([article,frame],{url:article.url,title:'Post'},[]).text,frame.text);
+});
+
 test('nested course content is merged automatically and blocked frames stay separate',()=>{
  const c=detect.merge([page(tab.url,0),page('https://lesson.example/chapter',2,{text:'Useful lesson text',contentReady:true}),page('https://lesson.example/player',4,{videos:[{url:'https://cdn.example/v.mp4',tracks:[],extractable:true}]})],tab,[{url:'https://private.example/embedded'}]);
  assert.equal(c.text,'Useful lesson text');assert.equal(c.videos.length,1);assert.equal(c.frames.length,1);

@@ -86,3 +86,8 @@ header img.brand-mark,.review-brand img.brand-mark{width:auto;height:26px}
 .review-brand img.brand-mark{height:22px;padding-right:14px;border-right:1px solid var(--line-strong);box-sizing:content-box}
 .options .brand-head h1{font-size:clamp(28px,5vw,42px);font-weight:400;letter-spacing:-.04em}
 .work-heading .eyebrow:before{display:none}
+.capture-mode{display:flex;align-items:center;gap:10px;margin:14px 0 4px}.capture-mode label{margin:0;white-space:nowrap}.capture-mode select{margin:0;padding-block:7px;font-size:12px}
+.embed-group{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}.embed-group:first-child{margin-top:2px}
+.embed-warning{color:var(--accent-ink);font-weight:500}
+.panel-page #embedSection{margin:4px 0 22px}
+.image-pick>input[type=checkbox]{flex-shrink:0}

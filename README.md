@@ -48,6 +48,8 @@ La versión 0.9.1 concentra los controles de revisión en el panel lateral. La p
 
 La versión 0.9.2 adopta el nombre **Anaco**, el proyecto `anaco-ob` y una «o» de cristal como icono. Actualiza rutas, módulos, skill, servicio local y paquetes. El instalador migra configuración, pendientes e historial a `~/.local/share/anaco-ob/`.
 
+La versión 0.10.0 reconoce los recursos incrustados de un artículo: publicaciones de X, demos de CodePen y clips silenciosos en bucle. Se eligen en el panel como las imágenes y la nota los inserta donde aparecían. Las publicaciones usan el embed nativo de Obsidian y conservan su texto. Los clips se guardan como mp4 en el vault, con aviso si pesan más de 20 MB o no se conoce su tamaño, y ya no se ofrecen para transcribir. Cada demo guarda su código y una copia ejecutable sin conexión con sus librerías y módulos, que se ve en la nota con el plugin HTML Prototype Viewer. Los marcos de esos servicios ya no sustituyen al artículo ni piden permisos. Un selector de **Modo de captura** ofrece Automático, Artículo web y Curso; Curso conserva la detección anterior para los cursos.
+
 - [Cómo instalar y probar](PRUEBA.md).
 - [Idea del producto](IDEA.md).
 - [Plan de desarrollo](PLAN.md).

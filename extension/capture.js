@@ -10,6 +10,8 @@ globalThis.AnacoObCapture = async (input = {}) => {
   const providerHost=/(^|\.)contentcontroller\.com$/.test(location.hostname);
   const root = bookRoot || courseRoot || document.querySelector("article") || document.querySelector("main,[role=main]") || document.body;
   const readerHint=Boolean(bookRoot||providerHost||(!document.querySelector('article')&&root.querySelector('canvas')));
+  // Course mode and nested frames never receive input.embeds; their capture is unchanged.
+  const embeds=input.embeds===true&&!readerHint&&!input.kind?AnacoObEmbeds.collect(root,{visible:AnacoObSurfaces.visible,absolute}):[];
   const clone = root.cloneNode(true);
   // Remove hidden course pages before converting the clone to Markdown.
   const originals=[...root.querySelectorAll('*')], copies=[...clone.querySelectorAll('*')];
@@ -23,6 +25,7 @@ globalThis.AnacoObCapture = async (input = {}) => {
     if (node.nodeType === Node.TEXT_NODE) return escape(node.textContent.replace(/\s+/g, " "));
     if (node.nodeType !== Node.ELEMENT_NODE) return "";
     const tag = node.tagName.toLowerCase();
+    if (node.dataset?.anacoObEmbed !== undefined) return '\n\n{{recurso:'+node.dataset.anacoObEmbed+'}}\n\n';
     if (tag === 'pre') {
       const code=node.querySelector('code')||node;
       const language=(code.className+' '+node.className).match(/(?:language|lang)-([a-z0-9_+-]+)/i)?.[1]||node.getAttribute('data-language')||'';
@@ -128,6 +131,7 @@ globalThis.AnacoObCapture = async (input = {}) => {
     if(file)addDocument(file,document.title||'Documento del visor');
   }
   for(const video of document.querySelectorAll('video,audio')){
+    if(video.closest('[data-anaco-ob-embed]'))continue;
     let src=absolute(video.currentSrc||video.src||video.querySelector('source')?.src);
     const tracks=[...video.querySelectorAll('track')].map(track=>({url:absolute(track.src),language:track.srclang,label:track.label})).filter(track=>track.url);
     let cues='';for(const track of video.textTracks||[]){try{if(track.cues?.length)cues+=[...track.cues].map(c=>`${new Date(c.startTime*1000).toISOString().slice(11,23)} --> ${new Date(c.endTime*1000).toISOString().slice(11,23)}\n${c.text}\n`).join('\n');}catch{}}
@@ -161,11 +165,13 @@ globalThis.AnacoObCapture = async (input = {}) => {
   const contentReady=!loginPage && (kind==='quote'?Boolean(text.trim()):kind==='image'?Boolean(selectedImages[0]?.url):
     (!courseShell && text.replace(/https?:\/\/\S+/g,'').length>=120 && text.split(/\s+/).length>=18) || (!courseShell&&selectedImages.length>0));
   if (root === document.body && kind === "article") warnings.push("No se detectó un artículo principal. Revisa el texto extraído antes de resumir.");
-  if (document.querySelector("video,iframe") && kind === "article") warnings.push("Se ha capturado el texto de la página. El vídeo y el contenido de marcos incrustados no se han transcrito.");
+  const untouchedMedia=[...document.querySelectorAll('video,iframe')].filter(n=>!embeds.length||!(n.closest('[data-anaco-ob-embed]')||AnacoObEmbeds.embedFrame(n.src)||!AnacoObSurfaces.visible(n)));
+  for(const node of root.querySelectorAll('[data-anaco-ob-embed]'))delete node.dataset.anacoObEmbed;
+  if (untouchedMedia.length && kind === "article") warnings.push("Se ha capturado el texto de la página. El vídeo y el contenido de marcos incrustados no se han transcrito.");
   if (text.length > 120000) warnings.push("La página supera el límite de esta versión; se han capturado los primeros 120.000 caracteres.");
   return {reader:reader?{scope:"detected",pages:inventory.pages,overflow:inventory.overflow,visual_limited:false,pageElements:root.querySelectorAll(".page,.pf,[data-page-number]").length,canvas:rendered.canvas,svg:rendered.svg,backgrounds:rendered.backgrounds}:null,documentType:document.contentType,frameRole:authenticationFrame?"authentication":courseShell?"wrapper":"content",surfaces:{canvas:rendered.canvas,svg:rendered.svg,backgrounds:rendered.backgrounds,blocked:rendered.blocked,limited:rendered.limited,failures:rendered.failures},kind, url: location.href, title: document.querySelector('meta[property="og:title"]')?.content || document.title,
     author: document.querySelector('meta[name="author"]')?.content || "", text: text.slice(0,120000), context,
-    images: selectedImages, warnings,documents,videos,frames,contentReady,loginPage};
+    images: selectedImages, warnings,documents,videos,frames,embeds,contentReady,loginPage};
 };
 // Notify only about changes to media/frames, not every DOM mutation. The
 // background verifies that this is still the selected page before rescanning.

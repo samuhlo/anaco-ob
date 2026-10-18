@@ -102,6 +102,7 @@ function drawCapture(c) {
     $("images").append(label);
   });
   imageSelection();
+  drawEmbeds(c);
   $("prepare").textContent=c.id?"Regenerar y abrir revisión":"Preparar y abrir revisión ↗";
   const documents=c.documents||[],videos=c.videos||[];
     const rawBook=Boolean(c.reader&&!c.id&&c.kind!=="pdf");
@@ -118,6 +119,36 @@ function drawCapture(c) {
   const selectedVideo=videos[Number($("videoResource").value)||0];
   $("extractVideo").hidden=selectedVideo?.extractable===false;
 }
+// [UI] Embedded resources are chosen like images; heavy clips start unchecked.
+function drawEmbeds(c){
+  const items=c.id?[]:c.embeds||[];
+  $('embedSection').hidden=!items.length;$('embeds').replaceChildren();
+  const groups=[['clip','Clips de vídeo','▶'],['pen','Demos de CodePen','</>'],['tweet','Publicaciones de X','𝕏']];
+  for(const [type,heading,mark] of groups){
+    const list=items.filter(item=>item.type===type);if(!list.length)continue;
+    const title=document.createElement('h4');title.className='embed-group';title.textContent=heading+' · '+list.length;$('embeds').append(title);
+    for(const item of list){
+      const label=document.createElement('label');label.className='image-option image-pick';
+      const check=document.createElement('input');check.type='checkbox';check.dataset.embed=item.index;
+      check.checked=!(type==='clip'&&Number(item.size)>AnacoObEmbeds.CLIP_LIMIT);check.onchange=embedSelection;
+      const thumb=document.createElement('span');thumb.className='image-thumb';
+      if(/^data:image\/jpeg;base64,/.test(item.thumbnail||'')){const img=document.createElement('img');img.src=item.thumbnail;img.alt='';thumb.append(img);}else thumb.textContent=mark;
+      const info=document.createElement('span');info.className='image-info';
+      const name=document.createElement('strong');name.textContent=item.title||item.author||'Recurso';
+      const detail=document.createElement('span');
+      detail.textContent=type==='clip'?[item.duration?Math.round(item.duration)+' s':'',item.size?(item.size/1000000).toFixed(1)+' MB':''].filter(Boolean).join(' · ')||'Clip silencioso':type==='pen'?'CodePen · @'+item.user+' · copia ejecutable sin conexión':(item.text||'Publicación incrustada').slice(0,140);
+      info.append(name,detail);
+      if(item.warning){const warning=document.createElement('small');warning.className='embed-warning';warning.textContent=item.warning;info.append(warning);}
+      label.append(check,thumb,info);$('embeds').append(label);
+    }
+  }
+  embedSelection();
+}
+function embedSelection(){
+  const checks=[...document.querySelectorAll('#embeds input[type=checkbox]')];
+  $('embedCount').textContent=`${checks.filter(e=>e.checked).length} / ${checks.length} elegidos`;
+  for(const check of checks)check.disabled=Boolean(state.operation);
+}
 async function refresh() {
   try {
     status=await call({action:"status"});
@@ -133,7 +164,8 @@ async function refresh() {
   }catch(error){serviceError=error.message;$("connection").textContent="SERVICIO SIN CONECTAR";throw error;}
 }
 async function sync(changes) {
-  state=await browser.storage.local.get(["currentCapture","draftResult","operation","operationProgress","operationError","operationDiagnostic","lastResult","pageContext","activeWork","autoReview","reviewSessions"]);
+  state=await browser.storage.local.get(["currentCapture","draftResult","operation","operationProgress","operationError","operationDiagnostic","lastResult","pageContext","activeWork","autoReview","reviewSessions","captureMode"]);
+  $('captureMode').value=state.captureMode||'auto';$('captureMode').disabled=Boolean(state.operation);
   reviewMenu();
   $('autoReview').checked=state.autoReview!==false;
   $('extractVideo').textContent=$('autoReview').checked?'Crear nota del vídeo':'Extraer subtítulos o transcribir';
@@ -201,6 +233,10 @@ $("options").onclick=run(async()=>{
   await browser.runtime.sendMessage({type:'openOptions',windowId:panelWindowId});
 });
 $('cancelJob').onclick=run(async()=>{await browser.runtime.sendMessage({type:'cancelWork'});});
+$('captureMode').onchange=run(async()=>{
+  await browser.storage.local.set({captureMode:$('captureMode').value});
+  await browser.runtime.sendMessage({type:'detectActive',fresh:true,windowId:panelWindowId});
+});
 $('autoReview').onchange=()=>browser.storage.local.set({autoReview:$('autoReview').checked});
 const preparation=()=>({prepareAfter:state.autoReview!==false,provider:$('provider').value,intent:$('intent').value,note_structure:$('noteStructure').value});
 for(const id of ["captureEmpty","recapture"])$(id).onclick=run(async()=>{
@@ -213,11 +249,13 @@ $("prepare").onclick=run(async()=>{
   const selected=[...document.querySelectorAll("#images input:checked")].map(i=>Number(i.value));
   if(selected.length>8)throw new Error("Selecciona como máximo ocho imágenes.");
   const c=state.currentCapture;
-  const origins=[...new Set(selected.map(i=>{try{const u=new URL(c.images[i].url);return /^https?:$/.test(u.protocol)?u.protocol+"//"+u.hostname+"/*":null;}catch{return null;}}).filter(Boolean))];
+  const embeds=[...document.querySelectorAll("#embeds input:checked")].map(i=>Number(i.dataset.embed));
+  const embedURLs=embeds.map(i=>c.embeds?.[i]).flatMap(e=>e?.type==='clip'?[e.url]:e?.type==='pen'?['https://codepen.io/','https://cdpn.io/']:[]);
+  const origins=[...new Set([...selected.map(i=>c.images[i].url),...embedURLs].map(url=>{try{const u=new URL(url);return /^https?:$/.test(u.protocol)?u.protocol+"//"+u.hostname+"/*":null;}catch{return null;}}).filter(Boolean))];
   // Keep this call before any await so Firefox preserves the user gesture.
-  if(origins.length&&!c.id){const granted=await browser.permissions.request({origins});if(!granted)throw new Error("No se ha concedido acceso a las imágenes. Desmárcalas para capturar solo el texto.");}
+  if(origins.length&&!c.id){const granted=await browser.permissions.request({origins});if(!granted)throw new Error("No se ha concedido acceso a las imágenes o recursos elegidos. Desmárcalos para capturar solo el texto.");}
   locate(c,0,true);
-  await browser.runtime.sendMessage({type:"prepare",token:c.token,images:selected,intent:$("intent").value,provider:$("provider").value,note_structure:$("noteStructure").value});
+  await browser.runtime.sendMessage({type:"prepare",token:c.token,images:selected,embeds,intent:$("intent").value,provider:$("provider").value,note_structure:$("noteStructure").value});
   await refresh();
 });
 $("reviewReady").onclick=run(async()=>browser.runtime.sendMessage({type:"openReview",id:state.currentCapture.id}));

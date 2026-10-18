@@ -4,11 +4,12 @@ const AnacoObDetection = (() => {
   const pdfURL = value => { try { const u = new URL(value); return /\.pdf$/i.test(u.pathname) || /application\/pdf/i.test(u.searchParams.get('type') || u.searchParams.get('content_type') || ''); } catch { return false; } };
   const unique = items => [...new Map(items.map(item => [item.url, item])).values()];
   const usable = c => Boolean(c && (c.contentReady ?? (c.text?.trim().length >= 100 || c.kind === 'quote' || c.kind === 'image')));
-  function merge(pages, tab, blocked = [], extra = {}) {
+  function merge(pages, tab, blocked = [], extra = {}, {preferTop = false} = {}) {
     const top = pages.find(p => p.frameId === 0) || pages[0];
     const content = pages.filter(p => usable(p) && !p.loginPage && !["authentication","wrapper"].includes(p.frameRole));
     const nested = content.filter(p => p.frameId !== 0);
-    const possible=nested.length?nested:content;
+    // Web article mode: the page itself wins over widgets that also contain text.
+    const possible=preferTop&&top&&content.includes(top)?[top]:nested.length?nested:content;
     const parentOf=new Map(pages.map(p=>[p.frameId,p.parentFrameId]));
     const hasAncestor=(child,id)=>{let current=parentOf.get(child.frameId);const seen=new Set();while(current!==undefined&&!seen.has(current)){if(current===id)return true;seen.add(current);current=parentOf.get(current);}return false;};
     const chosen=possible.filter(p=>!possible.some(child=>child!==p&&hasAncestor(child,p.frameId)));
@@ -20,6 +21,7 @@ const AnacoObDetection = (() => {
       images: reader?[]:unique(chosen.flatMap(p => (p.images || []).map(i => ({...i, frameId:p.frameId})))),
       documents: unique(pages.flatMap(p => p.documents || [])),
       videos: unique(pages.flatMap(p => (p.videos || []).map(v=>({...v,frameId:p.frameId,frameURL:p.url})))),
+      embeds: top?.embeds || [],
       frames: unique(blocked), requiredOrigins:[...new Set(blocked.filter(f=>f.needsPermission!==false).map(f => origin(f.url)).filter(Boolean))],
       contentReady: chosen.length > 0||Boolean(reader?.pages.length), warnings: [...new Set(chosen.flatMap(p => p.warnings || []))],
       detection: {framesRead:pages.length, framesBlocked:blocked.length, framesUnreadable:blocked.filter(f=>f.needsPermission===false).length, loginPage:pages.some(p => p.loginPage),
