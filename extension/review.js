@@ -88,7 +88,8 @@ function changed(event){
   if(event?.target?.id!=='approveUpdate'){$('approveUpdate').checked=false;if(edits[activeNote])edits[activeNote].update_approved=false;}
   collect();for(const asset of assets.values()){const caption=document.querySelector('.asset-caption[data-index="'+asset.index+'"]');if(caption)asset.alt=caption.value;}
   if(isCollection())$('activeNoteLabel').textContent=(selected.has(activeNote)?'':'Excluida del guardado · ')+edits[activeNote].title;
-  persist();++previewSequence;saveState.disabled=true;$('error').hidden=true;clearTimeout(previewTimer);previewTimer=setTimeout(preview,180);
+  // GUARD -> Disable saving before publishing, or the panel would offer a save that is refused.
+  ++previewSequence;saveState.disabled=true;persist();$('error').hidden=true;clearTimeout(previewTimer);previewTimer=setTimeout(preview,180);
 }
 async function loadImage(index){
   let offset=0,parts=[],part;
@@ -269,7 +270,9 @@ browser.runtime.onMessage.addListener((message,sender)=>{
     }else if(command==='refreshLinks')await refreshConnections();
     else if(command==='split')await proposeSplit();
     else if(command==='save'){
-      if(saveState.disabled)throw new Error('Revisa los campos y conexiones antes de guardar.');
+      // A save sent while the preview refreshes waits for it instead of being dropped.
+      if(saveState.disabled&&!closingReview&&!revisionBusy){clearTimeout(previewTimer);await preview();}
+      if(saveState.disabled){const refused=new Error('Revisa los campos y conexiones antes de guardar.');error(refused);throw refused;}
       finish('save');
     }
     publishReview();return {handled:true};

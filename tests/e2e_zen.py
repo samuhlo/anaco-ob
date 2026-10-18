@@ -500,7 +500,12 @@ def main():
             def ready(d):
                 if d.find_element(By.ID,"error").is_displayed():raise AssertionError(d.find_element(By.ID,"error").text)
                 return d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get(["reviews","currentCapture"]).then(s=>done(s.reviews?.[s.currentCapture?.id]?s.currentCapture.id:false));')
-            expected=WebDriverWait(driver,210 if args.ai else 30).until(ready)
+            try:expected=WebDriverWait(driver,210 if args.ai else 30).until(ready)
+            except Exception:
+                # Diagnosis of the review that never opened: storage and open tabs.
+                state=driver.execute_async_script('const done=arguments[arguments.length-1];Promise.all([browser.storage.local.get(["reviews","currentCapture","operation","operationError","activeWork","reviewSessions"]),browser.tabs.query({})]).then(([s,tabs])=>done({reviews:s.reviews,capture:s.currentCapture?.id,operation:s.operation,operationError:s.operationError,activeWork:s.activeWork,sessions:Object.keys(s.reviewSessions||{}),tabs:tabs.map(t=>({id:t.id,url:t.url,active:t.active}))}));')
+                (out/'review-timeout.json').write_text(json.dumps({'state':state,'handles':len(driver.window_handles),'error':driver.find_element(By.ID,'error').text},indent=2,ensure_ascii=False))
+                raise
             for handle in driver.window_handles:
                 driver.switch_to.window(handle)
                 if driver.current_url==panel.replace("panel.html","review.html")+"?capture="+expected:
@@ -521,7 +526,11 @@ def main():
             else:
                 wait.until(lambda d:not d.find_element(By.ID,decision).get_attribute('disabled'))
                 driver.find_element(By.ID,decision).click()
-            wait.until(lambda d:review_handle not in d.window_handles)
+            try:wait.until(lambda d:review_handle not in d.window_handles)
+            except Exception:
+                (out/'review-timeout.json').write_text(json.dumps({'step':'finish','error':driver.find_element(By.ID,'error').text,'success':driver.find_element(By.ID,'success').text,
+                    'filename':driver.find_element(By.ID,'filename').get_attribute('value'),'status':review_status()},indent=2,ensure_ascii=False))
+                raise
             driver.switch_to.window(panel_handle)
             events=driver.execute_async_script('const done=arguments[arguments.length-1];browser.runtime.getBackgroundPage().then(bg=>done(bg.testTabEvents));')
             if source_id is not None:
