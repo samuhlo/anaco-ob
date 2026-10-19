@@ -95,6 +95,7 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 - **Imágenes con criterio**: aprovecha los pies del HTML y solo envía a análisis visual las imágenes que lo necesitan.
 - **Relaciones verificables**: cada conexión con una nota existente se apoya en fragmentos literales de ambas notas, y la aceptas o la descartas tú.
 - **Una o varias notas**: una nota con apartados, varias enlazadas por temas o que decida la IA, con división e integración revisables.
+- **Tu IA**: Codex con tu suscripción de ChatGPT, una API compatible con OpenAI o un modelo local con Ollama o LM Studio, donde nada sale de tu ordenador.
 - **Privacidad**: sin servidores propios ni telemetría. El vault no se envía completo; la IA recibe la captura y fragmentos de las notas candidatas. Detalle en [PRIVACY.md](PRIVACY.md).
 
 ---
@@ -106,7 +107,7 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 | **Extensión** | WebExtension Manifest V2 para Zen y Firefox (140+), JavaScript sin framework |
 | **Vista previa** | Marked y DOMPurify empaquetados en `extension/vendor/` |
 | **Servicio** | Python 3 estándar vía Native Messaging (`org.samuh.anaco_ob`) |
-| **IA** | `codex exec` con tu sesión de ChatGPT, salida estructurada y sin herramientas de shell |
+| **IA** | `codex exec` con tu sesión de ChatGPT, o cualquier servidor compatible con OpenAI (OpenAI, OpenRouter, Ollama, LM Studio); siempre con salida estructurada |
 | **Multimedia** | Poppler, FFmpeg, `yt-dlp` y Faster Whisper en `.media-venv/` |
 | **Pruebas** | `node:test`, `unittest` y Selenium sobre Zen real |
 
@@ -125,7 +126,8 @@ anaco-ob doctor
 # 3. Opcional: transcripción local con Whisper (PDF y vídeo usan Poppler, FFmpeg y yt-dlp del sistema)
 anaco-ob install-media
 
-# 4. Opcional: IA con tu cuenta de ChatGPT (sin ella, usa la captura manual)
+# 4. Opcional: IA con tu cuenta de ChatGPT; también puedes elegir en Opciones un servidor
+#    compatible con OpenAI (API propia o modelo local) o la captura manual
 codex login
 ```
 

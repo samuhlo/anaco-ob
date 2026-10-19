@@ -83,7 +83,7 @@ def propose(app,message):
             'summary es una síntesis breve para la nota original que orientará el conjunto; sin frontmatter, código ni wikilinks. '
             'images solo puede usar índices de available_images; asigna cada imagen como máximo a un grupo cuando aporte algo. Las no asignadas se conservarán en la nota original.\n\n'+
             json.dumps({'task':'split_note','title':parent['title'],'context':parent['context'],'blocks':parts,'max_groups':capacity,'available_images':[{'index':i,'description':fields.get('notes',{}).get(key,{}).get('captions',{}).get(str(i),c['images'][i].get('caption',c['images'][i].get('alt','')))} for i in parent['selected_images']]},ensure_ascii=False))
-    result=app.codex_json(prompt,spec)
+    result=app.ai_json(prompt,spec)
     if not result.get('recommended'):return {'recommended':False,'rationale':clean(result.get('rationale'),2000) or 'No se recomienda separar esta nota.'}
     groups=result.get('groups');summary=clean(result.get('summary'),5000).strip()
     if not isinstance(groups,list) or not 2<=len(groups)<=capacity or not summary or '[[' in summary or summary.startswith('---'):raise UserError('La sugerencia no devolvió una división válida. La nota sigue intacta.')

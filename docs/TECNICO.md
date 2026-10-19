@@ -28,3 +28,7 @@ El paquete `anaco-ob` (`pyproject.toml`) incluye los módulos de `native/` y el 
 | **Windows** | `%APPDATA%\anaco-ob` | `HKCU\Software\Mozilla\NativeMessagingHosts\org.samuh.anaco_ob` y lanzador `.bat` |
 
 La CI instala el paquete con `pipx` en los tres sistemas y comprueba el servicio con un mensaje real de Native Messaging (`scripts/smoke_native_host.py`).
+
+## Proveedores de IA
+
+Todas las llamadas al modelo pasan por `App.ai_json`. Con Codex (predeterminado) se ejecuta `codex exec` como siempre. Con el proveedor compatible con OpenAI, `native/ai.py` envía `POST {api_base}/chat/completions` con `response_format: json_schema` estricto. Si el servidor rechaza el esquema, reintenta con `json_object` y el esquema en el texto. Las imágenes viajan como URL `data:` al modelo visual, o al modelo principal si no hay visual. La clave API vive en `config.json` (permisos 0600) y las respuestas a la extensión solo indican `api_key_set`.
