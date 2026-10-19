@@ -7,7 +7,7 @@
 <br /><br />
 
   <img src="https://img.shields.io/badge/STATUS-ACTIVE-FFCA40?style=for-the-badge&labelColor=000000" alt="Status" />
-  <img src="https://img.shields.io/badge/VERSIÓN-0.11.0-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
+  <img src="https://img.shields.io/badge/VERSIÓN-1.0.0-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
   <img src="https://img.shields.io/badge/LICENCIA-MIT-FFCA40?style=for-the-badge&labelColor=000000" alt="Licencia MIT" />
   <br/>
   <img src="https://img.shields.io/badge/Zen_·_Firefox-0C0011?style=for-the-badge&logo=firefoxbrowser&logoColor=FFCA40&labelColor=000000" alt="Zen y Firefox" />
@@ -139,6 +139,7 @@ Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar
 | `anaco-ob uninstall [--purge]` | Quitar el registro del navegador; `--purge` borra también los datos locales |
 | `python3 scripts/install.py` | Desarrollo: registrar el servicio desde el repositorio y generar `dist/anaco-ob-<versión>.zip` |
 | `python3 scripts/i18n.py build` | Regenerar `extension/i18n-catalog.js` tras editar `extension/_locales/*/messages.json`; `check` comprueba que ambos idiomas tienen cada clave |
+| `npm run build` | Empaquetar la extensión en `dist/anaco-ob-<versión>.zip` para addons.mozilla.org |
 | `npm test` | Pruebas unitarias de la extensión |
 | `python3 -m unittest discover -s tests` | Pruebas del servicio |
 | `python3 tests/e2e_zen.py --profile` | Recorrido real en Zen: perfil, captura y guardado |
@@ -161,8 +162,8 @@ docs/          # Historial, validación, notas técnicas y capturas
 
 ## // 08_ TESTS · DOCS · ESTADO · LICENCIA
 
-- **Estado:** 0.11.0, en uso diario. Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
-- **Docs:** [guía de prueba](PRUEBA.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md) y [contrato editorial de la IA](skills/anaco-ob/SKILL.md).
+- **Estado:** 1.0.0, lista para addons.mozilla.org. Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
+- **Docs:** [guía de prueba](PRUEBA.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md), [contrato editorial de la IA](skills/anaco-ob/SKILL.md) y [publicación en AMO](docs/amo/README.md).
 - **Licencia:** [MIT](LICENSE).
 
 ---

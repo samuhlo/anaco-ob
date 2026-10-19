@@ -21,6 +21,8 @@ jobs:
       - run: npm test
       # Mozilla's validator: errors block signing on addons.mozilla.org.
       - run: npm run lint
+      # The package that is uploaded to addons.mozilla.org.
+      - run: npm run build
 
   service:
     runs-on: ubuntu-latest
