@@ -485,6 +485,12 @@
   "options_idioma_de_la_interfaz": {
     "message": "Interface language"
   },
+  "options_idioma_de_las_notas": {
+    "message": "Note language"
+  },
+  "options_idioma_de_las_notas_ayuda": {
+    "message": "Titles, headings and text of new notes. Notes already in the vault do not change."
+  },
   "options_importacion_manual": {
     "message": "Manual import"
   },
@@ -1205,6 +1211,9 @@
   "profile_encabezado_1": {
     "message": "Heading: $1"
   },
+  "profile_escaneando": {
+    "message": "Scanning…"
+  },
   "profile_este_vault_aun_no_tiene_perfil_escanealo": {
     "message": "This vault has no profile yet. Scan it so Anaco knows where and how to save."
   },
@@ -1222,6 +1231,9 @@
   },
   "profile_guarda_en": {
     "message": "Saves in"
+  },
+  "profile_guardando": {
+    "message": "Saving…"
   },
   "profile_guias": {
     "message": "Guides"
@@ -1291,6 +1303,9 @@
   },
   "profile_por_que_se_propone_asi": {
     "message": "Why it is proposed this way"
+  },
+  "profile_preparando": {
+    "message": "Preparing…"
   },
   "profile_relaciones_aceptadas": {
     "message": "Accepted links"
@@ -1390,6 +1405,9 @@
   },
   "review_actual": {
     "message": "Current"
+  },
+  "review_actualizando": {
+    "message": "Updating…"
   },
   "review_ajustar_esta_nota": {
     "message": "Adjust this note"

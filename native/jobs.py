@@ -7,9 +7,10 @@ import signal
 import subprocess
 import time
 from core import UserError,json_dump
+from translation import t
 
 class Cancelled(UserError):
-    def __init__(self):super().__init__('Trabajo cancelado. Puedes reanudarlo desde Trabajos recuperables.')
+    def __init__(self):super().__init__(t('Trabajo cancelado. Puedes reanudarlo desde Trabajos recuperables.'))
 
 class Job:
     def __init__(self,app,identifier):

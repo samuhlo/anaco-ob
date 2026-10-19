@@ -67,7 +67,7 @@ function showNote(){
 }
 function switchNote(id){collect();activeNote=id;showNote();persist();clearTimeout(previewTimer);preview();}
 async function preview(){
-  const sequence=++previewSequence;$('previewState').textContent='Actualizando…';saveState.disabled=true;
+  const sequence=++previewSequence;$('previewState').textContent=tx('review_actualizando');saveState.disabled=true;
   publishReview();
   try{
     const result=await native({action:'preview',id:captureId,fields:fields()});

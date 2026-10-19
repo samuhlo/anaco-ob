@@ -5,6 +5,7 @@ import struct
 import sys
 import signal
 from core import App, UserError
+from translation import t
 
 MAX_IN = 8_000_000
 MAX_OUT = 900_000
@@ -26,7 +27,7 @@ def send(response):
     encoded = json.dumps(response, ensure_ascii=False).encode()
     if len(encoded) > MAX_OUT:
         encoded = json.dumps({'requestId': response.get('requestId'), 'ok': False,
-                              'error': 'La propuesta es demasiado grande para el panel.'}).encode()
+                              'error': t('La propuesta es demasiado grande para el panel.')}).encode()
     sys.stdout.buffer.write(struct.pack('=I', len(encoded)) + encoded)
     sys.stdout.buffer.flush()
 
@@ -64,7 +65,7 @@ def main():
         except Exception as exc:
             if job:job.update(status='failed')
             print(type(exc).__name__, file=sys.stderr)
-            response = {"requestId": request_id, "ok": False, "error": "No se ha completado la operación. La captura puede recuperarse desde Pendientes."}
+            response = {"requestId": request_id, "ok": False, "error": t("No se ha completado la operación. La captura puede recuperarse desde Pendientes.")}
         send(response)
 
 

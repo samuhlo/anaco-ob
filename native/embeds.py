@@ -8,6 +8,7 @@ import re
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 from core import UserError, clean
+from translation import n
 
 TOKEN = re.compile(r"\{\{\s*recurso\s*:\s*(\d{1,3})\s*\}\}")
 ASSET = re.compile(r"[a-f0-9]{64}\.(mp4|webm|mov|js|css|html)")
@@ -144,10 +145,10 @@ def offline_page(app, demo, folder):
 def block(app, item, attachments):
     """Markdown and files for one selected resource."""
     if item["type"] == "tweet":
-        lines = ["![](" + link(item["url"]) + ")", "", "> [!quote] " + (item.get("author") or "Publicación en X")]
+        lines = ["![](" + link(item["url"]) + ")", "", "> [!quote] " + (item.get("author") or n("Publicación en X"))]
         if item.get("text"):
             lines.append(quote(item["text"]))
-        lines.append("> [Ver en X](<" + link(item["url"]) + ">)")
+        lines.append(n("> [Ver en X](<{url}>)", url=link(item["url"])))
         return "\n".join(lines), []
     if item["type"] == "clip":
         raw = read_asset(app, item["asset"])
@@ -155,25 +156,26 @@ def block(app, item, attachments):
         caption = item.get("caption") or item.get("title") or ""
         return "![[" + rel + "]]" + ("\n\n*" + caption.replace("*", "") + "*" if caption else ""), [(rel, raw)]
     folder = attachments + "/codepen/" + item["user"] + "-" + item["slug"]
-    title = (item.get("title") or "Demo de CodePen").replace("\n", " ")
+    title = (item.get("title") or n("Demo de CodePen")).replace("\n", " ")
     parts, files = ["> [!example] Demo · " + title], []
     if item.get("demo"):
         page, files = offline_page(app, item["demo"], folder)
         files = [(folder + "/index.html", page)] + files
-        parts.append("> [Ver en CodePen](<" + link(item["url"]) + ">) · [[" + folder + "/index.html|Abrir la demo sin conexión]]")
+        parts.append(n("> [Ver en CodePen](<{url}>) · [[{folder}/index.html|Abrir la demo sin conexión]]", url=link(item["url"]), folder=folder))
         parts.append("\n```html-preview\n[[" + folder + "/index.html]]\nheight: 420\n```")
     else:
-        parts.append("> [Ver en CodePen](<" + link(item["url"]) + ">) · Sin copia local: la demo necesita conexión.")
+        parts.append(n("> [Ver en CodePen](<{url}>) · Sin copia local: la demo necesita conexión.", url=link(item["url"])))
     code = item.get("code") or {}
     if code:
-        label = "Código de la demo" + (" (compilado por CodePen)" if item.get("code_source") == "compiled" else "")
+        label = n("Código de la demo (compilado por CodePen)") if item.get("code_source") == "compiled" else n("Código de la demo")
         body = [f"```{lang}\n{code[key].rstrip()}\n```" for key, lang in (("html", "html"), ("css", "css"), ("js", "js")) if code.get(key)]
         parts.append("\n> [!code]- " + label + "\n" + quote("\n\n".join(body)))
     return "\n".join(parts), files
 
 
-def apply(app, c, body, attachments, root, heading="Recursos de la fuente"):
+def apply(app, c, body, attachments, root, heading=None):
     """Replace tokens in body; the root note also receives unplaced resources."""
+    heading = heading or n("Recursos de la fuente")
     values = c.get("embeds") or []
     assets, used = [], set()
 

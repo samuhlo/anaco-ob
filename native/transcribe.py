@@ -19,18 +19,21 @@ def checkpoint(value):
     temp.write_text(json.dumps(value,ensure_ascii=False));temp.chmod(0o600);os.replace(temp,path)
 if saved.get('complete'):
     emit({'event':'result','result':saved} if args.progress else saved);raise SystemExit(0)
-progress(stage='model',message='Cargando el modelo de transcripción local…')
+# The worker runs in its own environment: media.run_progress translates its texts.
+def t(text):
+    return text
+progress(stage='model',message=t('Cargando el modelo de transcripción local…'))
 model=WhisperModel(args.model,device="cpu",compute_type="int8",cpu_threads=6,download_root=args.cache)
 if args.file:
-    progress(stage='transcribe',message='Analizando voz e idioma en el equipo…')
+    progress(stage='transcribe',message=t('Analizando voz e idioma en el equipo…'))
     result=saved.get('segments',[]);resume=result[-1]['end'] if result else 0
     segments,info=model.transcribe(args.file,beam_size=3,vad_filter=not resume,clip_timestamps=str(resume),language=saved.get('language'))
     started=time.monotonic()
-    progress(stage='transcribe',message='Reanudando desde el último segmento…' if resume else 'Transcribiendo en el equipo…',processed_seconds=resume,total_seconds=info.duration,elapsed_seconds=0)
+    progress(stage='transcribe',message=t('Reanudando desde el último segmento…') if resume else t('Transcribiendo en el equipo…'),processed_seconds=resume,total_seconds=info.duration,elapsed_seconds=0)
     for s in segments:
         result.append({'start':s.start,'end':s.end,'text':s.text.strip()})
         checkpoint({'language':info.language,'segments':result,'duration':info.duration,'complete':False})
-        progress(stage='transcribe',message='Transcribiendo en el equipo…',processed_seconds=min(s.end,info.duration),total_seconds=info.duration,elapsed_seconds=round(time.monotonic()-started,1))
+        progress(stage='transcribe',message=t('Transcribiendo en el equipo…'),processed_seconds=min(s.end,info.duration),total_seconds=info.duration,elapsed_seconds=round(time.monotonic()-started,1))
     value={'language':info.language,'segments':result,'duration':info.duration,'complete':True};checkpoint(value)
     emit({'event':'result','result':value} if args.progress else value)
 else:emit({"ready":True,"model":args.model})

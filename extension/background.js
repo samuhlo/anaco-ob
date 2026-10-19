@@ -106,7 +106,7 @@ function native(message, timeoutMs=2400000) {
     const requestId = crypto.randomUUID();
     const timer = setTimeout(() => {requests.delete(requestId); reject(new Error(tx('bg_el_servicio_esta_tardando_demasiado_la_c')));}, timeoutMs);
     requests.set(requestId, {resolve, reject, timer,workId:workClaim});
-    try { port.postMessage({...message, requestId,task:workClaim}); } catch (error) { clearTimeout(timer); requests.delete(requestId); reject(error); }
+    try { port.postMessage({...message, requestId,task:workClaim,lang:AnacoObI18n.language()}); } catch (error) { clearTimeout(timer); requests.delete(requestId); reject(error); }
   });
 }
 
@@ -133,7 +133,7 @@ async function cancelWork(){
   const id=workClaim;cancelledWork.add(id);await browser.storage.local.set({operation:tx('bg_cancelando_el_trabajo_y_conservando_el_a')});
   workAbortControllers.get(id)?.abort();
   for(const r of workResources.get(id)||[])browser.tabs.executeScript(r.tabId,{frameId:r.frameId,code:`AnacoObResource.close(${JSON.stringify(r.job)});void 0;`}).catch(()=>{});
-  const result=await browser.runtime.sendNativeMessage(HOST,{action:'cancel_job',job:id});if(!result.ok)throw new Error(result.error);
+  const result=await browser.runtime.sendNativeMessage(HOST,{action:'cancel_job',job:id,lang:AnacoObI18n.language()});if(!result.ok)throw new Error(result.error);
 }
 
 const tabCaptures = new Map();

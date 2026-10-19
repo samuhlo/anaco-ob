@@ -2,6 +2,7 @@
 import hashlib
 import re
 from core import UserError,read_note,safe_path,clean
+from translation import n
 
 def digest(raw):return hashlib.sha256(raw).hexdigest()
 
@@ -28,9 +29,9 @@ class Updates:
             raw=backup.read_bytes()
         if digest(raw)!=known['hash']:raise UserError('La nota existente cambió. Vuelve a seleccionarla y revisa la ampliación actualizada.')
         body=re.sub(r'^---\n[\s\S]*?\n---\n','',rendered['markdown']).lstrip()
-        body=re.sub(r'^#\s+(.+)\n',lambda m:'## Aporte: '+m[1]+'\n',body,count=1)
-        model=fields.get('revision_model') or c['draft'].get('model');method='Asistido por '+model if model else 'Captura manual'
-        body=re.sub(r'^(## Aporte: .+\n)',lambda m:m[1]+'\n> Aporte capturado el '+c['created'][:10]+' · '+method+'\n',body,count=1)
+        model=fields.get('revision_model') or c['draft'].get('model');method=n('Asistido por {model}',model=model) if model else n('Captura manual')
+        # The note title becomes the heading of the amendment, followed by its provenance.
+        body=re.sub(r'^#\s+(.+)\n',lambda m:n('## Aporte: {title}',title=m[1])+'\n'+n('\n> Aporte capturado el {date} · {method}\n',date=c['created'][:10],method=method),body,count=1)
         before=raw.decode('utf-8');addition=('' if before.endswith('\n\n') else '\n' if before.endswith('\n') else '\n\n')+body.strip()+'\n';after=before+addition
         review_hash=digest((known['hash']+after).encode())
         return {**rendered,'relative':path,'markdown':after,'update':{'expected':known['hash'],'review_hash':review_hash,'before':before,'addition':addition,'approved':fields.get('update_review_hash')==review_hash and fields.get('update_approved') is True}}

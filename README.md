@@ -96,7 +96,7 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 - **Relaciones verificables**: cada conexión con una nota existente se apoya en fragmentos literales de ambas notas, y la aceptas o la descartas tú.
 - **Una o varias notas**: una nota con apartados, varias enlazadas por temas o que decida la IA, con división e integración revisables.
 - **Tu IA**: Codex con tu suscripción de ChatGPT, una API compatible con OpenAI o un modelo local con Ollama o LM Studio, donde nada sale de tu ordenador.
-- **Español e inglés**: la interfaz sigue al navegador o al idioma que elijas en Opciones; el español es el principal.
+- **Español e inglés**: la interfaz y los mensajes del servicio siguen al navegador o al idioma que elijas en Opciones, y las notas se escriben en el idioma que elijas para ellas. El español es el principal.
 - **Privacidad**: sin servidores propios ni telemetría. El vault no se envía completo; la IA recibe la captura y fragmentos de las notas candidatas. Detalle en [PRIVACY.md](PRIVACY.md).
 
 ---

@@ -703,9 +703,21 @@ def main():
             assert any('The page text was captured' in w for w in captured.get('warnings',[])),captured.get('warnings')
             wait.until(lambda d:'The page text was captured' in d.find_element(By.ID,'warnings').text)
             driver.save_screenshot(str(out/'panel-en.png'))
+            # The service answers in the interface language.
+            answer=driver.execute_async_script('const done=arguments[arguments.length-1];browser.runtime.sendMessage({type:"native",message:{action:"nope"}}).then(r=>done(JSON.stringify(r)),e=>done(e.message));')
+            assert 'Unknown action' in answer,answer
+            # The note language is its own choice, saved with the options.
+            driver.get(panel.replace('panel.html','options.html'))
+            wait.until(lambda d:'connected' in d.find_element(By.ID,'message').text)
+            Select(driver.find_element(By.ID,'note_language')).select_by_value('en')
+            driver.find_element(By.CSS_SELECTOR,'#settings [type="submit"]').click()
+            wait.until(lambda d:'Options saved' in d.find_element(By.ID,'message').text)
+            settings=message({'type':'native','message':{'action':'settings'}})
+            assert settings['config']['note_language']=='en' and settings['default_sections']['source']=='Source',settings
+            driver.get(panel_url)
             driver.execute_script('localStorage.setItem("anaco-ob:lang","es")');driver.refresh()
             wait.until(lambda d:'SERVICIO LOCAL CONECTADO' in d.find_element(By.ID,'connection').text)
-            report={'passed':True,'options_in_english':True,'panel_follows':True,'back_to_spanish':True}
+            report={'passed':True,'options_in_english':True,'panel_follows':True,'service_follows':True,'note_language_saved':True,'back_to_spanish':True}
             (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
         if args.welcome:
             panel_url=driver.current_url;driver.get(panel.replace('panel.html','welcome.html'))
