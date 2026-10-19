@@ -192,7 +192,11 @@ async function refresh() {
     $("provider").value=status.config.provider;$("pending").replaceChildren();
     for(const c of status.pending){const b=document.createElement("button");b.className="pending-item";b.textContent=c.title+" · "+c.kind;b.addEventListener("click",run(async()=>browser.runtime.sendMessage({type:"resume",id:c.id})));$("pending").append(b);}
     if(!status.pending.length)$("pending").textContent="No hay capturas pendientes.";
-  }catch(error){serviceError=error.message;$("connection").textContent="SERVICIO SIN CONECTAR";throw error;}
+    showHealth(AnacoObDiagnosis.status(status,browser.runtime.getManifest().version)[0]);
+  }catch(error){
+    // The service is missing or broken: explain the fix instead of a raw error.
+    serviceError=error.message;$("connection").textContent="SERVICIO SIN CONECTAR";showHealth(AnacoObDiagnosis.connection(error));
+  }
 }
 async function sync(changes) {
   state=await browser.storage.local.get(["currentCapture","draftResult","operation","operationProgress","operationError","operationDiagnostic","lastResult","pageContext","activeWork","autoReview","reviewSessions","captureMode"]);
@@ -227,6 +231,13 @@ async function sync(changes) {
   else if(changes?.currentCapture&&!state.operation)refresh().catch(showError);
   else if(changes?.operation&&!state.operation)refresh().catch(showError);
 }
+let healthAction=null;
+function showHealth(problem){
+  $('healthNotice').hidden=!problem;if(!problem)return;
+  $('healthTitle').textContent=problem.title+'.';$('healthText').textContent=problem.text;
+  $('healthAction').textContent=problem.action==='options'?'Abrir Opciones ↗':'Cómo instalarlo ↗';healthAction=problem.action;
+}
+$('healthAction').onclick=run(async()=>healthAction==='options'?browser.runtime.sendMessage({type:'openOptions',windowId:panelWindowId}):browser.tabs.create({url:browser.runtime.getURL('welcome.html')}));
 function reviewMenu(){
   const previous=activeReview;
   const sessions=Object.values(state.reviewSessions||{}).filter(r=>r.windowId===panelWindowId).sort((a,b)=>b.updatedAt-a.updatedAt);

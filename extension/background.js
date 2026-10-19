@@ -38,6 +38,8 @@ async function reviewCommand(message){
   return pending;
 }
 browser.tabs.onRemoved.addListener(id => optionsSources.delete(id));
+// First install: show how to set up the local service, vault and AI.
+browser.runtime.onInstalled?.addListener(({reason})=>{if(reason==='install')browser.tabs.create({url:browser.runtime.getURL('welcome.html')});});
 async function openOptions(windowId) {
   const [source] = await browser.tabs.query({active: true, windowId});
   const tab = await browser.tabs.create({url: browser.runtime.getURL('options.html'),
@@ -95,7 +97,7 @@ function native(message, timeoutMs=2400000) {
         response.ok ? pending.resolve(response.result) : pending.reject(new Error(response.error));
       });
       port.onDisconnect.addListener(() => {
-        const error = port?.error?.message || "No se pudo conectar con el servicio local. Ejecuta scripts/install.py.";
+        const error = port?.error?.message || "No se pudo conectar con el servicio local. Instálalo con «anaco-ob install».";
         port = null;
         for (const pending of requests.values()) { clearTimeout(pending.timer); pending.reject(new Error(error)); }
         requests.clear();

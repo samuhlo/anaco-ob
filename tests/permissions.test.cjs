@@ -25,7 +25,7 @@ function panel() {
   };
   const selected = [];
   const context = vm.createContext({browser,URL,console,setTimeout,clearTimeout,localStorage:{getItem(){return null;}},document:{getElementById:element,querySelectorAll:selector=>selector==='#images input:checked'?selected:[]}});
-  vm.runInContext(fs.readFileSync('extension/media-source.js','utf8')+fs.readFileSync('extension/panel.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('extension/media-source.js','utf8')+fs.readFileSync('extension/diagnosis.js','utf8')+fs.readFileSync('extension/panel.js','utf8'),context);
   return {
     async click(capture,indices=[0],allow=true,button='prepare') {
       // Let initialization finish before setting a capture, like opening a panel.

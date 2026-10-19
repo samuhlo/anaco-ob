@@ -148,6 +148,15 @@ def suggested_path(facts):
 PROVIDERS = ("codex", "openai", "manual")
 
 
+def ai_state(cfg):
+    """Whether the chosen provider can run, with the fix when it cannot."""
+    if cfg["provider"] == "codex" and not (shutil.which(cfg["codex"]) or Path(cfg["codex"]).is_file()):
+        return {"provider": "codex", "ready": False, "message": "No encuentro Codex. Instálalo y ejecuta «codex login», o elige en Opciones otro proveedor o la captura manual."}
+    if cfg["provider"] == "openai" and not cfg.get("api_model"):
+        return {"provider": "openai", "ready": False, "message": "Falta el modelo del servidor compatible con OpenAI. Indícalo en Opciones."}
+    return {"provider": cfg["provider"], "ready": True}
+
+
 def public_config(cfg):
     """Settings the extension may see: the API key only as present or absent."""
     out = {k: v for k, v in cfg.items() if k != "api_key"}
@@ -713,7 +722,7 @@ class App:
                 state = {"path": profile.path, "hash": self.guide()["hash"], "problems": profile.problems()}
             except UserError as exc:
                 folders, state = [], {"missing": True, "message": str(exc)}
-            return {"version": "0.11.0", "config": public_config(self.config()), "folders": folders, "pending": self.pending(), 'jobs':pending(self), "profile": state, "profile_hash": state.get("hash")}
+            return {"version": "0.11.0", "config": public_config(self.config()), "folders": folders, "pending": self.pending(), 'jobs':pending(self), "profile": state, "profile_hash": state.get("hash"), "ai": ai_state(self.config())}
         if action == "settings":
             cfg = self.config()
             return {"config": public_config(cfg), "vault_available": Path(cfg["vault"]).expanduser().is_dir()}

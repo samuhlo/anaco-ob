@@ -2,6 +2,15 @@
 
 Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/audio. Prepara una propuesta editable y guarda Markdown y adjuntos en tu vault. Las relaciones, las imágenes recomendadas y sus descripciones se revisan antes de guardar.
 
+## Bienvenida y diagnóstico
+
+Al instalar la extensión se abre **Bienvenida a Anaco** (también desde **Opciones → Abrir la guía de instalación**). Muestra los comandos para tu sistema, con botón de copiar, y **Comprobar ahora** revisa el servicio, la versión, el perfil y la IA. Si algo falta, el panel muestra un aviso con el motivo y un enlace a la solución:
+
+- **Falta el servicio local**, con enlace a la guía.
+- **No encuentro tu vault**, con enlace a Opciones.
+- **Versiones distintas** entre la extensión y el servicio: «pipx upgrade anaco-ob».
+- **La IA no está lista**: Codex no encontrado o proveedor sin modelo.
+
 ## Proveedor compatible con OpenAI
 
 En **Opciones → Preparación de notas**, elige **IA compatible con OpenAI** e indica la URL base, el modelo y, si hace falta, la clave API:

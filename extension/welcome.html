@@ -1,0 +1,10 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bienvenida · Anaco</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="quality.css"></head><body><main class="options welcome">
+<header class="brand-head"><img class="brand-mark" src="logo.svg" alt="Anaco"><h1>Bienvenida a Anaco</h1></header>
+<p class="muted">Anaco convierte lo que lees en el navegador en notas revisadas para tu vault de Obsidian. Para preparar y guardar notas usa un pequeño servicio en tu ordenador. Se instala una vez.</p>
+<section class="card"><div class="eyebrow">Paso 1</div><h2>Instala el servicio local</h2><p id="platformNote" class="muted"></p><ol id="steps" class="welcome-steps"></ol>
+<p class="muted"><small>¿No tienes Python? Descárgalo de python.org (3.11 o superior). Más ayuda sobre pipx: pipx.pypa.io.</small></p></section>
+<section class="card"><div class="eyebrow">Paso 2</div><h2>Comprueba la conexión</h2><button type="button" id="check" class="primary">Comprobar ahora</button><ul id="checks" class="welcome-checks" aria-live="polite"></ul></section>
+<section class="card"><div class="eyebrow">Paso 3</div><h2>Configura tu vault</h2><p>En Opciones elige tu vault y confirma su <strong>Perfil del vault</strong>: Anaco aprende dónde y cómo guardar según tus carpetas, metadatos e instrucciones. Elige también tu IA: Codex con tu cuenta de ChatGPT, un servidor compatible con OpenAI o un modelo local.</p><button type="button" id="openOptions">Abrir Opciones</button></section>
+<section class="card"><div class="eyebrow">Opcional</div><h2>Vídeo, audio y PDF</h2><p>Para transcribir en tu ordenador ejecuta <code>anaco-ob install-media</code>. Los PDF y vídeos usan Poppler, FFmpeg y yt-dlp de tu sistema; <code>anaco-ob doctor</code> te dice cuáles faltan.</p></section>
+<p class="muted"><small>Privacidad: Anaco no tiene servidores ni telemetría. Lo que capturas solo sale de tu ordenador hacia la IA que elijas. Detalle en PRIVACY.md del repositorio.</small></p>
+</main><script src="diagnosis.js"></script><script src="welcome.js"></script></body></html>

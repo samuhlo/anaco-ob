@@ -117,3 +117,22 @@ class OpenAIProviderTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AIReadinessTest(unittest.TestCase):
+    setUp = core_tests.CoreTest.setUp
+    tearDown = core_tests.CoreTest.tearDown
+
+    def test_status_says_whether_the_chosen_ai_can_run(self):
+        import json as _json
+        config = self.app.state / "config.json"
+        values = _json.loads(config.read_text())
+        values.update(provider="codex", codex="/no/existe/codex")
+        config.write_text(_json.dumps(values))
+        ai = self.app.handle({"action": "status"})["ai"]
+        self.assertFalse(ai["ready"])
+        self.assertIn("Codex", ai["message"])
+        self.app.set_config({"provider": "manual"})
+        self.assertTrue(self.app.handle({"action": "status"})["ai"]["ready"])
+        self.app.set_config({"provider": "openai", "api_model": "llama3.1:8b", "api_base": "http://localhost:11434/v1"})
+        self.assertTrue(self.app.handle({"action": "status"})["ai"]["ready"])
