@@ -21,7 +21,8 @@ from vaults import discover_vaults
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_VAULT = Path.home() / "Second_Brain"
-STATE = Path(os.environ.get("ANACO_OB_STATE") or os.environ.get("ZEN_BRAIN_STATE") or Path.home() / ".local/share/anaco-ob")
+from installer import default_state
+STATE = Path(os.environ.get("ANACO_OB_STATE") or os.environ.get("ZEN_BRAIN_STATE") or default_state())
 STOP = set("para como este esta esto estas estos sobre desde entre donde cuando porque pero una uno unos unas del los las por con sin que sus son ser mas muy hay the and for with from that this into your you have has not".split())
 
 

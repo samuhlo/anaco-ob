@@ -151,11 +151,12 @@ El modelo de texto sigue siendo `gpt-6-luna`: en la prueba real ha distinguido c
 Desde una terminal:
 
 ```bash
-cd anaco-ob
-python3 scripts/install.py
+pipx install git+https://github.com/samuhlo/anaco-ob
+anaco-ob install --vault ~/ruta/a/tu/vault
+anaco-ob doctor
 ```
 
-El instalador registra el servicio de usuario para Firefox/Zen y prepara el ZIP de la extensión. No modifica tus notas ni tus pestañas. La aplicación utiliza Python estándar; Selenium solo se usa en las pruebas de desarrollo.
+`anaco-ob install` registra el servicio de usuario para Firefox y Zen en Linux, macOS (carpetas de Mozilla y de Zen) y Windows (registro de usuario de Mozilla). En Windows, Zen no documenta dónde busca el servicio: si no conecta, avísanos. `anaco-ob doctor` indica qué falta y cómo resolverlo. Desde el repositorio, `python3 scripts/install.py` hace lo mismo para desarrollo y prepara el ZIP de la extensión. No modifica tus notas ni tus pestañas. La aplicación utiliza Python estándar; Selenium solo se usa en las pruebas de desarrollo.
 
 Elige tu vault mediante detección automática o ruta manual en Opciones. Después confirma su **Perfil del vault** en Opciones: define los destinos, tipos, nombres, metadatos, carpeta de adjuntos y carpetas de relaciones. Sin perfil, el panel lo avisa y no se pueden preparar notas.
 
@@ -272,10 +273,10 @@ En el visor de un archivo de vídeo de Drive se detecta su enlace y se intenta d
 En este equipo ya está instalada y probada. Para reproducirla en otro entorno con `uv`, Poppler, FFmpeg y `yt-dlp` disponibles:
 
 ```bash
-sh scripts/install-media.sh
+anaco-ob install-media
 ```
 
-El modelo Whisper se descarga la primera vez. `base` es la opción inicial; `small` mejora la precisión a costa de tiempo y una descarga mayor. Las dependencias están aisladas en `.media-venv/`.
+El modelo Whisper se descarga la primera vez. `base` es la opción inicial; `small` mejora la precisión a costa de tiempo y una descarga mayor. Las dependencias están aisladas en `media-venv/`, dentro de la carpeta de datos del servicio. Desde el repositorio, `sh scripts/install-media.sh` las instala en `.media-venv/`, que tiene preferencia.
 
 ## 7. Qué validar y anotar
 

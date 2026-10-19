@@ -10,3 +10,5 @@ WORK.md
 PLAN.md
 IDEA.md
 .codegraph/
+build/
+*.egg-info/

@@ -23,11 +23,11 @@ Cada proveedor trata esos datos según sus propias condiciones. Las descargas qu
 
 **Dónde se guardan**
 
-En tu vault (las notas y sus adjuntos), en la carpeta del servicio local (`~/.local/share/anaco-ob/` en Linux, o su equivalente en tu sistema: configuración, capturas pendientes e historial) y en el almacenamiento local de la extensión. La extensión no funciona en ventanas de navegación privada.
+En tu vault (las notas y sus adjuntos), en la carpeta del servicio local (`~/.local/share/anaco-ob/` en Linux, `~/Library/Application Support/anaco-ob/` en macOS y `%APPDATA%\anaco-ob\` en Windows: configuración, capturas pendientes e historial) y en el almacenamiento local de la extensión. La extensión no funciona en ventanas de navegación privada.
 
 **Cómo borrarlos**
 
-Desinstala la extensión y borra la carpeta del servicio local y su registro de Native Messaging (`org.samuh.anaco_ob.json`). Las notas guardadas en tu vault son tuyas y no se modifican.
+Desinstala la extensión y ejecuta `anaco-ob uninstall --purge`, que quita el registro del servicio y borra su carpeta de datos. Las notas guardadas en tu vault son tuyas y no se modifican.
 
 **Contacto**
 
@@ -54,11 +54,11 @@ Each provider handles that data under its own terms. The downloads you request (
 
 **Where it is stored**
 
-In your vault (notes and attachments), in the local service folder (`~/.local/share/anaco-ob/` on Linux, or its equivalent on your system: settings, pending captures and history) and in the extension's local storage. The extension does not run in private browsing windows.
+In your vault (notes and attachments), in the local service folder (`~/.local/share/anaco-ob/` on Linux, `~/Library/Application Support/anaco-ob/` on macOS and `%APPDATA%\anaco-ob\` on Windows: settings, pending captures and history) and in the extension's local storage. The extension does not run in private browsing windows.
 
 **How to delete it**
 
-Uninstall the extension and delete the local service folder and its Native Messaging registration (`org.samuh.anaco_ob.json`). Notes saved in your vault are yours and are left untouched.
+Uninstall the extension and run `anaco-ob uninstall --purge`, which removes the service registration and deletes its data folder. Notes saved in your vault are yours and are left untouched.
 
 **Contact**
 

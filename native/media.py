@@ -19,6 +19,12 @@ from core import UserError, ROOT, clean, json_dump, normalized_url
 
 MAX_FILE = 100_000_000
 
+
+def media_venv(app):
+    """The transcription environment: a development checkout's, else the state folder's."""
+    development = ROOT / ".media-venv"
+    return development if development.is_dir() else app.state / "media-venv"
+
 def run_progress(command,progress,timeout=1800,check=lambda:None):
     """Consume private worker JSONL, forwarding progress metadata only."""
     with tempfile.TemporaryFile() as errors:
@@ -210,14 +216,15 @@ class Media:
         duration=float(info.get("format",{}).get("duration") or 0)
         if duration>self.app.config()["video_minutes"]*60:raise UserError("El vídeo supera la duración configurada. Importa un fragmento o aumenta el límite.")
         if not any(s.get("codec_type")=="audio" for s in info.get("streams",[])):raise UserError("El archivo no tiene una pista de audio para transcribir.")
-        python=ROOT/".media-venv/bin/python"
-        if not python.exists():raise UserError("Falta el motor de transcripción local. Ejecuta scripts/install-media.sh.")
+        venv=media_venv(self.app)
+        python=venv/("Scripts/python.exe" if os.name=="nt" else "bin/python")
+        if not python.exists():raise UserError("Falta el motor de transcripción local. Ejecuta anaco-ob install-media.")
         digest=hashlib.sha256()
         with path.open('rb') as stream:
             while chunk:=stream.read(1048576):self.app.check_cancel();digest.update(chunk)
         key=hashlib.sha256((digest.hexdigest()+self.app.config()['asr_model']+'fw1.2.1-segments-v1').encode()).hexdigest()
         checkpoint=self.app.state/'transcripts'/(key+'.json')
-        result=run_progress([str(python),str(ROOT/"native/transcribe.py"),str(path),"--model",self.app.config()["asr_model"],"--cache",str(ROOT/".media-venv/models"),'--progress','--checkpoint',str(checkpoint)],self.app.progress,check=self.app.check_cancel)
+        result=run_progress([str(python),str(Path(__file__).with_name("transcribe.py")),str(path),"--model",self.app.config()["asr_model"],"--cache",str(venv/"models"),'--progress','--checkpoint',str(checkpoint)],self.app.progress,check=self.app.check_cancel)
         if not result["segments"]:raise UserError("No se ha detectado voz en el archivo.")
         images=[]
         if any(s.get("codec_type")=="video" for s in info.get("streams",[])):

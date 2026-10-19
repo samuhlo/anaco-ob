@@ -115,21 +115,26 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 ## // 06_ INICIO_RÁPIDO
 
 ```bash
-# 1. Registra el servicio local y prepara el ZIP de la extensión
-python3 scripts/install.py
+# 1. Instala el servicio local (Linux, macOS o Windows, Python 3.11+)
+pipx install git+https://github.com/samuhlo/anaco-ob
 
-# 2. Opcional: PDF, subtítulos, vídeo y transcripción local
-scripts/install-media.sh
+# 2. Regístralo para Firefox y Zen, y comprueba qué falta
+anaco-ob install --vault ~/ruta/a/tu/vault
+anaco-ob doctor
 
-# 3. Opcional: IA con tu cuenta de ChatGPT (sin ella, usa la captura manual)
+# 3. Opcional: transcripción local con Whisper (PDF y vídeo usan Poppler, FFmpeg y yt-dlp del sistema)
+anaco-ob install-media
+
+# 4. Opcional: IA con tu cuenta de ChatGPT (sin ella, usa la captura manual)
 codex login
 ```
 
-Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`. Abre **Opciones**, elige tu vault y confirma su **Perfil del vault**. La guía completa, paso a paso, está en [PRUEBA.md](PRUEBA.md).
+Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`, hasta que esté publicada en addons.mozilla.org. Abre **Opciones**, elige tu vault y confirma su **Perfil del vault**. La guía completa, paso a paso, está en [PRUEBA.md](PRUEBA.md).
 
 | COMANDO | PARA QUÉ |
 | :--- | :--- |
-| `python3 scripts/install.py` | Registrar el servicio y generar `dist/anaco-ob-<versión>.zip` |
+| `anaco-ob uninstall [--purge]` | Quitar el registro del navegador; `--purge` borra también los datos locales |
+| `python3 scripts/install.py` | Desarrollo: registrar el servicio desde el repositorio y generar `dist/anaco-ob-<versión>.zip` |
 | `npm test` | Pruebas unitarias de la extensión |
 | `python3 -m unittest discover -s tests` | Pruebas del servicio |
 | `python3 tests/e2e_zen.py --profile` | Recorrido real en Zen: perfil, captura y guardado |
