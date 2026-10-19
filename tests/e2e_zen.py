@@ -264,6 +264,9 @@ def main():
         driver.get(panel)
         # The test browser is English; the assertions below read the Spanish interface.
         driver.execute_script('localStorage.setItem("anaco-ob:lang","es")');driver.refresh()
+        # Headless Zen opens its window unfocused and hidden: keyboard input never arrives
+        # and CSS transitions freeze. Selecting the window gives it focus.
+        driver.switch_to.window(driver.current_window_handle)
         panel_handle=driver.current_window_handle
         wait=WebDriverWait(driver,30)
         wait.until(lambda d:"CONECTADO" in d.find_element(By.ID,"connection").text)
@@ -387,9 +390,10 @@ def main():
             assert not driver.find_element(By.ID, 'vault').get_attribute('readonly')
             # Options opened directly still has a way out; leaving keeps edits
             # locally without configuring the service until Save is clicked.
-            pending_model = cfg['model'] + '-unsaved'
-            model_input = driver.find_element(By.ID, 'model')
-            model_input.clear(); model_input.send_keys(pending_model)
+            # The edited field shows for every provider (the Codex model only for Codex).
+            pending_limit = str(cfg['pdf_page_limit'] + 1)
+            limit_input = driver.find_element(By.ID, 'pdf_page_limit')
+            limit_input.clear(); limit_input.send_keys(pending_limit)
             driver.set_window_size(420, 720)
             driver.execute_script('window.scrollTo(0,document.body.scrollHeight)')
             back = driver.find_element(By.ID, 'back-to-capture')
@@ -399,7 +403,7 @@ def main():
             back.click()
             wait.until(lambda d: d.current_url == panel)
             wait.until(lambda d: 'CONECTADO' in d.find_element(By.ID, 'connection').text)
-            assert message({'type': 'native', 'message': {'action': 'settings'}})['config']['model'] == cfg['model']
+            assert message({'type': 'native', 'message': {'action': 'settings'}})['config']['pdf_page_limit'] == cfg['pdf_page_limit']
 
             # Zen's WebDriver startup tab has extension tab ID -1. Create a
             # normal registered tab to exercise returning to a real source.
@@ -419,7 +423,7 @@ def main():
                 return handle
 
             options_handle = open_options_from_panel()
-            assert driver.find_element(By.ID, 'model').get_attribute('value') == pending_model
+            assert driver.find_element(By.ID, 'pdf_page_limit').get_attribute('value') == pending_limit
             assert 'Cambios sin guardar' in driver.find_element(By.ID, 'options-draft-status').text
             driver.find_element(By.ID, 'back-to-capture').click()
             wait.until(lambda d: options_handle not in d.window_handles)
@@ -427,9 +431,9 @@ def main():
             assert driver.current_url == panel
 
             options_handle = open_options_from_panel()
-            assert driver.find_element(By.ID, 'model').get_attribute('value') == pending_model
-            model_input = driver.find_element(By.ID, 'model')
-            model_input.clear(); model_input.send_keys(cfg['model'])
+            assert driver.find_element(By.ID, 'pdf_page_limit').get_attribute('value') == pending_limit
+            limit_input = driver.find_element(By.ID, 'pdf_page_limit')
+            limit_input.clear(); limit_input.send_keys(str(cfg['pdf_page_limit']))
             save_options()
             assert driver.execute_script('return localStorage.getItem("optionsDraft")') is None
             driver.find_element(By.ID, 'back-to-capture').click()
@@ -443,7 +447,8 @@ def main():
             cfg['vault_mode'] = 'manual'
             config_path.write_text(json.dumps(cfg))
             driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({settingsRevision:crypto.randomUUID()}).then(done);')
-            wait.until(lambda d: 'No encuentro el vault' in d.find_element(By.ID, 'error').text)
+            # Connection problems show in the health notice, with their fix.
+            wait.until(lambda d: 'No encuentro tu vault' in d.find_element(By.ID, 'healthNotice').text)
             options_handle = open_options_from_panel()
             Select(driver.find_element(By.ID, 'vault_mode')).select_by_value('auto')
             wait.until(lambda d: not d.find_element(By.ID, 'detect-vaults').get_attribute('disabled'))
@@ -454,7 +459,7 @@ def main():
             wait.until(lambda d: options_handle not in d.window_handles)
             driver.switch_to.window(panel_handle)
             wait.until(lambda d: d.find_element(By.ID, 'connection').text == 'SERVICIO LOCAL CONECTADO')
-            wait.until(lambda d: not d.find_element(By.ID, 'error').is_displayed())
+            wait.until(lambda d: not d.find_element(By.ID, 'healthNotice').is_displayed() and not d.find_element(By.ID, 'error').is_displayed())
             applied = message({'type': 'native', 'message': {'action': 'settings'}})
             assert applied['config']['vault'] == str(vault) and applied['vault_available']
             (out / 'options-report.json').write_text(json.dumps({
