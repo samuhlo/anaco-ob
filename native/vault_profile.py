@@ -11,6 +11,7 @@ import re
 import unicodedata
 from pathlib import Path, PurePosixPath
 from core import UserError, clean, safe_path, slug
+from translation import n, t
 
 SCHEMA = "anaco-profile/1"
 SOURCES = {"type", "constant", "folder_map", "path_segment", "tags", "context", "title", "created", "today",
@@ -18,9 +19,13 @@ SOURCES = {"type", "constant", "folder_map", "path_segment", "tags", "context", 
 TOKENS = {"date": r"\d{4}-\d{2}-\d{2}", "slug_": r"[a-z0-9_]+", "slug-": r"[a-z0-9-]+",
           "title": r"[^/\\:*?\"<>|#^\[\]]+", "variant": r"(?:_(?:frase|imagen)_[a-f0-9]{6})?"}
 FORBIDDEN = re.compile(r'[\\/:*?"<>|#^\[\]]')
-SECTIONS = {"summary": "Resumen", "intent": "Intención personal", "quote": "Cita", "quote_context": "Contexto de la cita",
-            "relations": "Notas relacionadas", "resources": "Recursos de la fuente", "source": "Fuente", "warning": "Alcance de la captura"}
-NOT_FOUND = "Este vault aún no tiene perfil de Anaco: escanéalo en Opciones → Perfil del vault antes de guardar notas."
+SECTIONS = ("summary", "intent", "quote", "quote_context", "relations", "resources", "source", "warning")
+
+
+def default_sections():
+    """Headings a profile does not set, in the note language."""
+    return {"summary": n("Resumen"), "intent": n("Intención personal"), "quote": n("Cita"), "quote_context": n("Contexto de la cita"),
+            "relations": n("Notas relacionadas"), "resources": n("Recursos de la fuente"), "source": n("Fuente"), "warning": n("Alcance de la captura")}
 
 
 def relative(vault, value, what):
@@ -28,7 +33,7 @@ def relative(vault, value, what):
     value = clean(value, 500).strip().strip("/")
     parts = PurePosixPath(value).parts
     if not value or any(p.startswith(".") for p in parts):
-        raise UserError(f"Perfil del vault: {what} no es una ruta válida dentro del vault.")
+        raise UserError("Perfil del vault: {what} no es una ruta válida dentro del vault.", what=what)
     safe_path(vault, value)
     return value
 
@@ -218,17 +223,17 @@ class Profile:
         for rel in self.data["instructions"]:
             path = safe_path(self.vault, rel)
             if not path.is_file():
-                out.append(f"El documento {rel} ya no existe: puede haberse movido. Revisa el perfil.")
+                out.append(t("El documento {path} ya no existe: puede haberse movido. Revisa el perfil.", path=rel))
             elif recorded.get(rel) and recorded[rel] != digest(path):
-                out.append(f"El documento {rel} ha cambiado desde que confirmaste el perfil.")
+                out.append(t("El documento {path} ha cambiado desde que confirmaste el perfil.", path=rel))
         destinations = self.destinations()
         for rule in self.data["destinations"]:
             if not any(matches(rule["pattern"], folder) for folder in destinations):
-                out.append(f"El destino {rule['pattern']} no tiene ninguna carpeta en el vault.")
+                out.append(t("El destino {pattern} no tiene ninguna carpeta en el vault.", pattern=rule['pattern']))
         return out
 
     def section(self, key):
-        return self.data["sections"].get(key) or SECTIONS[key]
+        return self.data["sections"].get(key) or default_sections()[key]
 
 
 def validate(vault, data):
@@ -239,7 +244,7 @@ def validate(vault, data):
         raise UserError("Perfil del vault: faltan los tipos de nota.")
     for key, value in types.items():
         if not re.fullmatch(r"[a-z][a-z0-9_]{0,40}", key) or not isinstance(value, dict):
-            raise UserError(f"Perfil del vault: tipo de nota no válido ({key}).")
+            raise UserError("Perfil del vault: tipo de nota no válido ({key}).", key=key)
         check_pattern(value.get("filename"), key)
         value["label"] = clean(value.get("label") or key, 80)
     rules = data.get("destinations")
@@ -252,17 +257,17 @@ def validate(vault, data):
             raise UserError("Perfil del vault: un destino apunta a una carpeta oculta o vacía.")
         chosen = rule.get("types")
         if not isinstance(chosen, list) or not chosen or any(t not in types for t in chosen):
-            raise UserError(f"Perfil del vault: el destino {rule['pattern']} usa tipos que no existen.")
+            raise UserError("Perfil del vault: el destino {pattern} usa tipos que no existen.", pattern=rule['pattern'])
         for key in ("default", "derived"):
             rule[key] = rule.get(key) or chosen[0]
             if rule[key] not in chosen:
-                raise UserError(f"Perfil del vault: el tipo predeterminado de {rule['pattern']} no está entre sus tipos.")
-        rule["exclude"] = [relative(vault, e, "una carpeta excluida") for e in rule.get("exclude") or []][:50]
+                raise UserError("Perfil del vault: el tipo predeterminado de {pattern} no está entre sus tipos.", pattern=rule['pattern'])
+        rule["exclude"] = [relative(vault, e, t("una carpeta excluida")) for e in rule.get("exclude") or []][:50]
         if not rule["exclude"]:
             del rule["exclude"]
         for kind, pattern in (rule.get("filenames") or {}).items():
             if kind not in chosen:
-                raise UserError(f"Perfil del vault: {rule['pattern']} define nombres para un tipo que no admite.")
+                raise UserError("Perfil del vault: {pattern} define nombres para un tipo que no admite.", pattern=rule['pattern'])
             check_pattern(pattern, kind)
     fields = data.get("frontmatter")
     if not isinstance(fields, list) or len(fields) > 60:
@@ -271,14 +276,14 @@ def validate(vault, data):
         if not isinstance(spec, dict) or not re.fullmatch(r"[A-Za-z_][\w-]{0,60}", str(spec.get("key", ""))) or spec.get("from") not in SOURCES:
             raise UserError("Perfil del vault: hay un campo de frontmatter sin nombre válido u origen conocido.")
         if spec["from"] == "folder_map" and not isinstance(spec.get("values"), dict):
-            raise UserError(f"Perfil del vault: {spec['key']} necesita valores por carpeta.")
+            raise UserError("Perfil del vault: {key} necesita valores por carpeta.", key=spec['key'])
         if spec["from"] == "path_segment" and type(spec.get("index")) is not int:
-            raise UserError(f"Perfil del vault: {spec['key']} necesita la posición de la carpeta.")
-    data["attachments"] = relative(vault, data.get("attachments"), "la carpeta de adjuntos")
-    data["relation_roots"] = [relative(vault, v, "una carpeta de relaciones") for v in data.get("relation_roots") or []]
-    data["instructions"] = [relative(vault, v, "un documento de instrucciones") for v in data.get("instructions") or []][:20]
+            raise UserError("Perfil del vault: {key} necesita la posición de la carpeta.", key=spec['key'])
+    data["attachments"] = relative(vault, data.get("attachments"), t("la carpeta de adjuntos"))
+    data["relation_roots"] = [relative(vault, v, t("una carpeta de relaciones")) for v in data.get("relation_roots") or []]
+    data["instructions"] = [relative(vault, v, t("un documento de instrucciones")) for v in data.get("instructions") or []][:20]
     if data.get("default_destination") is not None:
-        data["default_destination"] = relative(vault, data["default_destination"], "el destino predeterminado")
+        data["default_destination"] = relative(vault, data["default_destination"], t("el destino predeterminado"))
     sections = data.get("sections") or {}
     data["sections"] = {k: clean(v, 120).replace("\n", " ") for k, v in sections.items() if k in SECTIONS and isinstance(v, str)}
     return data
@@ -290,10 +295,10 @@ def digest(path):
 
 def check_pattern(pattern, kind):
     if not isinstance(pattern, str) or not pattern.endswith(".md") or "/" in pattern or "\\" in pattern or pattern.startswith("."):
-        raise UserError(f"Perfil del vault: el nombre de archivo de {kind} no es válido.")
+        raise UserError("Perfil del vault: el nombre de archivo de {kind} no es válido.", kind=kind)
     unknown = set(re.findall(r"\{([^}]*)\}", pattern)) - set(TOKENS) - {"type"}
     if unknown or not re.search(r"\{(slug_|slug-|title)\}", pattern):
-        raise UserError(f"Perfil del vault: el nombre de archivo de {kind} necesita el título y solo admite {{date}}, {{slug_}}, {{slug-}}, {{title}}, {{type}} y {{variant}}.")
+        raise UserError("Perfil del vault: el nombre de archivo de {kind} necesita el título y solo admite {{date}}, {{slug_}}, {{slug-}}, {{title}}, {{type}} y {{variant}}.", kind=kind)
 
 
 # =============================================================================
@@ -320,19 +325,19 @@ def locate(app):
 def load(app):
     rel = locate(app)
     if not rel:
-        raise UserError(NOT_FOUND)
+        raise UserError("Este vault aún no tiene perfil de Anaco: escanéalo en Opciones → Perfil del vault antes de guardar notas.")
     vault = app.vault()
     try:
         data = json.loads(safe_path(vault, rel).read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
-        raise UserError("Perfil del vault ilegible: " + rel + ". Corrígelo o vuelve a escanear en Opciones.") from exc
+        raise UserError("Perfil del vault ilegible: {path}. Corrígelo o vuelve a escanear en Opciones.", path=rel) from exc
     return Profile(vault, data, rel)
 
 
 def install(app, data, rel):
     """Validate, then write the profile and remember where it lives."""
     vault = app.vault()
-    rel = relative(vault, rel, "la ruta del perfil")
+    rel = relative(vault, rel, t("la ruta del perfil"))
     if not rel.endswith(".json"):
         raise UserError("El perfil del vault se guarda como archivo .json.")
     profile = Profile(vault, json.loads(json.dumps(data)), rel)

@@ -8,6 +8,7 @@ import subprocess
 import uuid
 from pathlib import Path
 from core import UserError, clean, image_bytes, json_dump, normalized_url
+from translation import n, t
 
 
 class Reader:
@@ -104,7 +105,7 @@ class Reader:
                 except subprocess.TimeoutExpired:
                     method = 'OCR pendiente; se requiere lectura visual'
         elif not text.strip():
-            raise UserError(f'La página {index} no contiene texto ni una imagen legible. No se ha omitido en silencio.')
+            raise UserError('La página {index} no contiene texto ni una imagen legible. No se ha omitido en silencio.', index=index)
         page.update(text=text, method=method)
         page.pop('size', None)
         json_dump(directory / f'page-{index}.json', page)
@@ -117,12 +118,12 @@ class Reader:
     def pages(self, directory, meta):
         missing = [n for n in range(1, meta['count'] + 1) if str(n) not in meta['pages']]
         if missing:
-            raise UserError(f'Libro incompleto: faltan {len(missing)} páginas. Vuelve a extraer para continuar; las recibidas se conservan.')
+            raise UserError('Libro incompleto: faltan {count} páginas. Vuelve a extraer para continuar; las recibidas se conservan.', count=len(missing))
         return [json.loads((directory / f'page-{n}.json').read_text()) for n in range(1, meta['count'] + 1)]
 
     def image(self, directory, page):
         return {'data': base64.b64encode((directory / page['file']).read_bytes()).decode(),
-                'url': 'reader-page:' + str(page['index']), 'alt': f"Página {page['index']} del libro",
+                'url': 'reader-page:' + str(page['index']), 'alt': n("Página {page} del libro", page=page['index']),
                 'page': page['index'], 'visual_page': True}
 
     def finish(self, message):
@@ -143,7 +144,7 @@ class Reader:
         no_text = [p['index'] for p in pages if not p['text'].strip()]
         warnings = []
         if no_text:
-            warnings.append('Páginas sin texto HTML/OCR: ' + ', '.join(map(str, no_text)) + '. La lectura con IA visual las incluirá; el modo sin visión no puede leerlas.')
+            warnings.append(t('Páginas sin texto HTML/OCR: {pages}. La lectura con IA visual las incluirá; el modo sin visión no puede leerlas.', pages=', '.join(map(str, no_text))))
         capture = self.app.stage({'kind': 'article', 'url': meta['url'], 'title': meta['title'],
                   'text': text[:150000], 'images': images, 'warnings': warnings,
                   'reader': {'scope': 'complete'} })
@@ -151,8 +152,8 @@ class Reader:
         stored['text'] = text
         stored['reader'] = {'job': directory.name, 'scope': 'captured', 'total_pages': meta['count'], 'captured_pages': len(pages)}
         stored['media'] = {'type': 'reader', 'total_pages': meta['count'], 'pages': list(range(1, meta['count'] + 1)),
-                           'method': 'Texto HTML y OCR local; páginas gráficas guardadas para lectura completa por lotes',
-                           'coverage': f"{len(pages)}/{meta['count']} páginas capturadas"}
+                           'method': n('Texto HTML y OCR local; páginas gráficas guardadas para lectura completa por lotes'),
+                           'coverage': n("{captured}/{total} páginas capturadas", captured=len(pages), total=meta['count'])}
         stored['fingerprint'] = hashlib.sha256(json.dumps([meta['vault'], meta['url'], meta['pages'],meta.get('html_context','')], sort_keys=True).encode()).hexdigest()
         self.app.store(stored)
         meta.update(capture=stored['id'], status='captured')
@@ -174,7 +175,7 @@ class Reader:
         summaries, captions, models = [], {}, set()
         for start in range(0, len(pages), batch_size):
             batch = pages[start:start + batch_size]
-            self.app.progress(f"Leyendo páginas {batch[0]['index']}–{batch[-1]['index']} de {len(pages)}…")
+            self.app.progress(t("Leyendo páginas {first}–{last} de {total}…", first=batch[0]['index'], last=batch[-1]['index'], total=len(pages)))
             path = directory / f'analysis-{key}-{start}.json'
             legacy=directory/f'analysis-{previous_key}-{start}.json' if previous_key else None
             if not path.exists() and legacy and legacy.exists():json_dump(path,json.loads(legacy.read_text()))
@@ -192,7 +193,7 @@ class Reader:
                     raise UserError('El lote no devolvió una lectura válida; reintenta la preparación.')
                 described = {i.get('index'): i for i in result.get('image_captions', []) if isinstance(i, dict) and i.get('description')}
                 if any(i not in described for i in range(len(image_pages))):
-                    raise UserError(f"La lectura de las páginas {batch[0]['index']}–{batch[-1]['index']} quedó incompleta. Reintenta: los lotes anteriores están guardados.")
+                    raise UserError("La lectura de las páginas {first}–{last} quedó incompleta. Reintenta: los lotes anteriores están guardados.", first=batch[0]['index'], last=batch[-1]['index'])
                 json_dump(path, result)
             models.add(result.get('_model', cfg['vision_model'] if visual else cfg['model']))
             summaries.append(f"[Páginas {batch[0]['index']}–{batch[-1]['index']}]\n{clean(result.get('body'), 20000)}")
@@ -200,7 +201,7 @@ class Reader:
                 index = item.get('index')
                 if type(index) is int and 0 <= index < len(image_pages):
                     captions[image_pages[index]['index']] = item
-        self.app.progress(f'Sintetizando las {len(pages)} páginas y buscando relaciones…')
+        self.app.progress(t('Sintetizando las {total} páginas y buscando relaciones…', total=len(pages)))
         samples = '\n\n'.join(f"[Página {p['index']}, extracto literal]\n{p['text'][:650]}" for p in pages if p['text'])
         synthesis = {**capture, 'reader': {'scope': 'synthesis', 'total_pages': len(pages)},
                      'images': [], 'selected_images': [], 'available_figures':[{'index':i,'page':v.get('page'),'description':captions.get(v.get('page'),{}).get('description','')} for i,v in enumerate(capture['images'])], 'text': '\n\n'.join(summaries) + '\n\nTexto HTML adicional del lector:\n'+meta.get('html_context','')+'\n\nExtractos literales para verificar relaciones:\n' + samples}
@@ -214,6 +215,6 @@ class Reader:
             result['image_captions'].append({**item, 'index': index})
         models.add(result.get('_model', cfg['model']))
         capture['reader']['analyzed_pages'] = len(pages)
-        capture['media'].update(coverage=f"{len(pages)}/{meta['count']} páginas leídas por lotes", reading_models=sorted(models), reading_mode='Texto e imágenes de todas las páginas' if visual else 'Solo texto HTML/OCR de todas las páginas')
+        capture['media'].update(coverage=n("{read}/{total} páginas leídas por lotes", read=len(pages), total=meta['count']), reading_models=sorted(models), reading_mode=n('Texto e imágenes de todas las páginas') if visual else n('Solo texto HTML/OCR de todas las páginas'))
         self.app.store(capture)
         return result

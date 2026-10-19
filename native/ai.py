@@ -6,6 +6,7 @@ the given schema. Servers without schema support get plain JSON mode instead.
 import json
 import re
 import urllib.error
+from translation import t
 import urllib.request
 from core import UserError, image_bytes
 
@@ -29,7 +30,7 @@ def request(cfg, body):
             detail = {}
         return exc.code, detail
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        raise UserError(f"No responde el servidor de IA en {cfg['api_base']}. Comprueba la URL en Opciones y que el servidor esté en marcha. La captura sigue pendiente.") from exc
+        raise UserError("No responde el servidor de IA en {url}. Comprueba la URL en Opciones y que el servidor esté en marcha. La captura sigue pendiente.", url=cfg['api_base']) from exc
 
 
 def message(detail):
@@ -66,9 +67,9 @@ def openai_json(cfg, prompt, spec, images=None):
     if status in (401, 403):
         raise UserError("El servidor de IA rechaza la clave API. Revísala en Opciones. La captura sigue pendiente.")
     if status == 404:
-        raise UserError(f"El servidor de IA no encuentra el modelo o la ruta: {message(detail) or cfg['api_model']}. Revisa la URL base y el modelo en Opciones.")
+        raise UserError("El servidor de IA no encuentra el modelo o la ruta: {detail}. Revisa la URL base y el modelo en Opciones.", detail=message(detail) or cfg['api_model'])
     if status != 200:
-        raise UserError(f"El servidor de IA respondió con un error ({status}): {message(detail) or 'sin detalle'}. La captura sigue pendiente.")
+        raise UserError("El servidor de IA respondió con un error ({status}): {detail}. La captura sigue pendiente.", status=status, detail=message(detail) or t("sin detalle"))
     try:
         content = detail["choices"][0]["message"]["content"]
     except (KeyError, IndexError, TypeError) as exc:

@@ -6,8 +6,15 @@ import hashlib
 import re
 from urllib.parse import quote
 from core import UserError, clean, safe_path, slug, write_new_atomic
+from translation import n, t
 
 RELATION_KINDS=('relaciona','explica','aplica','contrasta','amplia','requisito','ejemplo')
+
+
+def kind_label(kind):
+    """How a relation kind reads in the note, in the note language."""
+    return {'relaciona':n('Relaciona'),'explica':n('Explica'),'aplica':n('Aplica'),'contrasta':n('Contrasta'),'amplia':n('Amplía'),
+            'requisito':n('Requisito'),'ejemplo':n('Ejemplo')}.get(kind,kind.capitalize())
 
 
 def extend_schema(properties, relation, note_types):
@@ -100,7 +107,7 @@ class Editorial:
             root['tags']=self.app.tags(root['tags']+[tag for n in notes for tag in n['tags']])
             root['source_pages']=sorted({p for n in notes for p in n['source_pages']})
             root['strategy']='source'
-            root['rationale']='Una sola nota, según tu elección; los apartados se conservan juntos.'
+            root['rationale']=t('Una sola nota, según tu elección; los apartados se conservan juntos.')
             if root['note_type']=='indice':
                 root['note_type']=profile.default_type(root['folder'])
                 root['filename']=profile.filename(c,root['title'],root['folder'],root['note_type'])
@@ -146,9 +153,9 @@ class Editorial:
         rendered={}
         for key in dict.fromkeys([*selected,active]):
             d=copy.deepcopy(drafts[key]);links=[]
-            if key=='source':links=[{'id':k,'reason':drafts[k].get('context') or 'Desarrollo de este apartado','kind':'amplia'} for k in selected if k!='source']
+            if key=='source':links=[{'id':k,'reason':drafts[k].get('context') or n('Desarrollo de este apartado'),'kind':'amplia'} for k in selected if k!='source']
             else:
-                if 'source' in selected:links.append({'id':'source','reason':'Síntesis y mapa de esta fuente','kind':'relaciona'})
+                if 'source' in selected:links.append({'id':'source','reason':n('Síntesis y mapa de esta fuente'),'kind':'relaciona'})
                 links.extend(v for member in groups[key] for v in drafts[member].get('links',[]))
             graph=[];planned=[];targets=[];seen=set()
             for value in links:
@@ -160,11 +167,11 @@ class Editorial:
                 valid=(not evidence or evidence in current_body) and (not target_evidence or target_evidence in other_body)
                 accepted=tuple(sorted((canonical(key),target))) not in excluded and valid;kind=value.get('kind','relaciona')
                 graph.append({'id':target,'title':label,'kind':kind,'reason':value['reason'],'accepted':accepted,'source_evidence':evidence,'target_evidence':target_evidence,'stale':not valid})
-                if accepted:planned.append(f"- [[{paths[target].removesuffix('.md')}|{label}]] — {kind.capitalize()}: {clean(value['reason'],700)}");targets.append((paths[target],label))
+                if accepted:planned.append(f"- [[{paths[target].removesuffix('.md')}|{label}]] — {kind_label(kind)}: {clean(value['reason'],700)}");targets.append((paths[target],label))
             pages=sorted({p for member in groups[key] for p in drafts[member].get('source_pages',[])})
             d['source_pages']=pages
             local={**c,'draft':d,'_planned_links':planned,'_planned_targets':targets,'_semantic_links':any(v['accepted'] and v['source_evidence'] for v in graph)}
-            if key!='source' and pages:local['media']={'type':'section','pages':pages,'coverage':'Apunte de estas páginas de la fuente'}
+            if key!='source' and pages:local['media']={'type':'section','pages':pages,'coverage':n('Apunte de estas páginas de la fuente')}
             value=self.app.render(local,effective[key]);value['internal_links']=graph
             if effective[key].get('save_mode')=='append':value=Updates(self.app).render(c,value,effective[key])
             rendered[key]=value

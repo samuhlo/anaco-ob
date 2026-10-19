@@ -7,8 +7,8 @@ globalThis.AnacoObProfileCard = (() => {
     tags: tx('profile_etiquetas_propuestas'), context: tx('review_contexto'), title: tx('review_titulo'), created: tx('profile_fecha_de_creacion'), today: tx('profile_fecha_de_guardado'),
     url: tx('profile_url_de_la_fuente'), author: tx('profile_autor_de_la_fuente'), source_format: tx('profile_formato_de_la_fuente'), assisted: tx('profile_asistido_por_ia'),
     model: tx('profile_modelo_de_ia'), relations: tx('profile_relaciones_aceptadas')};
-  // Default headings written into notes: they follow the note language, not the interface.
-  const SECTIONS = {summary: "Resumen", intent: "Intención personal", quote: "Cita", quote_context: "Contexto de la cita",
+  // Default headings written into notes: the service gives them in the note language.
+  let SECTIONS = {summary: "Resumen", intent: "Intención personal", quote: "Cita", quote_context: "Contexto de la cita",
     relations: "Notas relacionadas", resources: "Recursos de la fuente", source: "Fuente", warning: "Alcance de la captura"};
   let scanned = null, draft = null, evidence = {}, provider = "manual";
 
@@ -26,6 +26,7 @@ globalThis.AnacoObProfileCard = (() => {
     try {
       const [current, settings] = await Promise.all([call({action: "profile_get"}), call({action: "settings"})]);
       provider = settings.config.provider;
+      if (settings.default_sections) SECTIONS = settings.default_sections;
       $("profileInterpret").hidden = provider !== "codex";
       if (current.missing) {
         // A broken file is not a missing profile: show its own error.
@@ -42,7 +43,7 @@ globalThis.AnacoObProfileCard = (() => {
   }
 
   async function scan() {
-    const done = busy($("profileScan"), "Escaneando…");
+    const done = busy($("profileScan"), tx('profile_escaneando'));
     try {
       scanned = await call({action: "profile_scan"});
       $("profileDocList").replaceChildren();
@@ -67,7 +68,7 @@ globalThis.AnacoObProfileCard = (() => {
 
   async function interpret(useModel) {
     const button = useModel ? $("profileInterpret") : $("profileAutomatic");
-    const done = busy(button, useModel ? tx('profile_la_ia_esta_leyendo_tus_instrucciones') : "Preparando…");
+    const done = busy(button, useModel ? tx('profile_la_ia_esta_leyendo_tus_instrucciones') : tx('profile_preparando'));
     try {
       const documents = [...$("profileDocList").querySelectorAll("input:checked")].map(i => i.value);
       const result = useModel ? await call({action: "profile_interpret", documents}) : {...scanned.proposal, assisted: false, warnings: []};
@@ -202,7 +203,7 @@ globalThis.AnacoObProfileCard = (() => {
   }
 
   async function save() {
-    const done = busy($("profileSave"), "Guardando…");
+    const done = busy($("profileSave"), tx('profile_guardando'));
     try {
       const result = await call({action: "profile_save", profile: finalProfile(), path: $("profilePath").value.trim()});
       message(tx('profile_perfil_guardado_en_1_las_notas_nuevas_se',[result.path]));

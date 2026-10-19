@@ -7,6 +7,7 @@ import json
 import os
 from collections import deque
 from pathlib import Path
+from translation import t
 
 
 def discover_vaults(home=None, environ=None):
@@ -32,10 +33,10 @@ def discover_vaults(home=None, environ=None):
                 return
             if not registered:
                 if (path / ".obsidian").is_dir():
-                    source = "Carpeta de Obsidian (.obsidian)"
+                    source = t("Carpeta de Obsidian (.obsidian)")
                 elif ((path / "00_Sistema/MANUAL_VAULT.md").is_file()
                       and (path / "99_Recursos").is_dir()):
-                    source = "Estructura de Second Brain"
+                    source = t("Estructura de Second Brain")
                 else:
                     return
             key = str(path)
@@ -54,7 +55,7 @@ def discover_vaults(home=None, environ=None):
                 continue
             for item in list(vaults.values())[:100]:
                 if isinstance(item, dict) and isinstance(item.get("path"), str):
-                    add(item["path"], "Registrado en Obsidian", registered=True)
+                    add(item["path"], t("Registrado en Obsidian"), registered=True)
         except (OSError, ValueError, UnicodeError):
             continue
 

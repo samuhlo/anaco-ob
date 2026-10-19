@@ -3,6 +3,7 @@ import re
 import unicodedata
 from pathlib import PurePosixPath
 from urllib.parse import unquote, urlsplit
+from translation import n
 
 GENERIC=set('image images imagen imagenes imaxe foto photo picture screenshot captura screen shot figure figura fig diagram diagrama chart grafico ilustracion source fuente pendiente descripcion description untitled sin titulo page pagina pdf frame fotograma en del de la el the of a an y and hero desktop mobile tablet thumb thumbnail small large medium full scaled optimized resized retina final copy copia webp jpg jpeg png gif svg avif'.split())
 
@@ -41,4 +42,4 @@ def filename_hint(image):
     useful=[w for w in words(stem) if w not in GENERIC and len(w)>=3]
     if len(set(useful))<2 or any(len(w)>24 for w in useful):return ''
     # Keep this explicitly labeled: a filename is a hint, not a visual observation.
-    return 'Nombre del archivo: '+stem[:200]+'.'
+    return n('Nombre del archivo: {name}.',name=stem[:200])

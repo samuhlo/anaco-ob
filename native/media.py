@@ -16,6 +16,7 @@ import time
 import hashlib
 from urllib.request import Request, urlopen
 from core import UserError, ROOT, clean, json_dump, normalized_url
+from translation import n, t
 
 MAX_FILE = 100_000_000
 
@@ -47,7 +48,10 @@ def run_progress(command,progress,timeout=1800,check=lambda:None):
                             try:value=json.loads(line)
                             except ValueError:raise UserError('El motor local no devolvió una respuesta válida.')
                             if value.get('event')=='progress':
-                                progress({k:v for k,v in value.items() if k in ('stage','message','engine','processed_seconds','total_seconds','elapsed_seconds')})
+                                update={k:v for k,v in value.items() if k in ('stage','message','engine','processed_seconds','total_seconds','elapsed_seconds')}
+                                # The worker writes Spanish; its texts are translated here.
+                                if isinstance(update.get('message'),str):update['message']=t(update['message'])
+                                progress(update)
                             elif value.get('event')=='result':result=value.get('result')
                 process.wait(timeout=max(.1,deadline-time.monotonic()))
             if process.returncode or not isinstance(result,dict):raise UserError('No se pudo completar la transcripción local. Prueba Whisper tiny o importa subtítulos.')
@@ -64,7 +68,7 @@ def run(command, timeout=120,cancel=None):
             result=run_command(command,cancel,timeout=timeout)
         else:result=subprocess.run(command,capture_output=True,timeout=timeout)
     except FileNotFoundError as exc:
-        raise UserError("Falta una herramienta multimedia: "+command[0]+". Ejecuta scripts/install-media.sh.") from exc
+        raise UserError("Falta una herramienta multimedia: {tool}. Ejecuta scripts/install-media.sh.", tool=command[0]) from exc
     except subprocess.TimeoutExpired as exc:
         raise UserError("El procesamiento multimedia superó el tiempo previsto. Prueba con un archivo o rango más corto.") from exc
     if result.returncode:
@@ -128,7 +132,7 @@ class Media:
             from embeds import ASSET_TYPES
             limit=ASSET_TYPES.get(Path(name).suffix.lower())
             if not limit:raise UserError("Tipo de recurso incrustado no admitido.")
-            if type(size) is not int or not 0<size<=limit:raise UserError(f"El recurso supera el límite de {limit//1_000_000} MB.")
+            if type(size) is not int or not 0<size<=limit:raise UserError("El recurso supera el límite de {megabytes} MB.", megabytes=limit//1_000_000)
             identifier=uuid.uuid4().hex;directory=self.upload_dir(identifier);directory.mkdir(parents=True,mode=0o700)
             json_dump(directory/"meta.json",{"name":name,"size":size,"url":"","purpose":"asset"})
             (directory/"data.part").touch(mode=0o600)
@@ -170,7 +174,7 @@ class Media:
         url=meta["url"] if meta["url"].startswith(("https://","http://")) else "local-file:"+meta["name"]
         if suffix==".pdf":return self.pdf(target,meta["name"],url,message.get("pages",""))
         if suffix in (".vtt",".srt"):
-            return self.transcript_capture(subtitles(target.read_text(encoding="utf-8-sig",errors="replace")),meta["name"],url,"Subtítulos importados por el usuario",[],{"coverage":"Archivo aportado; no se ha verificado contra la duración completa del vídeo"})
+            return self.transcript_capture(subtitles(target.read_text(encoding="utf-8-sig",errors="replace")),meta["name"],url,n("Subtítulos importados por el usuario"),[],{"coverage":n("Archivo aportado; no se ha verificado contra la duración completa del vídeo")})
         return self.audio(target,meta["name"],url)
 
     def pdf(self,path,title,url,ranges=""):
@@ -189,29 +193,29 @@ class Media:
             prefix=path.parent/f"page-{p}"
             self.run(["pdftoppm","-f",str(p),"-l",str(p),"-scale-to","1600","-jpeg","-jpegopt","quality=82","-singlefile",str(path),str(prefix)])
             raw=prefix.with_suffix(".jpg").read_bytes()
-            images.append({"data":base64.b64encode(raw).decode(),"alt":f"Página {p} del PDF","page":p,"url":url+"#page="+str(p)})
+            images.append({"data":base64.b64encode(raw).decode(),"alt":n("Página {page} del PDF",page=p),"page":p,"url":url+"#page="+str(p)})
             if len(texts[p])<40 and shutil.which("tesseract"):
                 try:texts[p]=self.run(["tesseract",str(prefix.with_suffix('.jpg')),"stdout"],timeout=60).decode(errors="replace").strip()
                 except UserError:pass
-        if len(pages)<total:warnings.append(f"PDF de {total} páginas. Se han procesado las páginas {','.join(map(str,pages))}; no es un resumen del documento completo.")
+        if len(pages)<total:warnings.append(t("PDF de {total} páginas. Se han procesado las páginas {pages}; no es un resumen del documento completo.",total=total,pages=','.join(map(str,pages))))
         missing=[p for p in pages if len(texts[p])<40 and p not in visual]
-        if missing:warnings.append("Hay páginas sin texto extraíble y sin captura visual: "+", ".join(map(str,missing))+". Selecciona un rango menor para analizarlas.")
+        if missing:warnings.append(t("Hay páginas sin texto extraíble y sin captura visual: {pages}. Selecciona un rango menor para analizarlas.",pages=", ".join(map(str,missing))))
         text="\n\n".join(f"[Página {p}]\n{texts[p] or 'Página sin texto extraíble; consultar la captura visual cuando esté disponible.'}" for p in pages)
-        if len(text)>150000:warnings.append("El texto supera 150.000 caracteres; se ha limitado la captura. Divide el PDF en rangos para estudiar el resto.")
+        if len(text)>150000:warnings.append(t("El texto supera 150.000 caracteres; se ha limitado la captura. Divide el PDF en rangos para estudiar el resto."))
         c=self.app.stage({"kind":"pdf","url":url,"title":title,"text":text[:150000],"images":images,"warnings":warnings},allow_local=True)
-        stored=self.app.load(c["id"]);stored["media"]={"type":"pdf","total_pages":total,"pages":pages,"visual_pages":sorted(visual),"method":"Texto PDF + páginas renderizadas; OCR local cuando hace falta"};self.app.store(stored)
+        stored=self.app.load(c["id"]);stored["media"]={"type":"pdf","total_pages":total,"pages":pages,"visual_pages":sorted(visual),"method":n("Texto PDF + páginas renderizadas; OCR local cuando hace falta")};self.app.store(stored)
         return self.app.public(stored)
 
     def transcript_capture(self,segments,title,url,method,images=None,metadata=None):
         text="\n".join(f"[{stamp(segment['start'])}] {segment['text']}" for segment in segments)
         warnings=[]
-        if len(text)>150000:warnings.append("La transcripción supera el límite de texto; se conservan los primeros 150.000 caracteres. Divide el vídeo para procesar el resto.")
+        if len(text)>150000:warnings.append(t("La transcripción supera el límite de texto; se conservan los primeros 150.000 caracteres. Divide el vídeo para procesar el resto."))
         c=self.app.stage({"kind":"video","url":url,"title":title,"text":text[:150000],"images":images or [],"warnings":warnings},allow_local=True)
         stored=self.app.load(c["id"]);stored["media"]={"type":"video","method":method,**(metadata or {})};self.app.store(stored)
         return self.app.public(stored)
 
     def audio(self,path,title,url):
-        self.app.progress({'stage':'inspect','message':'Comprobando duración y pista de audio…'})
+        self.app.progress({'stage':'inspect','message':t('Comprobando duración y pista de audio…')})
         info=json.loads(self.run(["ffprobe","-v","error","-show_format","-show_streams","-of","json",str(path)]))
         duration=float(info.get("format",{}).get("duration") or 0)
         if duration>self.app.config()["video_minutes"]*60:raise UserError("El vídeo supera la duración configurada. Importa un fragmento o aumenta el límite.")
@@ -228,36 +232,36 @@ class Media:
         if not result["segments"]:raise UserError("No se ha detectado voz en el archivo.")
         images=[]
         if any(s.get("codec_type")=="video" for s in info.get("streams",[])):
-            self.app.progress({'stage':'frames','message':'Transcripción terminada. Extrayendo fotogramas…'})
+            self.app.progress({'stage':'frames','message':t('Transcripción terminada. Extrayendo fotogramas…')})
             for n,second in enumerate([duration*.15,duration*.5,duration*.85][:self.app.config()["video_frames"]]):
                 output=path.parent/f"frame-{n}.jpg"
                 try:
                     self.run(["ffmpeg","-v","error","-y","-ss",str(second),"-i",str(path),"-frames:v","1","-vf","scale=1280:-2",str(output)])
-                    if output.exists():images.append({"data":base64.b64encode(output.read_bytes()).decode(),"alt":"Fotograma en "+stamp(second),"timestamp":second})
+                    if output.exists():images.append({"data":base64.b64encode(output.read_bytes()).decode(),"alt":n("Fotograma en {time}",time=stamp(second)),"timestamp":second})
                 except UserError:self.app.check_cancel()
-        return self.transcript_capture(result["segments"],title,url,"Transcripción local con Whisper "+self.app.config()["asr_model"],images,{"duration_seconds":duration,"language":result.get("language"),"coverage":"Audio del archivo completo"})
+        return self.transcript_capture(result["segments"],title,url,n("Transcripción local con Whisper {model}",model=self.app.config()["asr_model"]),images,{"duration_seconds":duration,"language":result.get("language"),"coverage":n("Audio del archivo completo")})
 
     def video_url(self,message):
         url=normalized_url(message.get("url",""));directory=self.app.state/"uploads"/uuid.uuid4().hex;directory.mkdir(parents=True,mode=0o700)
-        self.app.progress({'stage':'subtitles','message':'Buscando subtítulos y audio en la plataforma…'})
+        self.app.progress({'stage':'subtitles','message':t('Buscando subtítulos y audio en la plataforma…')})
         network=['--socket-timeout','20','--retries','2','--extractor-retries','2']
         meta=json.loads(self.run(["yt-dlp","--ignore-config","--no-playlist",*network,"--skip-download","--dump-single-json",url],timeout=180))
         if meta.get("is_live"):raise UserError("Para directos, importa una grabación terminada.")
         if (meta.get("duration") or 0)>self.app.config()["video_minutes"]*60:raise UserError("El vídeo supera la duración configurada.")
         title=meta.get("title") or "Vídeo"
-        for kind,key in [("Subtítulos de la plataforma","subtitles"),("Subtítulos automáticos de la plataforma","automatic_captions")]:
+        for kind,key in [(n("Subtítulos de la plataforma"),"subtitles"),(n("Subtítulos automáticos de la plataforma"),"automatic_captions")]:
             languages=meta.get(key) or {}
             for language in sorted(languages,key=lambda lang:(not lang.startswith("es"),not lang.startswith("en"),lang)):
                 entry=next((e for e in languages[language] if e.get("ext") in ("vtt","srt")),None)
                 if entry:
-                    self.app.progress({'stage':'subtitles','message':'Recuperando los subtítulos de la plataforma…'})
+                    self.app.progress({'stage':'subtitles','message':t('Recuperando los subtítulos de la plataforma…')})
                     request=Request(normalized_url(entry["url"]),headers={"User-Agent":"Mozilla/5.0"})
                     try:
                         with urlopen(request,timeout=30) as response:content=response.read(5_000_001)
                         if len(content)>5_000_000:raise UserError("Los subtítulos son demasiado grandes.")
-                        return self.transcript_capture(subtitles(content.decode(errors="replace")),title,url,kind,metadata={"language":language,"duration_seconds":meta.get("duration"),"coverage":"Subtítulos disponibles en la plataforma"})
+                        return self.transcript_capture(subtitles(content.decode(errors="replace")),title,url,kind,metadata={"language":language,"duration_seconds":meta.get("duration"),"coverage":n("Subtítulos disponibles en la plataforma")})
                     except (OSError,UserError):continue
-        self.app.progress({'stage':'download','message':'Sin subtítulos accesibles. Descargando audio para transcribir…'})
+        self.app.progress({'stage':'download','message':t('Sin subtítulos accesibles. Descargando audio para transcribir…')})
         self.run(["yt-dlp","--ignore-config","--no-playlist",*network,"--max-filesize","100M","-f","bestaudio/best","-o",str(directory/"source.%(ext)s"),url],timeout=600)
         files=[p for p in directory.glob("source.*") if p.suffix not in (".part",".ytdl")]
         if not files or files[0].stat().st_size>MAX_FILE:raise UserError("No se ha podido descargar un audio compatible de hasta 100 MB. Importa el archivo desde la plataforma.")

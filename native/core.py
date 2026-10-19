@@ -22,12 +22,16 @@ from vaults import discover_vaults
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_VAULT = Path.home() / "Second_Brain"
 from installer import default_state
+from translation import n, set_language, set_note_language, t, writing_rule
 STATE = Path(os.environ.get("ANACO_OB_STATE") or os.environ.get("ZEN_BRAIN_STATE") or default_state())
 STOP = set("para como este esta esto estas estos sobre desde entre donde cuando porque pero una uno unos unas del los las por con sin que sus son ser mas muy hay the and for with from that this into your you have has not".split())
 
 
 class UserError(Exception):
-    pass
+    """A problem the user can fix, told in the interface language of the request."""
+
+    def __init__(self, message="", **values):
+        super().__init__(t(message, **values))
 
 
 def clean(value, limit=1000):
@@ -151,9 +155,9 @@ PROVIDERS = ("codex", "openai", "manual")
 def ai_state(cfg):
     """Whether the chosen provider can run, with the fix when it cannot."""
     if cfg["provider"] == "codex" and not (shutil.which(cfg["codex"]) or Path(cfg["codex"]).is_file()):
-        return {"provider": "codex", "ready": False, "message": "No encuentro Codex. Instálalo y ejecuta «codex login», o elige en Opciones otro proveedor o la captura manual."}
+        return {"provider": "codex", "ready": False, "message": t("No encuentro Codex. Instálalo y ejecuta «codex login», o elige en Opciones otro proveedor o la captura manual.")}
     if cfg["provider"] == "openai" and not cfg.get("api_model"):
-        return {"provider": "openai", "ready": False, "message": "Falta el modelo del servidor compatible con OpenAI. Indícalo en Opciones."}
+        return {"provider": "openai", "ready": False, "message": t("Falta el modelo del servidor compatible con OpenAI. Indícalo en Opciones.")}
     return {"provider": cfg["provider"], "ready": True}
 
 
@@ -182,7 +186,7 @@ class App:
                    "model": "gpt-6-luna", "vision_model":"gpt-6.1-sol", "describe_images":True,"vision_policy":"auto",
                    "reader_batch_pages":6,"pdf_page_limit":60,"pdf_visual_pages":6,"video_minutes":120,"video_frames":3,"asr_model":"base",
                    "provider": "codex", "codex": shutil.which("codex") or "codex",
-                   "api_base": "https://api.openai.com/v1", "api_model": "", "api_vision_model": ""}
+                   "api_base": "https://api.openai.com/v1", "api_model": "", "api_vision_model": "", "note_language": "es"}
         if path.exists():
             saved = json.loads(path.read_text())
             default.update(saved)
@@ -199,7 +203,7 @@ class App:
 
     def set_config(self, values):
         cfg = self.config()
-        for key in ("vault", "vault_mode", "note_structure", "model", "vision_model", "describe_images", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model", "provider", "api_base", "api_model", "api_vision_model"):
+        for key in ("vault", "vault_mode", "note_structure", "model", "vision_model", "describe_images", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model", "provider", "api_base", "api_model", "api_vision_model", "note_language"):
             if key in values:
                 cfg[key] = values[key]
         # The form sends an empty key to keep the stored one and null to remove it.
@@ -213,6 +217,8 @@ class App:
             raise UserError("Elige detección automática o ruta manual para el vault.")
         if cfg['note_structure'] not in ('single','linked','auto'):
             raise UserError('Elige una nota, varias notas enlazadas o automático.')
+        if cfg.get("note_language", "es") not in ("es", "en"):
+            raise UserError("Elige español o inglés para las notas.")
         if not clean(cfg["vault"], 2000).strip():
             raise UserError("Selecciona un vault detectado o escribe su ruta manualmente.")
         try:
@@ -237,7 +243,7 @@ class App:
             raise UserError("Identificador de modelo no válido.")
         if not re.fullmatch(r"[a-zA-Z0-9_.-]{1,80}",clean(cfg["vision_model"])):raise UserError("Modelo visual no válido.")
         for key,maximum in [("reader_batch_pages",8),("pdf_page_limit",200),("pdf_visual_pages",8),("video_minutes",240),("video_frames",6)]:
-            if type(cfg[key]) is not int or not 1<=cfg[key]<=maximum:raise UserError("Límite multimedia no válido: "+key)
+            if type(cfg[key]) is not int or not 1<=cfg[key]<=maximum:raise UserError("Límite multimedia no válido: {key}", key=key)
         if type(cfg["describe_images"]) is not bool or cfg["asr_model"] not in ("tiny","base","small"):raise UserError("Opciones de análisis visual/transcripción no válidas.")
         if cfg["vision_policy"] not in ('auto','metadata','always'):raise UserError("Política de análisis visual no válida.")
         json_dump(self.state / "config.json", cfg)
@@ -409,7 +415,7 @@ class App:
                   "No inventes autor, contenido ni rutas. Elige folder de la lista exacta. Las plantillas orientan, no fijan los encabezados. available_figures son figuras opcionales ya leídas y conservan sus índices originales. "
                   "Relaciones solo si los fragmentos demuestran un vínculo concreto; no basta vocabulario común. "
                   "source_evidence de relaciones con notas existentes debe ser un extracto literal del text de la captura y note_evidence uno del excerpt de la candidata. "
-                  "Si falta evidencia o no hay candidatas, relations=[]. Escribe en español.\n\n" +
+                  "Si falta evidencia o no hay candidatas, relations=[]. " + writing_rule() + "\n\n" +
                   embed_guidance(capture)+
                   json.dumps({"profile": profile, "capture": {k: (for_prompt(v) if k=="embeds" else v) for k, v in self.public(capture).items() if k not in ("fingerprint", "id")},
                               "candidates": candidates, "folders": folders,"note_types_by_folder":{folder:vault_profile.types_for(folder) for folder in folders}}, ensure_ascii=False))
@@ -492,10 +498,10 @@ class App:
             if not isinstance(result, dict) or not all(k in result for k in ("title","context","body","folder","tags","relations")):
                 raise UserError("Faltan campos en la propuesta de IA.")
         else:
-            result = {"title": c["title"], "context": c["intent"] or "Captura pendiente de elaboración personal.",
+            result = {"title": c["title"], "context": c["intent"] or n("Captura pendiente de elaboración personal."),
                       "folder": self.vault_profile().default_destination(folders),
                       "tags": ["fuente"], "relations": [],
-                      "body": "## "+self.vault_profile().section("summary")+"\n\n" + (c["text"] if c["kind"] in ("article","pdf","video") else "Escribe aquí tu interpretación o descripción.")}
+                      "body": "## "+self.vault_profile().section("summary")+"\n\n" + (c["text"] if c["kind"] in ("article","pdf","video") else n("Escribe aquí tu interpretación o descripción."))}
         recommended=list(c["selected_images"])
         described=set()
         for item in result.get("image_captions",[]):
@@ -595,7 +601,8 @@ class App:
             kind=fields.get('relation_kinds',{}).get(rel_path,relation.get('kind','relaciona'))
             from editorial import RELATION_KINDS
             if kind not in RELATION_KINDS:raise UserError('Tipo de relación no válido.')
-            links.append(f"- [[{link}]] — {kind.capitalize()}: {relation['reason']}")
+            from editorial import kind_label
+            links.append(f"- [[{link}]] — {kind_label(kind)}: {relation['reason']}")
             related.append((rel_path, relation.get('title') or PurePosixPath(link).name))
         link_assisted=bool(original.get('connection_model') and (fields.get('relations') or c.get('_semantic_links')))
         assisted=original["assisted"] or bool(fields.get('revision_model')) or link_assisted
@@ -608,7 +615,7 @@ class App:
         yaml = "\n".join(k + ": " + json.dumps(v, ensure_ascii=False) for k, v in fm.items())
         # Angle-bracket link target prevents title and URL Markdown breakouts.
         source = c["url"].replace("<", "%3C").replace(">", "%3E").replace("\n", "")
-        source_line="[Abrir original](<"+source+">)" if source.startswith(("http://","https://")) else "Archivo local: "+source.removeprefix("local-file:")
+        source_line=n("[Abrir original](<{url}>)",url=source) if source.startswith(("http://","https://")) else n("Archivo local: {path}",path=source.removeprefix("local-file:"))
         chunks=["---\n"+yaml+"\n---" if fm else "","# "+title]
         if c['intent']:
             chunks.append("## "+profile.section("intent")+"\n\n"+c['intent'])
@@ -624,11 +631,11 @@ class App:
         if planned or links:
             chunks.append("## "+profile.section("relations")+"\n\n"+"\n".join([*planned,*links]))
         source_detail=source_line
-        if c.get('media',{}).get('pages'):source_detail+=" · páginas "+format_pages(c['media']['pages'])
-        if c.get('reader',{}).get('analyzed_pages') and not original.get('source_pages'):source_detail+=f" · {c['reader']['analyzed_pages']} páginas leídas"
+        if c.get('media',{}).get('pages'):source_detail+=n(" · páginas {pages}",pages=format_pages(c['media']['pages']))
+        if c.get('reader',{}).get('analyzed_pages') and not original.get('source_pages'):source_detail+=n(" · {count} páginas leídas",count=c['reader']['analyzed_pages'])
         media=c.get('media',{})
         details=[]
-        for key,label in (('coverage','Cobertura'),('method','Obtención'),('reading_mode','Lectura'),('reading_models','Modelos'),('language','Idioma'),('duration_seconds','Duración en segundos')):
+        for key,label in (('coverage',n('Cobertura')),('method',n('Obtención')),('reading_mode',n('Lectura')),('reading_models',n('Modelos')),('language',n('Idioma')),('duration_seconds',n('Duración en segundos'))):
             if media.get(key):details.append(label+': '+(', '.join(media[key]) if isinstance(media[key],list) else str(media[key])))
         if details:source_detail+='\n\n'+' · '.join(details)
         chunks.append("## "+profile.section("source")+"\n\n"+source_detail)
@@ -644,7 +651,7 @@ class App:
             captions=fields.get("captions",{})
             alt = clean(captions.get(str(i),im.get("caption") or im.get("alt")),1800).replace("\n", " ").replace("]", "")
             assets.append((rel, raw))
-            chunks.append("![["+rel+"]]\n\n"+(alt or "Imagen de la fuente; descripción pendiente."))
+            chunks.append("![["+rel+"]]\n\n"+(alt or n("Imagen de la fuente; descripción pendiente.")))
         return {"markdown": "\n\n".join(x for x in chunks if x).strip() + "\n", "relative": folder + "/" + name, "assets": assets}
 
     def preview(self, capture_id, fields):
@@ -707,6 +714,11 @@ class App:
                 "obsidian_url": "obsidian://open?vault=" + quote(self.vault().name, safe="") + "&file=" + quote(rendered["relative"], safe="")}
 
     def handle(self, message):
+        set_language(message.get("lang"))
+        try:
+            set_note_language(self.config().get("note_language"))
+        except Exception:
+            set_note_language("es")
         action = message.get("action")
         if action in ('cancel_job','resume_job','finish_job'):
             from jobs import Job
@@ -725,7 +737,8 @@ class App:
             return {"version": "0.11.0", "config": public_config(self.config()), "folders": folders, "pending": self.pending(), 'jobs':pending(self), "profile": state, "profile_hash": state.get("hash"), "ai": ai_state(self.config())}
         if action == "settings":
             cfg = self.config()
-            return {"config": public_config(cfg), "vault_available": Path(cfg["vault"]).expanduser().is_dir()}
+            from vault_profile import default_sections
+            return {"config": public_config(cfg), "vault_available": Path(cfg["vault"]).expanduser().is_dir(), "default_sections": default_sections()}
         if action == "discover_vaults":
             return {"vaults": discover_vaults()}
         if action == "configure":
@@ -771,7 +784,7 @@ class App:
             if action=="upload_chunk":return media.chunk(message)
             if action=="upload_finish":return media.finish(message)
             if action=="video_url":return media.video_url(message)
-            return media.transcript_capture(subtitles(message.get("text","")),clean(message.get("title"),300),normalized_url(message.get("url","")),"Subtítulos recuperados desde la sesión del navegador",metadata={"coverage":"Subtítulos disponibles; puede haber tramos sin texto"})
+            return media.transcript_capture(subtitles(message.get("text","")),clean(message.get("title"),300),normalized_url(message.get("url","")),n("Subtítulos recuperados desde la sesión del navegador"),metadata={"coverage":n("Subtítulos disponibles; puede haber tramos sin texto")})
         if action == 'review_data':
             from editorial import RELATION_KINDS
             profile=self.vault_profile()

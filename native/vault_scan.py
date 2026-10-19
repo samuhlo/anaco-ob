@@ -10,6 +10,7 @@ import re
 from collections import Counter, defaultdict
 from pathlib import Path
 from core import UserError
+from translation import t
 from vault_profile import SCHEMA, segment
 
 MAX_NOTES = 20000
@@ -274,7 +275,7 @@ def propose(facts):
     if not destinations:
         rules = [{"pattern": "Anaco", "types": ["nota"], "default": "nota", "derived": "nota", "create": True}]
         types = {"nota": {"label": "Nota", "filename": "{title}.md"}}
-        evidence["destinations"] = "El vault no tiene notas: se creará la carpeta Anaco al confirmar."
+        evidence["destinations"] = t("El vault no tiene notas: se creará la carpeta Anaco al confirmar.")
         return finish(facts, types, rules, generic_fields(), evidence, "Anaco")
     types, rules = {}, []
     all_shapes = defaultdict(Counter)
@@ -293,11 +294,11 @@ def propose(facts):
         total = sum(shapes.values())
         pattern = best + ".md" if count * 10 >= total * 6 and count >= 2 else "{title}.md"
         types[kind] = {"label": kind.replace("_", " ").capitalize(), "filename": pattern}
-        evidence[f"filename:{kind}"] = f"{count} de {total} notas de tipo {kind} se llaman como {best}" if pattern != "{title}.md" else f"Las notas de tipo {kind} no siguen un patrón común: se usará el título"
+        evidence[f"filename:{kind}"] = t("{count} de {total} notas de tipo {kind} se llaman como {pattern}", count=count, total=total, kind=kind, pattern=best) if pattern != "{title}.md" else t("Las notas de tipo {kind} no siguen un patrón común: se usará el título", kind=kind)
     rules = zone_rules(facts, destinations, types, evidence)
     fields = typed_fields(stats, destinations, evidence) if typed else generic_fields()
     if not typed:
-        evidence["frontmatter"] = "Las notas no tienen un tipo en el frontmatter: se usará un frontmatter mínimo."
+        evidence["frontmatter"] = t("Las notas no tienen un tipo en el frontmatter: se usará un frontmatter mínimo.")
     return finish(facts, types, rules, fields, evidence, destinations[0])
 
 
@@ -329,7 +330,7 @@ def zone_rules(facts, destinations, types, evidence):
             rule["exclude"] = exclude
         rules.append(rule)
         notes = sum(stats[f]["count"] for f in folders)
-        evidence[f"destination:{pattern}"] = f"{len(folders)} carpetas con {notes} notas; tipos: " + ", ".join(f"{k} ({v})" for k, v in counter.most_common(5))
+        evidence[f"destination:{pattern}"] = t("{folders} carpetas con {notes} notas; tipos: {types}", folders=len(folders), notes=notes, types=", ".join(f"{k} ({v})" for k, v in counter.most_common(5)))
     return rules
 
 
@@ -371,7 +372,7 @@ def typed_fields(stats, destinations, evidence):
         if share < 0.5 and "when" not in spec and spec["from"] != "folder_map":
             continue
         fields.append({"key": key, **spec})
-        evidence[f"field:{key}"] = f"{entry['count']} de {total} notas en destinos usan {key}" + (f" ({spec['from']})" if spec["from"] != "constant" else "")
+        evidence[f"field:{key}"] = t("{count} de {total} notas en destinos usan {key}", count=entry['count'], total=total, key=key) + (f" ({spec['from']})" if spec["from"] != "constant" else "")
     return fields
 
 
@@ -443,8 +444,8 @@ def finish(facts, types, rules, fields, evidence, default):
     documents += [d["path"] for d in facts["documents"] if d["suggested"] and d["kind"] == "template" and d["type"] in types]
     for item in facts["documents"]:
         evidence.setdefault("documents", "")
-    evidence["documents"] = f"{len(facts['documents'])} documentos de instrucciones y plantillas encontrados"
-    evidence["attachments"] = f"Carpeta de adjuntos detectada: {roles['attachments']}" if roles["attachments"] else "No hay carpeta de adjuntos: se propone una nueva"
+    evidence["documents"] = t("{count} documentos de instrucciones y plantillas encontrados", count=len(facts['documents']))
+    evidence["attachments"] = t("Carpeta de adjuntos detectada: {folder}", folder=roles['attachments']) if roles["attachments"] else t("No hay carpeta de adjuntos: se propone una nueva")
     profile = {"schema": SCHEMA, "types": types, "destinations": rules, "frontmatter": fields, "attachments": attachments,
                "relation_roots": tops if tops != ["Anaco"] else [], "instructions": documents[:20], "sections": {}, "default_destination": default}
     # Only templates for types Anaco can create are suggested to the model.
@@ -509,7 +510,7 @@ def sanitize(profile, facts, allowed, warnings):
     rules = []
     for rule in profile["destinations"]:
         if not any(matches(rule["pattern"], f) for f in existing) or any(matches(rule["pattern"], f) for f in facts["excluded"] if "*" not in rule["pattern"]):
-            warnings.append(f"Se descarta el destino {rule['pattern']}: no corresponde a una carpeta del vault.")
+            warnings.append(t("Se descarta el destino {pattern}: no corresponde a una carpeta del vault.", pattern=rule['pattern']))
             continue
         rule["types"] = [t for t in rule["types"] if t in profile["types"]]
         if rule["types"]:
@@ -528,10 +529,10 @@ def sanitize(profile, facts, allowed, warnings):
             roots = observed_roots(spec["key"], facts["stats"], list(facts["stats"]))
             if roots:
                 spec.setdefault("when", {})["folders"] = roots
-                warnings.append(f"El campo {spec['key']} se limita a {', '.join(roots)}, donde aparece en tus notas.")
+                warnings.append(t("El campo {key} se limita a {folders}, donde aparece en tus notas.", key=spec['key'], folders=', '.join(roots)))
     dropped = [p for p in profile["instructions"] if p not in allowed]
     if dropped:
-        warnings.append("Se descartan documentos que no se han revisado: " + ", ".join(dropped))
+        warnings.append(t("Se descartan documentos que no se han revisado: {documents}", documents=", ".join(dropped)))
     profile["instructions"] = [p for p in profile["instructions"] if p in allowed]
     profile["relation_roots"] = [r for r in profile["relation_roots"] if r in existing]
     return profile
@@ -575,7 +576,7 @@ def interpret(app, chosen):
         from vault_profile import validate
         validate(vault, json.loads(json.dumps(profile)))
     except (UserError, KeyError, TypeError, ValueError) as exc:
-        warnings.append("La propuesta de la IA no es válida y se usa la del escaneo: " + str(exc)[:300])
+        warnings.append(t("La propuesta de la IA no es válida y se usa la del escaneo: {error}", error=str(exc)[:300]))
         return {**base, "assisted": False, "warnings": warnings}
     evidence = dict(base["evidence"])
     evidence.update({e["rule"]: e["explanation"] for e in answer.get("explanations", []) if e.get("rule")})

@@ -6,7 +6,10 @@
   python3 scripts/i18n.py check     # every key used exists in every language, with the same placeholders
 
 _locales/<lang>/messages.json is the single source; the catalog is generated.
+The local service writes its texts in Spanish and translates them with
+native/locales/en.json, keyed by the Spanish text; check covers it too.
 """
+import ast
 from html.parser import HTMLParser
 import json
 from pathlib import Path
@@ -147,6 +150,41 @@ def used_keys():
     return keys
 
 
+NATIVE = ROOT / "native"
+TRANSLATED = {"UserError": 0, "t": 0, "n": 0}
+
+
+def native_texts():
+    """Spanish texts passed to UserError, t() and n(), and the calls that hide them."""
+    texts, problems = {}, []
+    for path in sorted(NATIVE.glob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.Call) or getattr(node.func, "id", None) not in TRANSLATED or not node.args:
+                continue
+            first = node.args[0]
+            where = f"{path.name}:{node.lineno}"
+            if isinstance(first, ast.Constant) and isinstance(first.value, str):
+                texts.setdefault(first.value, where)
+            elif isinstance(first, (ast.JoinedStr, ast.BinOp)):
+                # GUARD -> A formatted message has no stable key: pass the values by name instead.
+                problems.append(f"{where}: texto formateado; usa una plantilla con valores con nombre")
+    return texts, problems
+
+
+def native_problems():
+    texts, problems = native_texts()
+    catalog = json.loads((NATIVE / "locales" / "en.json").read_text(encoding="utf-8"))
+    for text, where in texts.items():
+        if text not in catalog:
+            problems.append(f"{where}: falta en native/locales/en.json: {text[:70]}")
+        elif sorted(re.findall(r"{(\w+)}", text)) != sorted(re.findall(r"{(\w+)}", catalog[text])):
+            problems.append(f"{where}: otros marcadores en inglés: {text[:70]}")
+    for text in catalog:
+        if text not in texts:
+            problems.append(f"native/locales/en.json: sobra {text[:70]}")
+    return problems
+
+
 def check():
     problems = []
     catalogs = {lang: load(lang) for lang in LANGUAGES}
@@ -171,6 +209,7 @@ def check():
     catalog = (EXT / "i18n-catalog.js").read_text(encoding="utf-8") if (EXT / "i18n-catalog.js").exists() else ""
     if json.dumps(generated, ensure_ascii=False, sort_keys=True) not in catalog:
         problems.append("i18n-catalog.js no está al día: ejecuta scripts/i18n.py build")
+    problems += native_problems()
     for problem in problems:
         print(problem)
     print("Claves usadas:", len(used_keys()), "· problemas:", len(problems))

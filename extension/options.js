@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 const call = message => browser.runtime.sendMessage({type: "native", message});
-const configKeys = ["vault", "vault_mode", "note_structure", "provider", "api_base", "api_model", "api_vision_model", "model", "vision_model", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model"];
+const configKeys = ["vault", "vault_mode", "note_structure", "note_language", "provider", "api_base", "api_model", "api_vision_model", "model", "vision_model", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model"];
 let manualPath = "", savedPath = "", savedAvailable = false, detecting = false;
 const draftKey = 'optionsDraft';
 let loaded = false, dirty = false;

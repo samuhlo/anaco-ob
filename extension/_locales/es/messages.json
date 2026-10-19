@@ -485,6 +485,12 @@
   "options_idioma_de_la_interfaz": {
     "message": "Idioma de la interfaz"
   },
+  "options_idioma_de_las_notas": {
+    "message": "Idioma de las notas"
+  },
+  "options_idioma_de_las_notas_ayuda": {
+    "message": "Títulos, encabezados y texto de las notas nuevas. No cambia las notas que ya están en el vault."
+  },
   "options_importacion_manual": {
     "message": "Importación manual"
   },
@@ -1205,6 +1211,9 @@
   "profile_encabezado_1": {
     "message": "Encabezado: $1"
   },
+  "profile_escaneando": {
+    "message": "Escaneando…"
+  },
   "profile_este_vault_aun_no_tiene_perfil_escanealo": {
     "message": "Este vault aún no tiene perfil. Escanéalo para que Anaco sepa dónde y cómo guardar."
   },
@@ -1222,6 +1231,9 @@
   },
   "profile_guarda_en": {
     "message": "Guarda en"
+  },
+  "profile_guardando": {
+    "message": "Guardando…"
   },
   "profile_guias": {
     "message": "Guías"
@@ -1291,6 +1303,9 @@
   },
   "profile_por_que_se_propone_asi": {
     "message": "Por qué se propone así"
+  },
+  "profile_preparando": {
+    "message": "Preparando…"
   },
   "profile_relaciones_aceptadas": {
     "message": "Relaciones aceptadas"
@@ -1390,6 +1405,9 @@
   },
   "review_actual": {
     "message": "Actual"
+  },
+  "review_actualizando": {
+    "message": "Actualizando…"
   },
   "review_ajustar_esta_nota": {
     "message": "Ajustar esta nota"
