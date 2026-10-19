@@ -67,6 +67,7 @@ def main():
     parser.add_argument("--manual-import", action="store_true", help="Check the separate manual importer and its review")
     parser.add_argument("--detection", action="store_true", help="Exercise active-tab detection and nested authenticated course resources")
     parser.add_argument("--options", action="store_true", help="Exercise vault discovery and manual configuration in Options")
+    parser.add_argument('--languages',action='store_true',help='Interface in English from Options: pages, panel and a content-script warning follow it')
     parser.add_argument('--welcome',action='store_true',help='Welcome page with install steps and live checks; panel health notice when the AI is not ready')
     parser.add_argument('--openai',action='store_true',help='OpenAI-compatible provider: configure it in Options and prepare a note against a local fake server')
     parser.add_argument('--readme-shots',action='store_true',help='Network: README screenshots of the profile, the panel, a highlighted clip and the review on the real Codrops spotlight')
@@ -95,6 +96,7 @@ def main():
     if args.readme_shots:out=ROOT/'.test-artifacts/readme-shots';out.mkdir(parents=True,exist_ok=True)
     if args.openai:out=ROOT/'.test-artifacts/zen-openai';out.mkdir(parents=True,exist_ok=True)
     if args.welcome:out=ROOT/'.test-artifacts/zen-welcome';out.mkdir(parents=True,exist_ok=True)
+    if args.languages:out=ROOT/'.test-artifacts/zen-languages';out.mkdir(parents=True,exist_ok=True)
     if args.split_review:out=ROOT/'.test-artifacts/zen-split-review';out.mkdir(parents=True,exist_ok=True)
     run_dir = Path(tempfile.mkdtemp(prefix="run-",dir=out))
     vault = run_dir / "Vault"
@@ -260,6 +262,8 @@ def main():
         driver.set_context("content")
         panel=f"moz-extension://{uuids[addon]}/panel.html"
         driver.get(panel)
+        # The test browser is English; the assertions below read the Spanish interface.
+        driver.execute_script('localStorage.setItem("anaco-ob:lang","es")');driver.refresh()
         panel_handle=driver.current_window_handle
         wait=WebDriverWait(driver,30)
         wait.until(lambda d:"CONECTADO" in d.find_element(By.ID,"connection").text)
@@ -679,6 +683,25 @@ def main():
             driver.save_screenshot(str(out/'accepted.png'));finish_and_return('save',c['source']['tabId'])
             report={'passed':True,'suggestion_does_not_change_draft':True,'discard_preserves_note_and_edits':True,'accept_requires_user_click':True,'code_and_personal_annotation_preserved':True,'accepted_split_survives_reload':True,'review_before_save':True,'saved_new_notes':3,'vault':str(vault)}
             (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,indent=2));return
+        if args.languages:
+            panel_url=driver.current_url;driver.get(panel.replace('panel.html','options.html'))
+            wait.until(lambda d:d.find_element(By.ID,'ui_language').get_attribute('value')=='es')
+            Select(driver.find_element(By.ID,'ui_language')).select_by_value('en')
+            wait.until(lambda d:d.execute_script('return document.documentElement.lang')=='en' and 'A place for what you learn.' in d.find_element(By.TAG_NAME,'h1').text)
+            assert driver.find_element(By.ID,'ui_language').get_attribute('value')=='en' and driver.title=='Options · Anaco',driver.title
+            driver.save_screenshot(str(out/'options-en.png'))
+            driver.get(panel_url)
+            wait.until(lambda d:'LOCAL SERVICE CONNECTED' in d.find_element(By.ID,'connection').text)
+            # Content scripts get the language from the background: the capture warning comes back in English.
+            (ROOT/'tests/fixtures/language.html').write_text('<!doctype html><meta charset="utf-8"><title>Language test</title><article><h1>Language test</h1>'+'<p>Active recall strengthens memory when you study.</p>'*12+'<iframe srcdoc="<p>Embedded</p>" width="300" height="200"></iframe></article>')
+            captured=capture({},url.replace('article.html','language.html'))
+            assert any('The page text was captured' in w for w in captured.get('warnings',[])),captured.get('warnings')
+            wait.until(lambda d:'The page text was captured' in d.find_element(By.ID,'warnings').text)
+            driver.save_screenshot(str(out/'panel-en.png'))
+            driver.execute_script('localStorage.setItem("anaco-ob:lang","es")');driver.refresh()
+            wait.until(lambda d:'SERVICIO LOCAL CONECTADO' in d.find_element(By.ID,'connection').text)
+            report={'passed':True,'options_in_english':True,'panel_follows':True,'back_to_spanish':True}
+            (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
         if args.welcome:
             panel_url=driver.current_url;driver.get(panel.replace('panel.html','welcome.html'))
             wait.until(lambda d:'Linux' in d.find_element(By.ID,'platformNote').text)

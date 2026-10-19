@@ -1,9 +1,10 @@
+const I18N = require('./i18n.cjs');
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const ctx = vm.createContext({});
-vm.runInContext(fs.readFileSync('extension/diagnosis.js','utf8')+';globalThis.diagnosis=AnacoObDiagnosis;',ctx);
+vm.runInContext(I18N+fs.readFileSync('extension/diagnosis.js','utf8')+';globalThis.diagnosis=AnacoObDiagnosis;',ctx);
 const diagnosis=ctx.diagnosis;
 
 test('a missing native host is told apart from a failing service and a missing vault',()=>{

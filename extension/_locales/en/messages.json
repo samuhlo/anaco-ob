@@ -1,0 +1,1856 @@
+{
+  "bg_1_2_paginas_recibidas_preparando_el_cont": {
+    "message": "$1/$2 pages received. Preparing the content…"
+  },
+  "bg_accion_de_revision_desconocida": {
+    "message": "Unknown review action."
+  },
+  "bg_accion_de_revision_no_disponible": {
+    "message": "Review action not available."
+  },
+  "bg_anaco_ya_no_tiene_permiso_para_marcar_en": {
+    "message": "Anaco no longer has permission to highlight on this page (reloading it removes it). Press «Detect again» to grant it."
+  },
+  "bg_buscando_conexiones_por_tema_en_tu_secon": {
+    "message": "Looking for topic connections in your Second Brain…"
+  },
+  "bg_cancelando_el_trabajo_y_conservando_el_a": {
+    "message": "Cancelling the job and keeping the progress…"
+  },
+  "bg_captura": {
+    "message": "Capture"
+  },
+  "bg_clip_1_no_se_pudo_guardar_2": {
+    "message": "Clip «$1»: could not be saved ($2)."
+  },
+  "bg_contenido_incrustado": {
+    "message": "Embedded content"
+  },
+  "bg_demo_1_2_archivos_externos_no_se_pudiero": {
+    "message": "Demo «$1»: $2 external files could not be copied; that part will need a connection."
+  },
+  "bg_demo_1_no_se_pudo_guardar_una_copia_sin_": {
+    "message": "Demo «$1»: an offline copy could not be saved ($2). The link$3 is kept."
+  },
+  "bg_descargando_el_pdf": {
+    "message": "Downloading the PDF…"
+  },
+  "bg_descargando_el_recurso_del_reproductor": {
+    "message": "Downloading the player resource…"
+  },
+  "bg_documento_pdf": {
+    "message": "PDF document"
+  },
+  "bg_el_lector_cambio_vuelve_a_detectarlo": {
+    "message": "The reader changed. Detect it again."
+  },
+  "bg_el_libro_supera_el_limite_de_500_paginas": {
+    "message": "The book exceeds the 500-page limit."
+  },
+  "bg_el_libro_supera_las_500_paginas_admitida": {
+    "message": "The book exceeds the 500 pages supported in this version. Part of it has not been extracted."
+  },
+  "bg_el_recurso_devolvio_una_pagina_de_acceso": {
+    "message": "The resource returned a sign-in page instead of the video or subtitles. Open the lesson and detect again."
+  },
+  "bg_el_recurso_supera_el_limite_de_descarga": {
+    "message": "The resource exceeds the download limit."
+  },
+  "bg_el_servicio_esta_tardando_demasiado_la_c": {
+    "message": "The service is taking too long. The capture is kept in Pending."
+  },
+  "bg_el_servidor_rechazo_el_recurso_del_repro": {
+    "message": "The server rejected the player resource (HTTP $1). Anaco tried to keep the video session. Start the video and detect again to renew its link."
+  },
+  "bg_esa_revision_ya_no_esta_abierta_en_esta_": {
+    "message": "That review is no longer open in this window."
+  },
+  "bg_esta_accion_debe_iniciarse_en_la_pagina_": {
+    "message": "This action must start from the capture's review page."
+  },
+  "bg_esta_captura_no_tiene_una_propuesta_pend": {
+    "message": "This capture has no proposal waiting for review."
+  },
+  "bg_esta_pestana_no_contiene_una_pagina_web_": {
+    "message": "This tab does not contain a web page that can be captured."
+  },
+  "bg_estudiando_una_posible_division_de_la_no": {
+    "message": "Considering how the note could be split…"
+  },
+  "bg_extrayendo_el_pdf": {
+    "message": "Extracting the PDF…"
+  },
+  "bg_extrayendo_pagina_1_de_2": {
+    "message": "Extracting page $1 of $2…"
+  },
+  "bg_guardando_recursos_incrustados_1_de_2": {
+    "message": "Saving embedded resources: $1 of $2…"
+  },
+  "bg_guardar_frase_con_anaco": {
+    "message": "Save quote with Anaco"
+  },
+  "bg_guardar_imagen_con_anaco": {
+    "message": "Save image with Anaco"
+  },
+  "bg_la_captura_actual_sigue_procesandose_pue": {
+    "message": "The current capture is still being processed. You can switch tabs while it finishes."
+  },
+  "bg_la_operacion_termino_pero_no_pude_volver": {
+    "message": "The operation finished, but I could not return to the article: "
+  },
+  "bg_la_pestana_cambio_antes_de_extraer_el_re": {
+    "message": "The tab changed before the resource was extracted. Check the current content and try again."
+  },
+  "bg_la_pestana_cambio_antes_de_preparar_la_n": {
+    "message": "The tab changed before the note was prepared. Check the current capture and try again."
+  },
+  "bg_la_preparacion_anterior_se_interrumpio_p": {
+    "message": "The previous preparation was interrupted. You can recover the capture in Pending and try again."
+  },
+  "bg_la_revision_se_cerro": {
+    "message": "The review was closed."
+  },
+  "bg_la_transferencia_ya_no_pertenece_al_trab": {
+    "message": "The transfer no longer belongs to the current job."
+  },
+  "bg_lector_html_se_han_elegido_1_de_2_pagina": {
+    "message": "HTML reader: $1 of $2 detected pages/figures were chosen for visual reading. The selection is not a visual reading of the whole book."
+  },
+  "bg_leyendo_las_paginas_del_pdf": {
+    "message": "Reading the PDF pages…"
+  },
+  "bg_los_subtitulos_no_estan_disponibles_recu": {
+    "message": "Subtitles are not available. Retrieving the audio to transcribe it…"
+  },
+  "bg_no_puedo_localizar_este_elemento_comprue": {
+    "message": "I cannot locate this element. Check that the article is still open and capture it again if it has changed."
+  },
+  "bg_no_se_ha_podido_leer_la_pagina_1_2_3_las": {
+    "message": "Page $1/$2 could not be read: $3. The pages received are kept; press Extract whole book again to continue."
+  },
+  "bg_no_se_localizaron_paginas_del_lector": {
+    "message": "No reader pages were found."
+  },
+  "bg_no_se_pudo_conectar_con_el_servicio_loca": {
+    "message": "Could not connect to the local service. Install it with «anaco-ob install»."
+  },
+  "bg_no_se_pudo_conservar_una_imagen_1": {
+    "message": "An image could not be kept: $1. Capture again to retry."
+  },
+  "bg_no_se_pudo_descargar_la_imagen_esta_vers": {
+    "message": "The image could not be downloaded. This version supports PNG, JPEG, GIF and WebP reachable from the browser."
+  },
+  "bg_no_se_pudo_leer_el_contenido_seleccionad": {
+    "message": "The selected content could not be read. Capture it again from the page."
+  },
+  "bg_no_se_pudo_leer_el_recurso_del_reproduct": {
+    "message": "The player resource could not be read. Start the video again and detect its content; the diagnosis includes the download attempts."
+  },
+  "bg_no_se_pudo_terminar_la_deteccion_espera_": {
+    "message": "Detection could not finish. Wait for the content to load and try again."
+  },
+  "bg_pagina_actual": {
+    "message": "Current page"
+  },
+  "bg_pdf_del_curso": {
+    "message": "Course PDF"
+  },
+  "bg_pdf_del_visor": {
+    "message": "Viewer PDF"
+  },
+  "bg_preparando_el_archivo_de_audio": {
+    "message": "Preparing the audio file…"
+  },
+  "bg_preparando_la_extraccion_del_libro_compl": {
+    "message": "Preparing to extract the whole book…"
+  },
+  "bg_preparando_la_propuesta": {
+    "message": "Preparing the proposal…"
+  },
+  "bg_preparando_una_revision_del_apartado": {
+    "message": "Preparing a revision of the section…"
+  },
+  "bg_primero_captura_una_pagina_frase_o_image": {
+    "message": "First capture a page, quote or image."
+  },
+  "bg_primero_extrae_el_documento_detectado": {
+    "message": "First extract the detected document."
+  },
+  "bg_reanudando_el_trabajo": {
+    "message": "Resuming the job…"
+  },
+  "bg_recuperando_subtitulos_o_audio": {
+    "message": "Retrieving subtitles or audio…"
+  },
+  "bg_recuperando_video_del_curso_segmento_1_d": {
+    "message": "Retrieving the course video: segment $1 of $2…"
+  },
+  "bg_recurso": {
+    "message": "Resource"
+  },
+  "bg_supera_3_mb": {
+    "message": "exceeds 3 MB"
+  },
+  "bg_supera_el_limite_de_tamano": {
+    "message": "exceeds the size limit"
+  },
+  "bg_trabajo_cancelado_puedes_reanudarlo_desd": {
+    "message": "Job cancelled. You can resume it from Recoverable jobs."
+  },
+  "bg_trabajo_recuperado": {
+    "message": "Job recovered"
+  },
+  "bg_transfiriendo_archivo": {
+    "message": "Transferring file…"
+  },
+  "bg_vuelve_a_capturar_el_articulo_para_local": {
+    "message": "Capture the article again to locate its images."
+  },
+  "bg_vuelve_a_detectar_la_pagina_del_curso": {
+    "message": "Detect the course page again."
+  },
+  "bg_y_el_codigo": {
+    "message": " and the code"
+  },
+  "bg_ya_hay_un_recurso_procesandose_puedes_ca": {
+    "message": "A resource is already being processed. You can switch tabs while it finishes."
+  },
+  "bg_ya_hay_un_trabajo_en_curso": {
+    "message": "A job is already running."
+  },
+  "bg_ya_hay_un_trabajo_en_curso_puedes_seguir": {
+    "message": "A job is already running. You can keep browsing while it finishes."
+  },
+  "bg_ya_hay_una_extraccion_o_una_nota_en_curs": {
+    "message": "An extraction or a note is already in progress."
+  },
+  "bg_ya_hay_una_nota_preparandose": {
+    "message": "A note is already being prepared."
+  },
+  "capture_documento_del_visor": {
+    "message": "Viewer document"
+  },
+  "capture_el_navegador_impide_leer_1_superficies": {
+    "message": "The browser prevents reading $1 viewer surfaces; their visual content was not captured."
+  },
+  "capture_el_reproductor_esta_presente_pero_todavi": {
+    "message": "The player is present, but it does not expose accessible audio or subtitles yet. Start the video and press Detect again."
+  },
+  "capture_este_reproductor_usa_dash_todavia_no_se_": {
+    "message": "This player uses DASH; its audio cannot be extracted yet."
+  },
+  "capture_la_captura_visual_del_lector_ha_alcanzad": {
+    "message": "The reader's visual capture reached the limit of eight candidates or of size. Some pages/figures were not included; it is not a complete visual reading of the book."
+  },
+  "capture_la_pagina_supera_el_limite_de_esta_versi": {
+    "message": "The page exceeds this version's limit; the first 120,000 characters were captured."
+  },
+  "capture_libro_detectado_1_paginas_disponibles_us": {
+    "message": "Book detected: $1 pages available. Use Extract whole book to read them all; the note's figures will be chosen afterwards."
+  },
+  "capture_no_se_detecto_un_articulo_principal_revi": {
+    "message": "No main article was detected. Check the extracted text before summarizing."
+  },
+  "capture_pdf_cargado_por_el_visor": {
+    "message": "PDF loaded by the viewer"
+  },
+  "capture_se_ha_capturado_el_texto_de_la_pagina_el": {
+    "message": "The page text was captured. The video and the content of embedded frames were not transcribed."
+  },
+  "capture_subtitulos_del_reproductor": {
+    "message": "Player subtitles"
+  },
+  "capture_video_incrustado": {
+    "message": "Embedded video"
+  },
+  "detect_anaco_no_tiene_permiso_para_leer_esta_pa": {
+    "message": "Anaco has no permission to read this page ($1). Press «Allow reading» or «Detect content» to grant it."
+  },
+  "detect_el_contenido_esta_dentro_de_un_visor_de_": {
+    "message": "The content is inside a viewer from another domain. Allow reading it to detect the PDF or video."
+  },
+  "detect_el_lector_dibuja_sus_paginas_pero_el_nav": {
+    "message": "The reader draws its pages, but the browser prevents reading its visual content. The diagnosis shows which surfaces could not be captured."
+  },
+  "detect_el_visor_esta_cargado_pero_no_expone_con": {
+    "message": "The viewer is loaded, but it exposes no readable content nor an accessible PDF or audio. Open the original resource and detect again."
+  },
+  "detect_la_pagina_muestra_un_inicio_de_sesion_en": {
+    "message": "The page shows a sign-in. Sign in to the course and detect its content again."
+  },
+  "detect_no_se_ha_encontrado_texto_pdf_video_ni_i": {
+    "message": "No text, PDF, video or images that can be captured were found on this page."
+  },
+  "detect_veo_un_reproductor_pero_no_expone_audio_": {
+    "message": "I see a player, but it exposes no accessible audio or subtitles. Start the video and detect again."
+  },
+  "diag_anaco_necesita_su_servicio_local_para_pr": {
+    "message": "Anaco needs its local service to prepare and save notes. It is installed once with two commands."
+  },
+  "diag_comprueba_que_falta": {
+    "message": "Check what is missing"
+  },
+  "diag_el_servicio_local_no_responde": {
+    "message": "The local service is not responding"
+  },
+  "diag_error_desconocido": {
+    "message": "Unknown error."
+  },
+  "diag_falta_el_servicio_local": {
+    "message": "The local service is missing"
+  },
+  "diag_instala_el_servicio_local_de_anaco": {
+    "message": "Install Anaco's local service"
+  },
+  "diag_instala_pipx_con_el_gestor_de_paquetes_d": {
+    "message": "Install pipx with your system's package manager (for example)"
+  },
+  "diag_instala_pipx_con_homebrew": {
+    "message": "Install pipx with Homebrew"
+  },
+  "diag_instala_pipx_necesitas_python_3_11_o_sup": {
+    "message": "Install pipx (you need Python 3.11 or later)"
+  },
+  "diag_la_extension_es_la_1_y_el_servicio_la_2_": {
+    "message": "The extension is $1 and the service is $2. Update the service with «pipx upgrade anaco-ob» and run «anaco-ob install» again."
+  },
+  "diag_la_ia_no_esta_lista": {
+    "message": "The AI is not ready"
+  },
+  "diag_no_encuentro_tu_vault": {
+    "message": "Your vault cannot be found"
+  },
+  "diag_o": {
+    "message": "or:"
+  },
+  "diag_registralo_para_firefox_y_zen_con_la_rut": {
+    "message": "Register it for Firefox and Zen with the path to your vault"
+  },
+  "diag_revisa_el_proveedor_de_ia_en_opciones": {
+    "message": "Check the AI provider in Options."
+  },
+  "diag_ruta_de_tu_vault": {
+    "message": "PATH/TO/YOUR/VAULT"
+  },
+  "diag_versiones_distintas": {
+    "message": "Different versions"
+  },
+  "embeds_demo_de_codepen": {
+    "message": "CodePen demo"
+  },
+  "embeds_pesa_1_mb_supera_los_2_mb_recomendados": {
+    "message": "It weighs $1 MB: more than the recommended $2 MB."
+  },
+  "embeds_tamano_desconocido_revisa_si_quieres_gua": {
+    "message": "Unknown size: decide whether you want to save it in the vault."
+  },
+  "manifest_action_title": {
+    "message": "Capture with Anaco"
+  },
+  "manifest_command_capture": {
+    "message": "Capture page with Anaco"
+  },
+  "manifest_description": {
+    "message": "Articles, PDFs, videos and images for Obsidian, with transcription, visual descriptions and reviewable links."
+  },
+  "media_video_1": {
+    "message": "Video $1"
+  },
+  "options_99_recursos_anaco_perfil_json": {
+    "message": "99_Resources/anaco/profile.json"
+  },
+  "options_a_la_ia_solo_llegan_los_documentos_marca": {
+    "message": "Only the checked documents, folder names and metadata statistics reach the AI. The content of your other notes never leaves your computer."
+  },
+  "options_abrir_la_guia_de_instalacion": {
+    "message": "Open the installation guide ↗"
+  },
+  "options_anaco_guarda_segun_las_reglas_de_tu_vaul": {
+    "message": "Anaco saves following your vault's rules: destinations, types, file names, metadata, attachments and the instructions the AI must follow. Scan it to propose them and confirm them."
+  },
+  "options_anaco_necesita_su_servicio_local_para_pr": {
+    "message": "Anaco needs its local service to prepare notes and save files. If it does not connect, the installation guide has the commands for your system and a check for each piece."
+  },
+  "options_aplicar_json_al_formulario": {
+    "message": "Apply JSON to the form"
+  },
+  "options_automatico_primero_html_y_descripciones_": {
+    "message": "Automatic · HTML and saved descriptions first"
+  },
+  "options_borrar_la_clave_guardada": {
+    "message": "Delete the saved key"
+  },
+  "options_busca_tu_vault_para_seleccionarlo": {
+    "message": "Search for your vault to select it"
+  },
+  "options_buscando_en_el_registro_de_obsidian_y_ca": {
+    "message": "Searching Obsidian's registry and usual folders…"
+  },
+  "options_buscar_vaults": {
+    "message": "Search vaults"
+  },
+  "options_cambios_sin_guardar_se_conservan_al_volv": {
+    "message": "Unsaved changes · kept when you come back"
+  },
+  "options_clave_api": {
+    "message": "API key"
+  },
+  "options_clave_guardada_escribe_otra_para_cambiar": {
+    "message": "Key saved · type another one to change it"
+  },
+  "options_como_es_tu_vault": {
+    "message": "What your vault looks like"
+  },
+  "options_como_localizar_el_vault": {
+    "message": "How to find the vault"
+  },
+  "options_como_obtener_los_pies_de_imagen": {
+    "message": "How to get image captions"
+  },
+  "options_comprobando_el_perfil": {
+    "message": "Checking the profile…"
+  },
+  "options_comprobar_conexion": {
+    "message": "Check connection"
+  },
+  "options_con_un_modelo_local_nada_sale_de_tu_orde": {
+    "message": "). With a local model nothing leaves your computer."
+  },
+  "options_configura_tu_vault_y_como_preparar_las_n": {
+    "message": "Set up your vault and how notes are prepared. In this version, saving always goes through your review."
+  },
+  "options_confirmar_perfil": {
+    "message": "Confirm profile"
+  },
+  "options_consulta_el_registro_local_de_obsidian_y": {
+    "message": "Looks at Obsidian's local registry and usual folders."
+  },
+  "options_cualquier_servidor_con_la_api_de_openai_": {
+    "message": "Any server with the OpenAI API: OpenAI, OpenRouter or a local model with Ollama ("
+  },
+  "options_detectar_automaticamente": {
+    "message": "Detect automatically"
+  },
+  "options_documentos_que_puede_leer_la_ia": {
+    "message": "Documents the AI may read"
+  },
+  "options_donde_guardar_el_perfil_relativo_al_vaul": {
+    "message": "Where to save the profile, relative to the vault"
+  },
+  "options_duracion_maxima_de_video_audio_minutos": {
+    "message": "Maximum video/audio length, minutes"
+  },
+  "options_editar_el_json_del_perfil": {
+    "message": "Edit the profile JSON"
+  },
+  "options_en_automatico_se_reutilizan_los_pies_des": {
+    "message": "In automatic mode, captions, accessible descriptions and clear file names are reused. Images with enough description are not sent to vision. Names are given as hints, not as verified observations. PDF pages and frames may need vision to understand the full content. If no image needs analysis, the text model is kept."
+  },
+  "options_escanear_el_vault": {
+    "message": "Scan the vault"
+  },
+  "options_forzar_analisis_visual_de_todas_las_sele": {
+    "message": "Force visual analysis of all selected images"
+  },
+  "options_fotogramas_candidatos_de_archivos_de_vid": {
+    "message": "Candidate frames from video files (1–6)"
+  },
+  "options_gpt_4o_mini_llama3_1_8b": {
+    "message": "gpt-4o-mini · llama3.1:8b"
+  },
+  "options_guardar_opciones": {
+    "message": "Save options"
+  },
+  "options_hay_varios_vaults_elige_el_que_quieres_u": {
+    "message": "There are several vaults. Choose the one you want to use and press Save options."
+  },
+  "options_https_api_openai_com_v1": {
+    "message": "https://api.openai.com/v1"
+  },
+  "options_ia_compatible_con_openai_api_propia_o_mo": {
+    "message": "OpenAI-compatible AI · your own API or a local model"
+  },
+  "options_ia_con_codex_sesion_de_chatgpt_existente": {
+    "message": "AI with Codex · existing ChatGPT session"
+  },
+  "options_idioma": {
+    "message": "Language"
+  },
+  "options_idioma_automatico": {
+    "message": "Automatic · the browser's"
+  },
+  "options_idioma_ayuda": {
+    "message": "It applies to the extension right away. In automatic mode, Anaco uses English if the browser is in English and Spanish otherwise."
+  },
+  "options_idioma_de_la_interfaz": {
+    "message": "Interface language"
+  },
+  "options_importacion_manual": {
+    "message": "Manual import"
+  },
+  "options_importar_un_archivo_local": {
+    "message": "Import a local file ↗"
+  },
+  "options_instalacion_local": {
+    "message": "Local installation"
+  },
+  "options_introducir_la_ruta_manualmente": {
+    "message": "Enter the path manually"
+  },
+  "options_la_busqueda_no_lee_tus_notas_confirma_la": {
+    "message": "The search does not read your notes. Confirm the path with Save options. You can enter a path manually if your vault is somewhere else."
+  },
+  "options_libros_pdf_y_video": {
+    "message": "Books, PDF and video"
+  },
+  "options_maximo_de_paginas_pdf_por_captura": {
+    "message": "Maximum PDF pages per capture"
+  },
+  "options_modelo": {
+    "message": "Model"
+  },
+  "options_modelo_de_codex_para_texto": {
+    "message": "Codex model for text"
+  },
+  "options_modelo_visual_de_codex_cuando_haga_falta": {
+    "message": "Codex vision model when needed"
+  },
+  "options_modelo_visual_opcional": {
+    "message": "Vision model, optional"
+  },
+  "options_modo_predeterminado": {
+    "message": "Default mode"
+  },
+  "options_motor_actual_cpu_int8_la_tarjeta_grafica": {
+    "message": "Current engine: CPU · int8. The graphics card is not used in this version. Tiny favours speed; small needs more time and memory. The model is downloaded the first time. Subtitles are used when available."
+  },
+  "options_navegacion_de_opciones": {
+    "message": "Options navigation"
+  },
+  "options_no_se_han_encontrado_vaults_puedes_intro": {
+    "message": "No vaults were found. You can enter the path manually above."
+  },
+  "options_no_se_pudo_completar_la_busqueda_1": {
+    "message": "The search could not be completed: $1. You can enter the path manually."
+  },
+  "options_o_lm_studio": {
+    "message": ") or LM Studio ("
+  },
+  "options_obsidian_mivault": {
+    "message": "~/Obsidian/MyVault"
+  },
+  "options_opciones": {
+    "message": "Options"
+  },
+  "options_opciones_anaco": {
+    "message": "Options · Anaco"
+  },
+  "options_opciones_guardadas": {
+    "message": "Options saved"
+  },
+  "options_opciones_guardadas_las_capturas_pendient": {
+    "message": "Options saved. Pending captures are still available from their original vault."
+  },
+  "options_organizacion_predeterminada_de_las_notas": {
+    "message": "Default note organization"
+  },
+  "options_paginas_candidatas_para_analisis_visual_": {
+    "message": "Candidate pages for visual analysis (1–8)"
+  },
+  "options_paginas_por_lote_de_lectura_del_libro_18": {
+    "message": "Pages per book reading batch (1–8)"
+  },
+  "options_para_un_archivo_que_ya_tienes_descargado": {
+    "message": "For a file you have already downloaded, open the import tool. It accepts PDF, audio, video and subtitles."
+  },
+  "options_perfil_del_vault": {
+    "message": "Vault profile"
+  },
+  "options_preparacion_de_notas": {
+    "message": "Note preparation"
+  },
+  "options_proponer_con_ia": {
+    "message": "Propose with AI"
+  },
+  "options_puedes_cambiarlo_antes_de_preparar_cada_": {
+    "message": "You can change it before preparing each capture. Relevant code is kept with its explanation in any mode."
+  },
+  "options_revisa_la_propuesta": {
+    "message": "Review the proposal"
+  },
+  "options_ruta_del_vault": {
+    "message": "Vault path"
+  },
+  "options_ruta_guardada": {
+    "message": "Saved path"
+  },
+  "options_se_guarda_solo_en_el_servicio_local_de_t": {
+    "message": "It is stored only in the local service on your computer."
+  },
+  "options_se_leen_todas_las_paginas_del_libro_y_de": {
+    "message": "Every page of the book is read and then synthesized together. Completed batches are kept if a retry is needed."
+  },
+  "options_selecciona_un_vault": {
+    "message": "Select a vault"
+  },
+  "options_selecciona_un_vault_detectado_o_introduc": {
+    "message": "Select a detected vault or enter its path manually."
+  },
+  "options_servicio_conectado_localiza_tu_vault_par": {
+    "message": "Service connected. Find your vault to get started."
+  },
+  "options_servicio_conectado_vault_configurado_dis": {
+    "message": "Service connected · configured vault available."
+  },
+  "options_si_se_deja_vacio_se_usa_el_modelo_anteri": {
+    "message": "If left empty, the model above is used"
+  },
+  "options_sin_vision_metadatos_y_descripciones_gua": {
+    "message": "No vision · metadata and saved descriptions"
+  },
+  "options_transcripcion_local": {
+    "message": "Local transcription"
+  },
+  "options_tu_second_brain": {
+    "message": "Your Second Brain"
+  },
+  "options_un_archivo_json_en_una_carpeta_normal_ob": {
+    "message": "A .json file in a regular folder: Obsidian does not show it as a note and your sync carries it to other computers."
+  },
+  "options_un_lugar_para_lo_que_aprendes": {
+    "message": "A place for what you learn."
+  },
+  "options_url_base": {
+    "message": "Base URL"
+  },
+  "options_usar_la_propuesta_automatica": {
+    "message": "Use the automatic proposal"
+  },
+  "options_vacia_para_modelos_locales": {
+    "message": "Empty for local models"
+  },
+  "options_vault_localizado_revisa_la_ruta_y_pulsa_": {
+    "message": "Vault found. Check the path and press Save options to use it."
+  },
+  "options_vault_seleccionado_1_aun_no_esta_en_uso_": {
+    "message": "Selected vault: $1\nIt is not in use yet. Press Save and go back to apply it."
+  },
+  "options_vaults_encontrados": {
+    "message": "Vaults found"
+  },
+  "options_volver_a_la_captura": {
+    "message": "← Back to capture"
+  },
+  "options_whisper_base_equilibrio": {
+    "message": "Whisper base · balanced"
+  },
+  "options_whisper_small_mas_precision_mas_lento": {
+    "message": "Whisper small · more accurate, slower"
+  },
+  "options_whisper_tiny_rapido": {
+    "message": "Whisper tiny · fast"
+  },
+  "panel_1_2_paginas_capturadas_estas_imagenes_so": {
+    "message": "$1/$2 pages captured. These images are candidate figures for the note; reading the book covers every page."
+  },
+  "panel_1_5_8_vacio_rango_inicial_configurado": {
+    "message": "1-5,8 · empty: configured initial range"
+  },
+  "panel_1_8_elegidas_2_disponibles": {
+    "message": "$1 / 8 chosen · $2 available"
+  },
+  "panel_1_con_notas_existentes_2_entre_temas": {
+    "message": "$1 with existing notes · $2 between topics"
+  },
+  "panel_1_de_2_de_audio_3": {
+    "message": "$1 of $2 of audio · $3%"
+  },
+  "panel_1_de_2_notas_incluidas_3": {
+    "message": "$1 of $2 notes included · $3"
+  },
+  "panel_1_paginas_localizadas_se_extraeran_todas": {
+    "message": "$1 pages found. All of them will be extracted."
+  },
+  "panel_abrir_en_obsidian": {
+    "message": "Open in Obsidian ↗"
+  },
+  "panel_abrir_fuente": {
+    "message": "Open source ↗"
+  },
+  "panel_abrir_la_revision": {
+    "message": "Open the review ↗"
+  },
+  "panel_abrir_la_revision_al_terminar_de_extraer": {
+    "message": "Open the review when extraction finishes"
+  },
+  "panel_abrir_opciones": {
+    "message": "Open Options ↗"
+  },
+  "panel_actualizar_pendientes": {
+    "message": "Refresh pending"
+  },
+  "panel_ajustes_de_esta_captura": {
+    "message": "Settings for this capture"
+  },
+  "panel_archivo_local": {
+    "message": "local file"
+  },
+  "panel_articulo": {
+    "message": "ARTICLE"
+  },
+  "panel_articulo_web_prioriza_la_pagina": {
+    "message": "Web article · the page comes first"
+  },
+  "panel_asistente_de_revision": {
+    "message": "REVIEW ASSISTANT"
+  },
+  "panel_automatico_articulos_y_cursos": {
+    "message": "Automatic · articles and courses"
+  },
+  "panel_automatico_que_decida_la_ia": {
+    "message": "Automatic · let the AI decide"
+  },
+  "panel_avance_del_trabajo": {
+    "message": "Job progress"
+  },
+  "panel_buscando_subtitulos": {
+    "message": "LOOKING FOR SUBTITLES"
+  },
+  "panel_buscar_conexiones": {
+    "message": "Find connections"
+  },
+  "panel_cancelado": {
+    "message": "Cancelled"
+  },
+  "panel_cancelar_y_conservar_avance": {
+    "message": "Cancel and keep progress"
+  },
+  "panel_captura_manual_sin_ia": {
+    "message": "Manual capture · no AI"
+  },
+  "panel_capturar_conectar_aprender": {
+    "message": "Capture · Connect · Learn"
+  },
+  "panel_capturas_pendientes": {
+    "message": "Pending captures"
+  },
+  "panel_clip": {
+    "message": "Clip"
+  },
+  "panel_clip_silencioso": {
+    "message": "Silent clip"
+  },
+  "panel_clips_de_video": {
+    "message": "Video clips"
+  },
+  "panel_como_instalarlo": {
+    "message": "How to install it ↗"
+  },
+  "panel_comprobando_el_archivo": {
+    "message": "CHECKING THE FILE"
+  },
+  "panel_conectando": {
+    "message": "Connecting…"
+  },
+  "panel_contenido_de_esta_pagina": {
+    "message": "Content of this page"
+  },
+  "panel_contenido_de_la_pestana_actual": {
+    "message": "Content of the current tab"
+  },
+  "panel_contenido_detectado_revision_antes_de_gu": {
+    "message": "Detected content · reviewed before saving"
+  },
+  "panel_copia_ejecutable_sin_conexion": {
+    "message": " · runnable offline copy"
+  },
+  "panel_copiado": {
+    "message": "Copied ✓"
+  },
+  "panel_copiar": {
+    "message": "Copy"
+  },
+  "panel_copiar_diagnostico": {
+    "message": "Copy diagnosis"
+  },
+  "panel_copiar_error_y_diagnostico": {
+    "message": "Copy error and diagnosis"
+  },
+  "panel_crear_nota_del_pdf": {
+    "message": "Create note from the PDF"
+  },
+  "panel_crear_nota_del_video": {
+    "message": "Create note from the video"
+  },
+  "panel_crear_notas_del_libro_completo": {
+    "message": "Create notes from the whole book"
+  },
+  "panel_curso_deteccion_clasica": {
+    "message": "Course · classic detection"
+  },
+  "panel_demo": {
+    "message": "Demo"
+  },
+  "panel_demos_de_codepen": {
+    "message": "CodePen demos"
+  },
+  "panel_descargando_audio": {
+    "message": "DOWNLOADING AUDIO"
+  },
+  "panel_destino_e_imagenes": {
+    "message": "Destination and images"
+  },
+  "panel_detectando_el_contenido_de_esta_pestana": {
+    "message": "Detecting the content of this tab…"
+  },
+  "panel_detectar_contenido": {
+    "message": "Detect content"
+  },
+  "panel_detectar_de_nuevo": {
+    "message": "Detect again"
+  },
+  "panel_diagnostico_de_deteccion": {
+    "message": "Detection diagnosis"
+  },
+  "panel_diagnostico_de_deteccion_2": {
+    "message": "Detection diagnosis:\n"
+  },
+  "panel_editar_markdown": {
+    "message": "Edit Markdown"
+  },
+  "panel_el_reproductor_no_expone_un_recurso_de_a": {
+    "message": "The player exposes no accessible audio resource or subtitles."
+  },
+  "panel_en_curso": {
+    "message": "IN PROGRESS"
+  },
+  "panel_en_curso_job": {
+    "message": "Running"
+  },
+  "panel_error_recuperable": {
+    "message": "Recoverable error"
+  },
+  "panel_error_y_diagnostico_para_copiar": {
+    "message": "Error and diagnosis to copy"
+  },
+  "panel_esta_fase_no_ofrece_un_porcentaje_medibl": {
+    "message": "This phase has no measurable percentage."
+  },
+  "panel_este_recurso_todavia_no_se_ha_extraido": {
+    "message": "This resource has not been extracted yet."
+  },
+  "panel_este_vault_aun_no_tiene_perfil_escanealo": {
+    "message": "This vault has no profile yet: scan it in Options before saving notes."
+  },
+  "panel_extraccion_de_archivo": {
+    "message": "File extraction"
+  },
+  "panel_extraer_archivo": {
+    "message": "Extract file"
+  },
+  "panel_extraer_libro_completo": {
+    "message": "Extract whole book"
+  },
+  "panel_extraer_pdf_y_paginas": {
+    "message": "Extract PDF and pages"
+  },
+  "panel_extraer_subtitulos_o_transcribir": {
+    "message": "Extract subtitles or transcribe"
+  },
+  "panel_extraer_y_preparar_nota": {
+    "message": "Extract and prepare note"
+  },
+  "panel_extrayendo_fotogramas": {
+    "message": "EXTRACTING FRAMES"
+  },
+  "panel_fotogramas_del_video_para_incorporar_dia": {
+    "message": "Video frames to bring diagrams or slides into the notes."
+  },
+  "panel_frase": {
+    "message": "QUOTE"
+  },
+  "panel_guardar_y_volver": {
+    "message": "Save and go back"
+  },
+  "panel_ia_servidor_compatible_con_openai": {
+    "message": "AI · OpenAI-compatible server"
+  },
+  "panel_ia_tu_sesion_de_codex_chatgpt": {
+    "message": "AI · your Codex / ChatGPT session"
+  },
+  "panel_imagen": {
+    "message": "IMAGE"
+  },
+  "panel_imagen_1": {
+    "message": "Image $1"
+  },
+  "panel_imagenes": {
+    "message": "Images"
+  },
+  "panel_imagenes_disponibles_desplazate_para_ver": {
+    "message": "Available images; scroll to see them all"
+  },
+  "panel_importacion_manual_de_un_archivo_local": {
+    "message": "Manual import of a local file"
+  },
+  "panel_incluir_1": {
+    "message": "Include $1"
+  },
+  "panel_interrumpido": {
+    "message": "Interrupted"
+  },
+  "panel_la_primera_carga_puede_descargar_el_mode": {
+    "message": "The first run may download the model. Audio is processed on this computer."
+  },
+  "panel_la_revision_se_abrira_en_una_pestana_amp": {
+    "message": "The review opens in a wide tab. Saving or discarding takes you back to the article."
+  },
+  "panel_lector_html": {
+    "message": "HTML READER"
+  },
+  "panel_lectura": {
+    "message": "Reading"
+  },
+  "panel_leyendo_pdf_y_renderizando_paginas": {
+    "message": "Reading the PDF and rendering pages…"
+  },
+  "panel_limite_100_mb_para_pdf_subtitulos_y_1_gb": {
+    "message": "Limit: 100 MB for PDF/subtitles and 1 GB for local audio/video files."
+  },
+  "panel_modo_de_captura": {
+    "message": "Capture mode"
+  },
+  "panel_no_hay_audio_o_subtitulos_accesibles_en_": {
+    "message": "There is no accessible audio or subtitles in this player."
+  },
+  "panel_no_hay_capturas_pendientes": {
+    "message": "No pending captures."
+  },
+  "panel_no_hay_una_revision_abierta_en_esta_vent": {
+    "message": "There is no review open in this window."
+  },
+  "panel_no_se_encuentra_esta_imagen_en_el_articu": {
+    "message": "This image cannot be found in the article. It may have changed since the capture."
+  },
+  "panel_no_se_encuentra_este_recurso_en_el_artic": {
+    "message": "This resource cannot be found in the article. It may have changed since the capture."
+  },
+  "panel_no_se_ha_concedido_acceso_a_esta_pagina": {
+    "message": "Access to this page was not granted."
+  },
+  "panel_no_se_ha_concedido_acceso_a_las_imagenes": {
+    "message": "Access to the chosen images or resources was not granted. Uncheck them to capture only the text."
+  },
+  "panel_no_se_ha_concedido_acceso_a_las_paginas_": {
+    "message": "Access to the book pages was not granted."
+  },
+  "panel_no_se_ha_concedido_acceso_al_contenido_i": {
+    "message": "Access to the embedded content was not granted."
+  },
+  "panel_no_se_ha_concedido_acceso_al_pdf": {
+    "message": "Access to the PDF was not granted."
+  },
+  "panel_no_se_ha_concedido_acceso_al_recurso_de_": {
+    "message": "Access to the video resource was not granted."
+  },
+  "panel_nota_guardada": {
+    "message": "Note saved: "
+  },
+  "panel_opciones": {
+    "message": "Options ↗"
+  },
+  "panel_organizacion_de_la_propuesta": {
+    "message": "Proposal organization"
+  },
+  "panel_origen_del_trabajo_1": {
+    "message": "Job source: $1"
+  },
+  "panel_pagina_1": {
+    "message": "Page: $1"
+  },
+  "panel_paginas_a_procesar": {
+    "message": "Pages to process"
+  },
+  "panel_paginas_del_pdf_opcional": {
+    "message": "PDF pages, optional"
+  },
+  "panel_para_documentos_locales_o_recursos_priva": {
+    "message": "For local documents or private resources the viewer does not let you extract. PDF/subtitles up to 100 MB; audio/video up to 1 GB."
+  },
+  "panel_para_este_pdf_local_usa_importar_archivo": {
+    "message": "For this local PDF use Import file, at the top of the panel."
+  },
+  "panel_pasa_por_un_recurso_para_localizarlo_en_": {
+    "message": "Hover a resource to find it in the article. They are inserted in place in the note; clips and demos are saved in the vault."
+  },
+  "panel_pasa_por_una_imagen_para_localizarla_y_r": {
+    "message": "Hover an image to find and highlight it in the article. You can also use the keyboard."
+  },
+  "panel_pdf_detectado": {
+    "message": "PDF detected"
+  },
+  "panel_pendiente": {
+    "message": "Pending"
+  },
+  "panel_permitir_detectar_el_contenido_del_visor": {
+    "message": "Allow detecting the viewer's content"
+  },
+  "panel_permitir_lectura_de": {
+    "message": "Allow reading "
+  },
+  "panel_por_que_quieres_guardarlo": {
+    "message": "Why do you want to save it?"
+  },
+  "panel_preparacion_de_nota": {
+    "message": "Note preparation"
+  },
+  "panel_preparando_contenido": {
+    "message": "Preparing content"
+  },
+  "panel_preparando_el_motor": {
+    "message": "PREPARING THE ENGINE"
+  },
+  "panel_preparar_con": {
+    "message": "Prepare with"
+  },
+  "panel_preparar_y_abrir_revision": {
+    "message": "Prepare and open review ↗"
+  },
+  "panel_primero_se_buscan_subtitulos_la_transcri": {
+    "message": "Subtitles are tried first. Local transcription can take several minutes and keeps going when you close the panel."
+  },
+  "panel_proponer_division": {
+    "message": "Propose a split"
+  },
+  "panel_publicacion": {
+    "message": "Post"
+  },
+  "panel_publicacion_incrustada": {
+    "message": "Embedded post"
+  },
+  "panel_publicaciones_de_x": {
+    "message": "Posts from X"
+  },
+  "panel_puedes_seguir_navegando_o_cerrar_este_pa": {
+    "message": "You can keep browsing or close this panel. The job keeps going."
+  },
+  "panel_pulsa_ctrl_c": {
+    "message": "Press Ctrl+C"
+  },
+  "panel_que_se_envia_a_la_ia": {
+    "message": "What is sent to the AI"
+  },
+  "panel_que_te_interesa_que_quieres_aprender_o_d": {
+    "message": "What interests you, what you want to learn or where you could apply it…"
+  },
+  "panel_reanudar": {
+    "message": "Resume"
+  },
+  "panel_recursos_incrustados": {
+    "message": "Embedded resources"
+  },
+  "panel_recursos_incrustados_desplazate_para_ver": {
+    "message": "Embedded resources; scroll to see them all"
+  },
+  "panel_regenerar_y_abrir_revision": {
+    "message": "Regenerate and open review"
+  },
+  "panel_revisar_contenido_capturado": {
+    "message": "Review captured content"
+  },
+  "panel_revisar_perfil": {
+    "message": "Review profile ↗"
+  },
+  "panel_revision_abierta": {
+    "message": "Review open"
+  },
+  "panel_se_detectaran_los_articulos_pdf_imagenes": {
+    "message": "Accessible articles, PDFs, images and videos on this page will be detected."
+  },
+  "panel_se_envian_el_contenido_y_fragmentos_de_n": {
+    "message": "The content and excerpts of candidate notes are sent. In automatic mode, HTML captions and descriptions are used first. Only images that need it are sent to vision; PDFs and frames may need it to read their content. You can turn vision off in Options."
+  },
+  "panel_se_recuperan_todas_las_paginas_del_lecto": {
+    "message": "Every page of the reader is retrieved. Then a summary of the book is prepared and the figures for the note are chosen."
+  },
+  "panel_selecciona_como_maximo_ocho_imagenes": {
+    "message": "Select eight images at most."
+  },
+  "panel_selecciona_paginas_candidatas_la_ia_prop": {
+    "message": "Select candidate pages. The AI will propose which ones add value; you can change the selection in the review."
+  },
+  "panel_selecciona_primero_un_archivo": {
+    "message": "Select a file first."
+  },
+  "panel_seleccionar_un_archivo_local": {
+    "message": "Select a local file"
+  },
+  "panel_servicio_local_conectado": {
+    "message": "LOCAL SERVICE CONNECTED"
+  },
+  "panel_servicio_sin_conectar": {
+    "message": "SERVICE NOT CONNECTED"
+  },
+  "panel_sin_contenido": {
+    "message": "NO CONTENT"
+  },
+  "panel_sin_descripcion_localizala_en_el_articul": {
+    "message": "No description · find it in the article"
+  },
+  "panel_trabajo_en_curso": {
+    "message": "Job in progress"
+  },
+  "panel_trabajo_en_curso_caps": {
+    "message": "JOB IN PROGRESS"
+  },
+  "panel_trabajos_recuperables": {
+    "message": "Recoverable jobs"
+  },
+  "panel_transcribiendo_o_leyendo_subtitulos_pued": {
+    "message": "Transcribing or reading subtitles. You can keep browsing…"
+  },
+  "panel_transcripcion_local": {
+    "message": "LOCAL TRANSCRIPTION"
+  },
+  "panel_una_nota_con_apartados": {
+    "message": "One note with sections"
+  },
+  "panel_varias_notas_enlazadas_por_temas": {
+    "message": "Several notes linked by topic"
+  },
+  "panel_ver_conexiones": {
+    "message": "See connections"
+  },
+  "panel_video": {
+    "message": "Video"
+  },
+  "panel_video_audio": {
+    "message": "VIDEO / AUDIO"
+  },
+  "panel_video_de_plataforma": {
+    "message": "Platform video"
+  },
+  "panel_video_o_audio_detectado": {
+    "message": "Video or audio detected"
+  },
+  "panel_visor": {
+    "message": "VIEWER"
+  },
+  "panel_volver_a_la_revision": {
+    "message": "Back to the review ↗"
+  },
+  "panel_y_1_mas": {
+    "message": " (and $1 more)"
+  },
+  "profile_1_2_de_3_marcadas": {
+    "message": "$1 · $2 of $3 checked"
+  },
+  "profile_1_documento_de_tu_vault": {
+    "message": "$1 document from your vault"
+  },
+  "profile_1_documentos_de_tu_vault": {
+    "message": "$1 documents from your vault"
+  },
+  "profile_adjuntos": {
+    "message": "Attachments"
+  },
+  "profile_admite_variables": {
+    "message": "Accepts {date}, {slug_}, {slug-}, {title}, {type} and {variant}."
+  },
+  "profile_ajustar_adjuntos_y_relaciones": {
+    "message": "Adjust attachments and links"
+  },
+  "profile_ajustar_destinos_1": {
+    "message": "Adjust destinations ($1)"
+  },
+  "profile_ajustar_documentos_para_la_ia_1": {
+    "message": "Adjust documents for the AI ($1)"
+  },
+  "profile_ajustar_encabezados": {
+    "message": "Adjust headings"
+  },
+  "profile_ajustar_metadatos_1": {
+    "message": "Adjust metadata ($1)"
+  },
+  "profile_ajustar_tipos_y_nombres_de_archivo_1": {
+    "message": "Adjust types and file names ($1)"
+  },
+  "profile_archivo": {
+    "message": "File"
+  },
+  "profile_asistido_por_ia": {
+    "message": "AI-assisted"
+  },
+  "profile_autor_de_la_fuente": {
+    "message": "Source author"
+  },
+  "profile_cada_campo_dice_de_donde_sale_su_valor_l": {
+    "message": "Each field says where its value comes from. Links include only the ones you accept in the review."
+  },
+  "profile_carpeta_de_adjuntos": {
+    "message": "Attachments folder"
+  },
+  "profile_carpeta_n_o_1_de_la_ruta_sin_el_prefijo_": {
+    "message": "Folder no. $1 of the path, without the numeric prefix."
+  },
+  "profile_carpetas_donde_buscar_notas_relacionadas": {
+    "message": "Folders to search for related notes:"
+  },
+  "profile_detalle": {
+    "message": "Detail"
+  },
+  "profile_el_json_no_es_valido": {
+    "message": "The JSON is not valid: "
+  },
+  "profile_encabezado_1": {
+    "message": "Heading: $1"
+  },
+  "profile_este_vault_aun_no_tiene_perfil_escanealo": {
+    "message": "This vault has no profile yet. Scan it so Anaco knows where and how to save."
+  },
+  "profile_etiquetas_propuestas": {
+    "message": "Proposed tags"
+  },
+  "profile_fecha_de_creacion": {
+    "message": "Creation date"
+  },
+  "profile_fecha_de_guardado": {
+    "message": "Save date"
+  },
+  "profile_formato_de_la_fuente": {
+    "message": "Source format"
+  },
+  "profile_guarda_en": {
+    "message": "Saves in"
+  },
+  "profile_guias": {
+    "message": "Guides"
+  },
+  "profile_incluir_este_campo": {
+    "message": "Include this field"
+  },
+  "profile_instrucciones_y_skills": {
+    "message": "Instructions and skills"
+  },
+  "profile_json_aplicado_al_formulario_revisalo_y_c": {
+    "message": "JSON applied to the form. Review it and confirm."
+  },
+  "profile_la_ia_esta_leyendo_tus_instrucciones": {
+    "message": "The AI is reading your instructions…"
+  },
+  "profile_la_ia_redacta_con": {
+    "message": "The AI writes with"
+  },
+  "profile_las_instrucciones_del_vault_mandan_sobre": {
+    "message": "The vault's instructions govern the style and structure of the notes."
+  },
+  "profile_lo_que_hara_anaco": {
+    "message": "What Anaco will do"
+  },
+  "profile_metadatos": {
+    "message": "Metadata"
+  },
+  "profile_modelo_de_ia": {
+    "message": "AI model"
+  },
+  "profile_no_se_han_encontrado_instrucciones_ni_pl": {
+    "message": "No instructions or templates were found in the vault."
+  },
+  "profile_nombre": {
+    "message": "Name"
+  },
+  "profile_nombre_de_archivo_de": {
+    "message": "File name of "
+  },
+  "profile_nombre_de_una_carpeta_de_la_ruta": {
+    "message": "Name of a folder in the path"
+  },
+  "profile_nombre_visible_de": {
+    "message": "Display name of "
+  },
+  "profile_origen": {
+    "message": "Source"
+  },
+  "profile_origen_de": {
+    "message": "Source of "
+  },
+  "profile_otros_documentos_1": {
+    "message": "Other documents ($1)"
+  },
+  "profile_perfil_confirmado_en_1_2_carpetas_de_des": {
+    "message": "Profile confirmed in $1 · $2 destination folders."
+  },
+  "profile_perfil_guardado_en_1_las_notas_nuevas_se": {
+    "message": "Profile saved in $1. New notes will follow these rules; existing ones are not changed."
+  },
+  "profile_plantillas": {
+    "message": "Templates"
+  },
+  "profile_por_defecto": {
+    "message": "Default"
+  },
+  "profile_por_que_se_propone_asi": {
+    "message": "Why it is proposed this way"
+  },
+  "profile_relaciones_aceptadas": {
+    "message": "Accepted links"
+  },
+  "profile_revisa_el_perfil": {
+    "message": "Check the profile:\n"
+  },
+  "profile_segun_la_carpeta": {
+    "message": "By folder"
+  },
+  "profile_si_te_encaja_confirmalo_puedes_ajustar_c": {
+    "message": "If it fits you, confirm it. You can adjust any part in the drop-downs."
+  },
+  "profile_sin_valores_editalos_en_el_json": {
+    "message": "No values: edit them in the JSON."
+  },
+  "profile_solo_con_ia": {
+    "message": "only with AI"
+  },
+  "profile_solo_en_1": {
+    "message": "only in $1"
+  },
+  "profile_solo_sin_ia": {
+    "message": "only without AI"
+  },
+  "profile_solo_tipos_1": {
+    "message": "only types $1"
+  },
+  "profile_tipo_por_defecto": {
+    "message": "Default type"
+  },
+  "profile_tipo_predeterminado_en": {
+    "message": "Default type in "
+  },
+  "profile_tipos": {
+    "message": "Types"
+  },
+  "profile_tipos_en": {
+    "message": "Types in "
+  },
+  "profile_url_de_la_fuente": {
+    "message": "Source URL"
+  },
+  "profile_usar_este_destino": {
+    "message": "Use this destination"
+  },
+  "profile_vacio_se_usa_el_encabezado_por_defecto": {
+    "message": "Empty: the default heading is used."
+  },
+  "profile_valor_de": {
+    "message": "Value of "
+  },
+  "profile_valor_fijo": {
+    "message": "Fixed value"
+  },
+  "profile_volver_a_escanear": {
+    "message": "Scan again"
+  },
+  "profile_y_1_mas": {
+    "message": " and $1 more"
+  },
+  "profile_zonas_donde_anaco_puede_guardar_notas_co": {
+    "message": "Areas where Anaco can save notes, with the types each one accepts."
+  },
+  "render_ampliar_1": {
+    "message": "Enlarge: $1"
+  },
+  "render_clip_de_video_se_guardara_en_el_vault": {
+    "message": "Video clip · will be saved in the vault: "
+  },
+  "render_imagen_conservada_localmente_pulsa_para_": {
+    "message": "Image kept locally · click to enlarge"
+  },
+  "render_imagen_local": {
+    "message": "Local image: "
+  },
+  "resource_direccion_de_recurso_no_admitida": {
+    "message": "Resource address not supported."
+  },
+  "resource_la_descarga_del_reproductor_se_interrump": {
+    "message": "The player download was interrupted."
+  },
+  "resource_la_lectura_con_el_contexto_del_reproduct": {
+    "message": "Reading with the player's context is not available."
+  },
+  "resource_limite_de_descarga_no_valido": {
+    "message": "Invalid download limit."
+  },
+  "review_1_conexiones_2_3": {
+    "message": "$1 connections with existing notes · $2 between topics · $3 candidates reviewed"
+  },
+  "review_1_conexiones_propuestas_2_3": {
+    "message": "$1 proposed connections with existing notes · $2 between topics · $3 candidates reviewed"
+  },
+  "review_abrir_panel_lateral": {
+    "message": "Open sidebar"
+  },
+  "review_actual": {
+    "message": "Current"
+  },
+  "review_ajustar_esta_nota": {
+    "message": "Adjust this note"
+  },
+  "review_ampliar_imagen": {
+    "message": "Enlarge image "
+  },
+  "review_ampliar_una_nota_existente": {
+    "message": "Extend an existing note"
+  },
+  "review_aplicar_al_borrador": {
+    "message": "Apply to the draft"
+  },
+  "review_aplicar_division_al_borrador": {
+    "message": "Apply split to the draft"
+  },
+  "review_asistido_por": {
+    "message": "Assisted by "
+  },
+  "review_buscando_relaciones_para_cada_tema_y_ent": {
+    "message": "Looking for links for each topic and between the notes…"
+  },
+  "review_cancelar_ajuste": {
+    "message": "Cancel adjustment"
+  },
+  "review_captura_manual_sin_resumen_generado": {
+    "message": "Manual capture · no generated summary"
+  },
+  "review_cargando_tu_propuesta": {
+    "message": "Loading your proposal…"
+  },
+  "review_carpeta": {
+    "message": "Folder"
+  },
+  "review_cerrar": {
+    "message": "Close ×"
+  },
+  "review_cerrar_imagen": {
+    "message": "Close image"
+  },
+  "review_conexiones_con_tu_conocimiento": {
+    "message": "Connections with your knowledge"
+  },
+  "review_conocimiento_que_merece_quedarse": {
+    "message": "Knowledge worth keeping."
+  },
+  "review_conservar_la_nota_actual": {
+    "message": "Keep the current note"
+  },
+  "review_contenido_a_revisar": {
+    "message": "Content to review"
+  },
+  "review_contenido_de_la_nota": {
+    "message": "Note content"
+  },
+  "review_contexto": {
+    "message": "Context"
+  },
+  "review_desarrollar": {
+    "message": "Expand"
+  },
+  "review_descartar": {
+    "message": "Discard"
+  },
+  "review_descartar_cambio": {
+    "message": "Discard change"
+  },
+  "review_descripcion_accesible_del_html": {
+    "message": "Accessible description from the HTML"
+  },
+  "review_descripcion_de_la_imagen": {
+    "message": "Description of image "
+  },
+  "review_descripcion_existente": {
+    "message": "Existing description"
+  },
+  "review_descripcion_por_analisis_visual": {
+    "message": "Description from visual analysis"
+  },
+  "review_descripcion_visual_reutilizada_sin_nuevo": {
+    "message": "Visual description reused · no new analysis"
+  },
+  "review_deshacer_ajuste": {
+    "message": "Undo adjustment"
+  },
+  "review_el_borrador_conserva_tus_ediciones": {
+    "message": "The draft keeps your edits."
+  },
+  "review_el_texto_cambio_mientras_se_preparaba_la": {
+    "message": "The text changed while the proposal was being prepared. Request the adjustment again."
+  },
+  "review_en_esta_nota": {
+    "message": "In this note:\n"
+  },
+  "review_en_la_captura": {
+    "message": "In the capture:\\n"
+  },
+  "review_en_la_nota_existente": {
+    "message": "\\n\\nIn the existing note:\\n"
+  },
+  "review_entre_las_notas_nuevas": {
+    "message": "Between the new notes"
+  },
+  "review_esta_captura_ya_existe": {
+    "message": "This capture already exists: "
+  },
+  "review_estudiando_temas_para_sugerir_una_divisi": {
+    "message": "Studying topics to suggest a split…"
+  },
+  "review_etiqueta_accesible_del_html": {
+    "message": "Accessible label from the HTML"
+  },
+  "review_etiquetas_separadas_por_comas": {
+    "message": "Tags, separated by commas"
+  },
+  "review_excluida_del_guardado": {
+    "message": "Excluded from saving · "
+  },
+  "review_explicar_mejor": {
+    "message": "Explain better"
+  },
+  "review_guardando_la_propuesta_revisada": {
+    "message": "Saving the reviewed proposal…"
+  },
+  "review_guardar_1_notas_y_volver": {
+    "message": "Save $1 notes and go back ✓"
+  },
+  "review_guardar_como": {
+    "message": "Save as"
+  },
+  "review_guardar_propuesta_y_volver": {
+    "message": "Save proposal and go back ✓"
+  },
+  "review_guardar_y_volver": {
+    "message": "Save and go back ✓"
+  },
+  "review_he_revisado_el_aporte_y_quiero_anadirlo": {
+    "message": "I have reviewed the addition and want to add it"
+  },
+  "review_imagen_de_la_fuente": {
+    "message": "Source image"
+  },
+  "review_imagenes_conservadas": {
+    "message": "Images kept"
+  },
+  "review_incluir_en_esta_nota": {
+    "message": "Include in this note"
+  },
+  "review_indicacion_opcional": {
+    "message": "Optional instruction"
+  },
+  "review_integrar_con_otra_nota_de_esta_propuesta": {
+    "message": "Merge with another note in this proposal"
+  },
+  "review_la_evidencia_cambio_buscar_conexiones": {
+    "message": "The evidence changed · find connections"
+  },
+  "review_la_imagen_esta_incompleta": {
+    "message": "The image is incomplete."
+  },
+  "review_la_nota_actual_orientara_el_conjunto": {
+    "message": "The current note will guide the whole"
+  },
+  "review_la_nota_conserva_su_contenido_y_tus_edic": {
+    "message": "The note keeps its content and your edits."
+  },
+  "review_la_nota_ya_no_esta_en_la_propuesta": {
+    "message": "The note is no longer in the proposal."
+  },
+  "review_la_otra_nota_cambio_solicita_de_nuevo_la": {
+    "message": "The other note changed. Request the merge again."
+  },
+  "review_los_adjuntos_y_las_relaciones_aceptadas_": {
+    "message": "Attachments and accepted links are added at the end. Your changes are kept as you type."
+  },
+  "review_marca_las_relaciones_que_tengan_sentido_": {
+    "message": "Check the links that make sense to you. Review the excerpts that justify them."
+  },
+  "review_markdown_completo_y_frontmatter": {
+    "message": "Full Markdown and frontmatter"
+  },
+  "review_no_se_completo_la_busqueda_puedes_reinte": {
+    "message": "The search did not finish. You can retry without regenerating the note."
+  },
+  "review_no_se_ha_indicado_una_captura_valida": {
+    "message": "No valid capture was given."
+  },
+  "review_no_se_pudo_mostrar_la_imagen": {
+    "message": "Could not show image "
+  },
+  "review_nombre_de_archivo_y_etiquetas": {
+    "message": "File name and tags"
+  },
+  "review_nombre_del_archivo": {
+    "message": "File name"
+  },
+  "review_nombre_del_archivo_pista_sin_verificacio": {
+    "message": "File name · hint without visual check"
+  },
+  "review_nota_existente": {
+    "message": "Existing note"
+  },
+  "review_nota_nueva": {
+    "message": "New note"
+  },
+  "review_pie_original_del_html": {
+    "message": "Original caption from the HTML"
+  },
+  "review_preparando_un_cambio_revisable": {
+    "message": "Preparing a reviewable change…"
+  },
+  "review_procedencia": {
+    "message": "SOURCE"
+  },
+  "review_propiedades_y_destino": {
+    "message": "Properties and destination"
+  },
+  "review_proponer_integracion": {
+    "message": "Propose merge"
+  },
+  "review_propuesta": {
+    "message": "Proposal"
+  },
+  "review_propuesta_de_division": {
+    "message": "Split proposal"
+  },
+  "review_propuesta_guardada": {
+    "message": "Proposal saved. "
+  },
+  "review_puedes_ampliar_cada_imagen_en_la_vista_d": {
+    "message": "You can enlarge each image in the reading view."
+  },
+  "review_que_necesita_mejorar_este_apartado": {
+    "message": "What this section needs to improve"
+  },
+  "review_reducir": {
+    "message": "Shorten"
+  },
+  "review_revisa_la_propuesta_antes_de_aplicarla": {
+    "message": "Review the proposal before applying it."
+  },
+  "review_revisa_los_campos": {
+    "message": "Check the fields"
+  },
+  "review_revisa_los_campos_y_conexiones_antes_de_": {
+    "message": "Check the fields and connections before saving."
+  },
+  "review_revisa_los_temas_y_el_contenido_propuest": {
+    "message": "Review the proposed topics and content. The text of your sections, code and annotations is kept. Accepting changes the draft; afterwards you can review the notes before saving them."
+  },
+  "review_revisa_y_acepta_las_ampliaciones_pendien": {
+    "message": "Review and accept the pending additions"
+  },
+  "review_revisado_con": {
+    "message": "Reviewed with "
+  },
+  "review_revisar_el_cambio_propuesto": {
+    "message": "Review the proposed change"
+  },
+  "review_revisar_nota_anaco": {
+    "message": "Review note · Anaco"
+  },
+  "review_se_anadira_al_final": {
+    "message": "Will be added at the end"
+  },
+  "review_selecciona_una_nota_existente": {
+    "message": "Select an existing note"
+  },
+  "review_sin_conexiones_con_evidencia_suficiente_": {
+    "message": "No connections with enough evidence. You can link it later."
+  },
+  "review_sin_conexiones_internas_para_esta_selecc": {
+    "message": "No internal connections for this selection."
+  },
+  "review_sin_conexiones_propuestas_con_notas_exis": {
+    "message": "No proposed connections with existing notes. Links between the new notes are shown in the reading view."
+  },
+  "review_sugerencia_descartada_conservas_la_nota_": {
+    "message": "Suggestion discarded. You keep the current note."
+  },
+  "review_sugerencia_preparada_la_nota_todavia_no_": {
+    "message": "Suggestion ready. The note has not been split yet."
+  },
+  "review_termina_la_operacion_o_resuelve_la_propu": {
+    "message": "Finish the operation or resolve the open proposal before continuing."
+  },
+  "review_texto_alternativo_del_html": {
+    "message": "Alternative text from the HTML"
+  },
+  "review_tipo_archivo_y_etiquetas": {
+    "message": "Type, file and tags"
+  },
+  "review_tipo_de_nota": {
+    "message": "Note type"
+  },
+  "review_titulo": {
+    "message": "Title"
+  },
+  "review_titulo_de_la_imagen": {
+    "message": "Image title"
+  },
+  "review_toda_esta_nota": {
+    "message": "This whole note"
+  },
+  "review_ver_contenido_actual": {
+    "message": "See current content"
+  },
+  "review_ver_contenido_propuesto": {
+    "message": "See proposed content"
+  },
+  "review_ver_evidencia": {
+    "message": "See evidence"
+  },
+  "review_ver_que_conecta_las_dos_notas": {
+    "message": "See what connects the two notes"
+  },
+  "review_vista_actualizada": {
+    "message": "View updated"
+  },
+  "review_vista_previa_de_la_nota": {
+    "message": "Note preview"
+  },
+  "review_volver_al_articulo": {
+    "message": "← Back to the article"
+  },
+  "review_volviendo_al_origen": {
+    "message": "Going back to the source…"
+  },
+  "review_ya_existe_1": {
+    "message": "Already exists: $1"
+  },
+  "stream_el_manifiesto_del_video_contiene_demasia": {
+    "message": "The video manifest has too many levels."
+  },
+  "stream_el_recurso_no_es_un_manifiesto_hls_valid": {
+    "message": "The resource is not a valid HLS manifest; it may be a sign-in page."
+  },
+  "stream_el_servidor_del_video_rechazo_el_acceso_": {
+    "message": "The video server refused access (HTTP $1)."
+  },
+  "stream_el_video_contiene_una_direccion_no_compa": {
+    "message": "The video contains an unsupported address."
+  },
+  "stream_el_video_no_expone_una_lista_completa_de": {
+    "message": "The video does not expose a complete segment list. Live streams cannot be captured yet."
+  },
+  "stream_el_video_supera_el_limite_de_100_mb_de_e": {
+    "message": "The video exceeds this capture's 100 MB limit."
+  },
+  "stream_el_video_supera_la_duracion_maxima_confi": {
+    "message": "The video exceeds the configured maximum length."
+  },
+  "stream_este_video_usa_rangos_de_segmentos_que_t": {
+    "message": "This video uses segment ranges the capturer does not support yet."
+  },
+  "stream_este_video_usa_segmentos_cifrados_no_se_": {
+    "message": "This video uses encrypted segments. It cannot be transcribed with the current capturer."
+  },
+  "stream_no_se_ha_encontrado_una_lista_de_segment": {
+    "message": "No segment list of a supported size was found."
+  },
+  "stream_no_se_pudo_leer_un_recurso_del_video_en_1": {
+    "message": "A video resource could not be read at $1. It may need permission for that domain."
+  },
+  "surfaces_el_visor_todavia_no_ha_dibujado_esta_pag": {
+    "message": "The viewer has not drawn this page yet. An empty capture was not accepted."
+  },
+  "surfaces_esta_pagina_no_expone_texto_ni_una_image": {
+    "message": "This page exposes no text or image that can be read."
+  },
+  "surfaces_la_imagen_de_esta_pagina_todavia_no_esta": {
+    "message": "The image of this page has not loaded yet."
+  },
+  "surfaces_la_pagina_cambio_mientras_se_extraia_el_": {
+    "message": "The page changed while the book was being extracted. Detect the reader again."
+  },
+  "surfaces_pagina": {
+    "message": "Page "
+  },
+  "surfaces_pagina_del_libro": {
+    "message": "Book page"
+  },
+  "surfaces_pagina_del_visor": {
+    "message": "Viewer page"
+  },
+  "welcome_abrir_opciones": {
+    "message": "Open Options"
+  },
+  "welcome_anaco_aprende_donde_y_como_guardar_segun": {
+    "message": ": Anaco learns where and how to save from your folders, metadata and instructions. Also choose your AI: Codex with your ChatGPT account, an OpenAI-compatible server or a local model."
+  },
+  "welcome_anaco_convierte_lo_que_lees_en_el_navega": {
+    "message": "Anaco turns what you read in the browser into reviewed notes for your Obsidian vault. It uses a small service on your computer to prepare and save notes. It is installed once."
+  },
+  "welcome_bienvenida_a_anaco": {
+    "message": "Welcome to Anaco"
+  },
+  "welcome_bienvenida_anaco": {
+    "message": "Welcome · Anaco"
+  },
+  "welcome_comprobar_ahora": {
+    "message": "Check now"
+  },
+  "welcome_comprueba_la_conexion": {
+    "message": "Check the connection"
+  },
+  "welcome_configura_tu_vault": {
+    "message": "Set up your vault"
+  },
+  "welcome_en_opciones_elige_tu_vault_y_confirma_su": {
+    "message": "In Options choose your vault and confirm its"
+  },
+  "welcome_instala_el_servicio_local": {
+    "message": "Install the local service"
+  },
+  "welcome_los_pdf_y_videos_usan_poppler_ffmpeg_y_y": {
+    "message": ". PDFs and videos use your system's Poppler, FFmpeg and yt-dlp;"
+  },
+  "welcome_no_tienes_python_descargalo_de_python_or": {
+    "message": "No Python? Download it from python.org (3.11 or later). More help on pipx: pipx.pypa.io."
+  },
+  "welcome_opcional": {
+    "message": "Optional"
+  },
+  "welcome_para_transcribir_en_tu_ordenador_ejecuta": {
+    "message": "To transcribe on your computer run"
+  },
+  "welcome_paso_1": {
+    "message": "Step 1"
+  },
+  "welcome_paso_2": {
+    "message": "Step 2"
+  },
+  "welcome_paso_3": {
+    "message": "Step 3"
+  },
+  "welcome_pasos_para_1_copia_cada_comando_en_una_t": {
+    "message": "Steps for $1. Copy each command into a terminal$2."
+  },
+  "welcome_perfil_del_vault_confirmado": {
+    "message": "Vault profile confirmed"
+  },
+  "welcome_privacidad_anaco_no_tiene_servidores_ni_": {
+    "message": "Privacy: Anaco has no servers and no telemetry. What you capture only leaves your computer towards the AI you choose. Details in PRIVACY.md in the repository."
+  },
+  "welcome_seleccionalo_y_copia": {
+    "message": "Select it and copy"
+  },
+  "welcome_servicio_local_conectado": {
+    "message": "Local service connected"
+  },
+  "welcome_te_dice_cuales_faltan": {
+    "message": "tells you which ones are missing."
+  },
+  "welcome_todo_listo_abre_el_panel_de_anaco_en_cua": {
+    "message": "All set. Open the Anaco panel on any article."
+  },
+  "welcome_tu_vault_aun_no_tiene_perfil_confirmalo_": {
+    "message": "Your vault has no profile yet: confirm it in Options."
+  },
+  "welcome_video_audio_y_pdf": {
+    "message": "Video, audio and PDF"
+  }
+}

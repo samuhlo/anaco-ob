@@ -12,15 +12,15 @@ function workDisplay(){
   const busy=Boolean(state.operation),p=state.operationProgress||{};
   $('workCard').hidden=!busy;document.body?.classList?.toggle('is-working',busy);
   if(!busy)return;
-  const names={model:'PREPARANDO EL MOTOR',transcribe:'TRANSCRIPCIÓN LOCAL',download:'DESCARGANDO AUDIO',subtitles:'BUSCANDO SUBTÍTULOS',inspect:'COMPROBANDO EL ARCHIVO',frames:'EXTRAYENDO FOTOGRAMAS'};
-  $('workStage').textContent=names[p.stage]||'TRABAJO EN CURSO';$('workTitle').textContent=state.activeWork?.title||'Preparando contenido';
+  const names={model:tx('panel_preparando_el_motor'),transcribe:tx('panel_transcripcion_local'),download:tx('panel_descargando_audio'),subtitles:tx('panel_buscando_subtitulos'),inspect:tx('panel_comprobando_el_archivo'),frames:tx('panel_extrayendo_fotogramas')};
+  $('workStage').textContent=names[p.stage]||tx('panel_trabajo_en_curso_caps');$('workTitle').textContent=state.activeWork?.title||tx('panel_preparando_contenido');
   $('workElapsed').textContent=state.activeWork?.startedAt?timeLabel((Date.now()-state.activeWork.startedAt)/1000):'';
   const progress=$('workProgress');
   if(p.total_seconds>0&&Number.isFinite(p.processed_seconds)){
     const fraction=Math.min(.99,p.processed_seconds/p.total_seconds);progress.max=100;progress.value=fraction*100;
-    $('workDetail').textContent=`${timeLabel(p.processed_seconds)} de ${timeLabel(p.total_seconds)} de audio · ${Math.floor(fraction*100)} %`+(p.engine?' · '+p.engine:'');
-  }else{progress.removeAttribute?.('value');$('workDetail').textContent=p.engine||'Esta fase no ofrece un porcentaje medible.';}
-  $('workHint').textContent=p.stage==='model'?'La primera carga puede descargar el modelo. El audio se procesa en este equipo.':'Puedes seguir navegando o cerrar este panel. El trabajo continúa.';
+    $('workDetail').textContent=tx('panel_1_de_2_de_audio_3',[timeLabel(p.processed_seconds),timeLabel(p.total_seconds),Math.floor(fraction*100)])+(p.engine?' · '+p.engine:'');
+  }else{progress.removeAttribute?.('value');$('workDetail').textContent=p.engine||tx('panel_esta_fase_no_ofrece_un_porcentaje_medibl');}
+  $('workHint').textContent=p.stage==='model'?tx('panel_la_primera_carga_puede_descargar_el_mode'):tx('panel_puedes_seguir_navegando_o_cerrar_este_pa');
 }
 // [UI] The strip under the logo follows the note: detected, preparing, review, saved.
 let brandReady=false;
@@ -47,7 +47,7 @@ async function brandIntro(){
 }
 function imageSelection(){
   const checks=[...document.querySelectorAll('#images input[type=checkbox]')],n=checks.filter(e=>e.checked).length;
-  $('imageCount').textContent=`${n} / 8 elegidas · ${checks.length} disponibles`;
+  $('imageCount').textContent=tx('panel_1_8_elegidas_2_disponibles',[n,checks.length]);
   for(const check of checks)check.disabled=Boolean(state.operation)||(!check.checked&&n>=8);
 }
 const showError = error => {$("error").textContent=error.message||String(error);$("error").hidden=false;};
@@ -56,20 +56,20 @@ const run = fn => async () => {$("error").hidden=true;try{await fn();}catch(erro
 async function copyReport(button) {
   const parts=[];
   if(!$("error").hidden&&$("error").textContent)parts.push("Error:\n"+$("error").textContent);
-  if(!$("diagnostic").hidden&&$("detectionReport").textContent)parts.push("Diagnóstico de detección:\n"+$("detectionReport").textContent);
+  if(!$("diagnostic").hidden&&$("detectionReport").textContent)parts.push(tx('panel_diagnostico_de_deteccion_2')+$("detectionReport").textContent);
   if(!parts.length)return;
   const text="Anaco "+browser.runtime.getManifest().version+"\n\n"+parts.join("\n\n");
   try {
     await navigator.clipboard.writeText(text);
     $("copyFallback").hidden=true;
-    button.textContent="Copiado ✓";
+    button.textContent=tx('panel_copiado');
   } catch {
     // Keep the original error intact; offer a selectable field if clipboard
     // access is unavailable in this browser context.
     const field=$("copyFallback");field.value=text;field.hidden=false;field.focus();field.select();
-    button.textContent="Pulsa Ctrl+C";
+    button.textContent=tx('panel_pulsa_ctrl_c');
   }
-  setTimeout(()=>{button.textContent="Copiar";},2000);
+  setTimeout(()=>{button.textContent=tx('panel_copiar');},2000);
 }
 for(const id of ["copyError","copyDiagnostic"])$(id).onclick=()=>copyReport($(id));
 
@@ -78,7 +78,7 @@ function locate(c,index,clear=false,embed=null) {
   clearTimeout(locateTimer);
   const hint=embed?$('embedHint'):$("imageHint");
   const send=()=>browser.runtime.sendMessage({type:"locateImage",token:c.token,index,clear,embed:Boolean(embed),label:embed}).then(result=>{
-    if(!clear&&!result.found)hint.textContent=embed?"No se encuentra este recurso en el artículo. Puede haber cambiado desde la captura.":"No se encuentra esta imagen en el artículo. Puede haber cambiado desde la captura.";
+    if(!clear&&!result.found)hint.textContent=embed?tx('panel_no_se_encuentra_este_recurso_en_el_artic'):tx('panel_no_se_encuentra_esta_imagen_en_el_articu');
   }).catch(error=>{if(!clear)hint.textContent=error.message;});
   if(clear)send();else locateTimer=setTimeout(send,140);
 }
@@ -88,7 +88,7 @@ function drawCapture(c) {
   $("reviewReady").hidden=!state.draftResult||!c;
   $("fileImport").hidden=!manualImport&&!(c?.kind==='pdf'&&c.url.startsWith('file:'));
   $("authorizeDetection").hidden=!c?.requiredOrigins?.length;
-  $("authorizeDetection").textContent=c?.requiredOrigins?.length?'Permitir lectura de '+c.requiredOrigins.map(u=>new URL(u).hostname).join(', '):'Permitir detectar el contenido del visor';
+  $("authorizeDetection").textContent=c?.requiredOrigins?.length?tx('panel_permitir_lectura_de')+c.requiredOrigins.map(u=>new URL(u).hostname).join(', '):tx('panel_permitir_detectar_el_contenido_del_visor');
   const diagnostics=Boolean(c&&(c.detectionError||c.reader||c.requiredOrigins?.length||c.videos?.some(v=>v.extractable===false)));
   $("diagnostic").hidden=!diagnostics;
   if(diagnostics)$("detectionReport").textContent=JSON.stringify({version:browser.runtime.getManifest?.().version,
@@ -100,15 +100,15 @@ function drawCapture(c) {
   $("noteControls").hidden=(!c.id&&(c.reader||c.kind==="pdf"))||!(c.id||(c.contentReady??Boolean(c.text?.length>=100||c.kind==='quote'||c.kind==='image')));
   if(c.detectionError)showError(c.detectionError);
   $("success").hidden=true;
-  $("captureTitle").textContent=c.title;$("kind").textContent={article:"ARTÍCULO",quote:"FRASE",image:"IMAGEN",pdf:"PDF",video:"VÍDEO / AUDIO"}[c.kind];
-  if(c.reader&&c.kind!=="pdf")$("kind").textContent="LECTOR HTML";
-  if(!c.id&&!c.contentReady)$("kind").textContent=c.documents?.length?'PDF':c.videos?.length?'VÍDEO / AUDIO':c.requiredOrigins?.length?'VISOR':'SIN CONTENIDO';
-  $("source").textContent=(()=>{try{return new URL(c.url).hostname+' ↗';}catch{return 'Abrir fuente ↗';}})();$("source").href=c.url;$("extracted").textContent=c.text||"Este recurso todavía no se ha extraído.";
+  $("captureTitle").textContent=c.title;$("kind").textContent={article:tx('panel_articulo'),quote:tx('panel_frase'),image:tx('panel_imagen'),pdf:"PDF",video:tx('panel_video_audio')}[c.kind];
+  if(c.reader&&c.kind!=="pdf")$("kind").textContent=tx('panel_lector_html');
+  if(!c.id&&!c.contentReady)$("kind").textContent=c.documents?.length?'PDF':c.videos?.length?tx('panel_video_audio'):c.requiredOrigins?.length?tx('panel_visor'):tx('panel_sin_contenido');
+  $("source").textContent=(()=>{try{return new URL(c.url).hostname+' ↗';}catch{return tx('panel_abrir_fuente');}})();$("source").href=c.url;$("extracted").textContent=c.text||tx('panel_este_recurso_todavia_no_se_ha_extraido');
   $("warnings").textContent=(c.warnings||[]).join("\n");$("warnings").hidden=!c.warnings?.length;$("intent").value=c.intent||"";
   $("images").replaceChildren();
   $('imageSection').hidden=!c.images.length;
   $("imageHint").hidden=!c.images.length;
-  $("imageHint").textContent=c.reader?.job?`${c.reader.captured_pages}/${c.reader.total_pages} páginas capturadas. Estas imágenes son figuras candidatas para la nota; la lectura del libro incluye todas las páginas.`:c.kind==="pdf"?"Selecciona páginas candidatas. La IA propondrá cuáles aportan valor; podrás cambiar la selección en la revisión.":c.kind==="video"?"Fotogramas del vídeo para incorporar diagramas o diapositivas a los apuntes.":"Pasa por una imagen para localizarla y resaltarla en el artículo. También puedes usar el teclado.";
+  $("imageHint").textContent=c.reader?.job?tx('panel_1_2_paginas_capturadas_estas_imagenes_so',[c.reader.captured_pages,c.reader.total_pages]):c.kind==="pdf"?tx('panel_selecciona_paginas_candidatas_la_ia_prop'):c.kind==="video"?tx('panel_fotogramas_del_video_para_incorporar_dia'):tx('panel_pasa_por_una_imagen_para_localizarla_y_r');
   c.images.forEach((image,index)=>{
     const label=document.createElement("label");label.className="image-option image-pick";
     const check=document.createElement("input");check.type="checkbox";check.value=index;check.checked=c.kind==="image"||(c.selected_images?c.selected_images.includes(index):Boolean(c.id)||Boolean(c.reader&&index<8));check.onchange=imageSelection;
@@ -117,8 +117,8 @@ function drawCapture(c) {
       const img=document.createElement("img");img.src=image.thumbnail;img.alt="";thumb.append(img);
     }else{thumb.textContent=String(index+1);}
     const info=document.createElement("span");info.className="image-info";
-    const title=document.createElement("strong");title.textContent="Imagen "+(index+1);
-    const alt=document.createElement("span");alt.textContent=image.caption||image.figcaption||image.alt||"Sin descripción · localízala en el artículo";
+    const title=document.createElement("strong");title.textContent=tx('panel_imagen_1',[index+1]);
+    const alt=document.createElement("span");alt.textContent=image.caption||image.figcaption||image.alt||tx('panel_sin_descripcion_localizala_en_el_articul');
     const size=document.createElement("small");size.textContent=image.width&&image.height?image.width+" × "+image.height:"";
     info.append(title,alt,size);label.append(check,thumb,info);
     label.addEventListener("mouseenter",()=>locate(c,index));label.addEventListener("mouseleave",()=>locate(c,index,true));
@@ -127,13 +127,13 @@ function drawCapture(c) {
   });
   imageSelection();
   drawEmbeds(c);
-  $("prepare").textContent=c.id?"Regenerar y abrir revisión":"Preparar y abrir revisión ↗";
+  $("prepare").textContent=c.id?tx('panel_regenerar_y_abrir_revision'):tx('panel_preparar_y_abrir_revision');
   const documents=c.documents||[],videos=c.videos||[];
     const rawBook=Boolean(c.reader&&!c.id&&c.kind!=="pdf");
   $("readerControls").hidden=!rawBook;
-  $("readerCount").textContent=rawBook?`${c.reader.pages?.length||0} páginas localizadas. Se extraerán todas.`:'';
+  $("readerCount").textContent=rawBook?tx('panel_1_paginas_localizadas_se_extraeran_todas',[c.reader.pages?.length||0]):'';
   $("resources").hidden=!(rawBook||documents.length||videos.some(v=>v.extractable!==false));
-  for(const [name,items,label] of [["pdf",documents,"PDF"],["video",videos,"Vídeo"]]){
+  for(const [name,items,label] of [["pdf",documents,"PDF"],["video",videos,tx('panel_video')]]){
     $(name+"Controls").hidden=!items.length||(name==='video'&&items.every(v=>v.extractable===false));$(name+"Resource").replaceChildren();
     items.forEach((item,index)=>{const option=document.createElement("option");option.value=index;option.textContent=name==='video'?AnacoObMedia.label(item,index):item.title||label+" "+(index+1);$(name+"Resource").append(option);});
   }
@@ -147,7 +147,7 @@ function drawCapture(c) {
 function drawEmbeds(c){
   const items=c.id?[]:c.embeds||[];
   $('embedSection').hidden=!items.length;$('embeds').replaceChildren();
-  const groups=[['clip','Clips de vídeo','▶'],['pen','Demos de CodePen','</>'],['tweet','Publicaciones de X','𝕏']];
+  const groups=[['clip',tx('panel_clips_de_video'),'▶'],['pen',tx('panel_demos_de_codepen'),'</>'],['tweet',tx('panel_publicaciones_de_x'),'𝕏']];
   for(const [type,heading,mark] of groups){
     const list=items.filter(item=>item.type===type);if(!list.length)continue;
     const title=document.createElement('h4');title.className='embed-group';title.textContent=heading+' · '+list.length;$('embeds').append(title);
@@ -158,13 +158,13 @@ function drawEmbeds(c){
       const thumb=document.createElement('span');thumb.className='image-thumb';
       if(/^data:image\/jpeg;base64,/.test(item.thumbnail||'')){const img=document.createElement('img');img.src=item.thumbnail;img.alt='';thumb.append(img);}else thumb.textContent=mark;
       const info=document.createElement('span');info.className='image-info';
-      const name=document.createElement('strong');name.textContent=item.title||item.author||'Recurso';
+      const name=document.createElement('strong');name.textContent=item.title||item.author||tx('bg_recurso');
       const detail=document.createElement('span');
-      detail.textContent=type==='clip'?[item.duration?Math.round(item.duration)+' s':'',item.size?(item.size/1000000).toFixed(1)+' MB':''].filter(Boolean).join(' · ')||'Clip silencioso':type==='pen'?'CodePen · @'+item.user+' · copia ejecutable sin conexión':(item.text||'Publicación incrustada').slice(0,140);
+      detail.textContent=type==='clip'?[item.duration?Math.round(item.duration)+' s':'',item.size?(item.size/1000000).toFixed(1)+' MB':''].filter(Boolean).join(' · ')||tx('panel_clip_silencioso'):type==='pen'?'CodePen · @'+item.user+tx('panel_copia_ejecutable_sin_conexion'):(item.text||tx('panel_publicacion_incrustada')).slice(0,140);
       info.append(name,detail);
       if(item.warning){const warning=document.createElement('small');warning.className='embed-warning';warning.textContent=item.warning;info.append(warning);}
       // Hover or keyboard focus scrolls the article to the resource and outlines it, as with images.
-      const tag={clip:'Clip',pen:'Demo',tweet:'Publicación'}[type]+' '+(list.indexOf(item)+1);
+      const tag={clip:tx('panel_clip'),pen:tx('panel_demo'),tweet:tx('panel_publicacion')}[type]+' '+(list.indexOf(item)+1);
       label.addEventListener('mouseenter',()=>locate(c,item.index,false,tag));label.addEventListener('mouseleave',()=>locate(c,item.index,true,tag));
       label.addEventListener('focusin',()=>locate(c,item.index,false,tag));label.addEventListener('focusout',()=>locate(c,item.index,true,tag));
       label.append(check,thumb,info);$('embeds').append(label);
@@ -180,22 +180,22 @@ function embedSelection(){
 async function refresh() {
   try {
     status=await call({action:"status"});
-    if(!structureInitialized){$('noteStructure').value=status.config.note_structure||'single';structureInitialized=true;}$("connection").textContent="SERVICIO LOCAL CONECTADO";
+    if(!structureInitialized){$('noteStructure').value=status.config.note_structure||'single';structureInitialized=true;}$("connection").textContent=tx('panel_servicio_local_conectado');
     // [UI] The vault profile decides where notes go: missing or outdated, say so before preparing.
     const profile=status.profile||{};$('profileNotice').hidden=!(profile.missing||profile.problems?.length);
-    $('profileNoticeText').textContent=profile.missing?(profile.message||'Este vault aún no tiene perfil: escanéalo en Opciones antes de guardar notas.'):profile.problems?.length?profile.problems[0]+(profile.problems.length>1?` (y ${profile.problems.length-1} más)`:''):'';
+    $('profileNoticeText').textContent=profile.missing?(profile.message||tx('panel_este_vault_aun_no_tiene_perfil_escanealo')):profile.problems?.length?profile.problems[0]+(profile.problems.length>1?tx('panel_y_1_mas',[profile.problems.length-1]):''):'';
     if(serviceError && $('error').textContent === serviceError) $('error').hidden=true;
     serviceError='';
     $('recoverSection').hidden=!(status.jobs||[]).length;$('recoverJobs').replaceChildren();
     const {workSources={}}=await browser.storage.local.get('workSources');
-    for(const job of status.jobs||[]){const row=document.createElement('div');row.className='job-row';const label=document.createElement('span');label.textContent=(workSources[job.id]?.title||({upload_finish:'Extracción de archivo',draft:'Preparación de nota',video_url:'Vídeo de plataforma'})[job.action])+' · '+({cancelled:'Cancelado',interrupted:'Interrumpido',failed:'Error recuperable',pending:'Pendiente',running:'En curso'}[job.status]||'Pendiente');const button=document.createElement('button');button.textContent='Reanudar';button.disabled=Boolean(state.operation);button.onclick=run(async()=>{await browser.runtime.sendMessage({type:'resumeJob',job:job.id});await refresh();});row.append(label,button);$('recoverJobs').append(row);}
+    for(const job of status.jobs||[]){const row=document.createElement('div');row.className='job-row';const label=document.createElement('span');label.textContent=(workSources[job.id]?.title||({upload_finish:tx('panel_extraccion_de_archivo'),draft:tx('panel_preparacion_de_nota'),video_url:tx('panel_video_de_plataforma')})[job.action])+' · '+({cancelled:tx('panel_cancelado'),interrupted:tx('panel_interrumpido'),failed:tx('panel_error_recuperable'),pending:tx('panel_pendiente'),running:tx('panel_en_curso_job')}[job.status]||tx('panel_pendiente'));const button=document.createElement('button');button.textContent=tx('panel_reanudar');button.disabled=Boolean(state.operation);button.onclick=run(async()=>{await browser.runtime.sendMessage({type:'resumeJob',job:job.id});await refresh();});row.append(label,button);$('recoverJobs').append(row);}
     $("provider").value=status.config.provider;$("pending").replaceChildren();
     for(const c of status.pending){const b=document.createElement("button");b.className="pending-item";b.textContent=c.title+" · "+c.kind;b.addEventListener("click",run(async()=>browser.runtime.sendMessage({type:"resume",id:c.id})));$("pending").append(b);}
-    if(!status.pending.length)$("pending").textContent="No hay capturas pendientes.";
+    if(!status.pending.length)$("pending").textContent=tx('panel_no_hay_capturas_pendientes');
     showHealth(AnacoObDiagnosis.status(status,browser.runtime.getManifest().version)[0]);
   }catch(error){
     // The service is missing or broken: explain the fix instead of a raw error.
-    serviceError=error.message;$("connection").textContent="SERVICIO SIN CONECTAR";showHealth(AnacoObDiagnosis.connection(error));
+    serviceError=error.message;$("connection").textContent=tx('panel_servicio_sin_conectar');showHealth(AnacoObDiagnosis.connection(error));
   }
 }
 async function sync(changes) {
@@ -203,13 +203,13 @@ async function sync(changes) {
   $('captureMode').value=state.captureMode||'auto';$('captureMode').disabled=Boolean(state.operation);
   reviewMenu();
   $('autoReview').checked=state.autoReview!==false;
-  $('extractVideo').textContent=$('autoReview').checked?'Crear nota del vídeo':'Extraer subtítulos o transcribir';
-  $('extractPdf').textContent=$('autoReview').checked?'Crear nota del PDF':'Extraer PDF y páginas';
-  $('extractReader').textContent=$('autoReview').checked?'Crear notas del libro completo':'Extraer libro completo';
-  $('importButton').textContent=$('autoReview').checked?'Extraer y preparar nota':'Extraer archivo';
+  $('extractVideo').textContent=$('autoReview').checked?tx('panel_crear_nota_del_video'):tx('panel_extraer_subtitulos_o_transcribir');
+  $('extractPdf').textContent=$('autoReview').checked?tx('panel_crear_nota_del_pdf'):tx('panel_extraer_pdf_y_paginas');
+  $('extractReader').textContent=$('autoReview').checked?tx('panel_crear_notas_del_libro_completo'):tx('panel_extraer_libro_completo');
+  $('importButton').textContent=$('autoReview').checked?tx('panel_extraer_y_preparar_nota'):tx('panel_extraer_archivo');
   if(!changes||changes.currentCapture||changes.draftResult||changes.pageContext)drawCapture(state.currentCapture);
   const page=state.pageContext;
-  $("pageStatus").textContent=manualImport?'Importación manual de un archivo local':page?.status==='loading'?'Detectando el contenido de esta pestaña…':page?.url?`${state.operation?'Origen del trabajo':'Página'}: ${(()=>{try{return new URL(page.url).hostname;}catch{return 'archivo local';}})()}`:'';
+  $("pageStatus").textContent=manualImport?tx('panel_importacion_manual_de_un_archivo_local'):page?.status==='loading'?tx('panel_detectando_el_contenido_de_esta_pestana'):page?.url?(host=>state.operation?tx('panel_origen_del_trabajo_1',[host]):tx('panel_pagina_1',[host]))((()=>{try{return new URL(page.url).hostname;}catch{return tx('panel_archivo_local');}})()):'';
   if(activeReview&&!state.operationError)$('error').hidden=true;
   else if(page?.status==='error')showError(page.error);
   else if(page?.status==='ready'&&!state.operationError&&!state.currentCapture?.detectionError)$("error").hidden=true;
@@ -224,8 +224,8 @@ async function sync(changes) {
     $("detectionReport").textContent=JSON.stringify(report,null,2);
   }
   if(state.lastResult&&!state.currentCapture&&state.pageContext?.status!=='loading'){
-    $("success").replaceChildren(document.createTextNode("Nota guardada: "+state.lastResult.relative+" "));
-    const link=document.createElement("a");link.href=state.lastResult.obsidian_url;link.textContent="Abrir en Obsidian ↗";$("success").append(link);$("success").hidden=false;
+    $("success").replaceChildren(document.createTextNode(tx('panel_nota_guardada')+state.lastResult.relative+" "));
+    const link=document.createElement("a");link.href=state.lastResult.obsidian_url;link.textContent=tx('panel_abrir_en_obsidian');$("success").append(link);$("success").hidden=false;
   }
   if(changes?.settingsRevision){structureInitialized=false;refresh().catch(showError);}
   else if(changes?.currentCapture&&!state.operation)refresh().catch(showError);
@@ -235,7 +235,7 @@ let healthAction=null;
 function showHealth(problem){
   $('healthNotice').hidden=!problem;if(!problem)return;
   $('healthTitle').textContent=problem.title+'.';$('healthText').textContent=problem.text;
-  $('healthAction').textContent=problem.action==='options'?'Abrir Opciones ↗':'Cómo instalarlo ↗';healthAction=problem.action;
+  $('healthAction').textContent=problem.action==='options'?tx('panel_abrir_opciones'):tx('panel_como_instalarlo');healthAction=problem.action;
 }
 $('healthAction').onclick=run(async()=>healthAction==='options'?browser.runtime.sendMessage({type:'openOptions',windowId:panelWindowId}):browser.tabs.create({url:browser.runtime.getURL('welcome.html')}));
 function reviewMenu(){
@@ -250,23 +250,23 @@ function reviewMenu(){
   $('reviewChooser').replaceChildren();
   for(const item of sessions)$('reviewChooser').append(new Option(item.title,item.id));
   $('reviewChooser').value=r.id;$('reviewMenuTitle').textContent=r.title;
-  $('reviewMenuStatus').textContent=`${r.notes.filter(n=>n.selected).length} de ${r.notes.length} notas incluidas · ${r.busy?'Trabajo en curso':r.status||'Revisa la propuesta'}`;
+  $('reviewMenuStatus').textContent=tx('panel_1_de_2_notas_incluidas_3',[r.notes.filter(n=>n.selected).length,r.notes.length,r.busy?tx('panel_trabajo_en_curso'):r.status||tx('options_revisa_la_propuesta')]);
   $('reviewMenuNotes').replaceChildren();
   for(const note of r.notes){
     const row=document.createElement('div');row.className='review-menu-note';
-    const check=document.createElement('input');check.type='checkbox';check.checked=note.selected;check.disabled=r.busy;check.setAttribute('aria-label','Incluir '+note.title);
+    const check=document.createElement('input');check.type='checkbox';check.checked=note.selected;check.disabled=r.busy;check.setAttribute('aria-label',tx('panel_incluir_1',[note.title]));
     check.onchange=()=>reviewAction('include',note.id,check.checked).catch(showError);
     const button=document.createElement('button');button.type='button';button.textContent=note.title;button.dataset.reviewNote=note.id;button.setAttribute('aria-current',String(note.id===r.activeNote));button.disabled=r.busy;
-    const links=document.createElement('small');links.textContent=`${note.externalLinks||0} con notas existentes · ${note.internalLinks||0} entre temas`;button.append(links);
+    const links=document.createElement('small');links.textContent=tx('panel_1_con_notas_existentes_2_entre_temas',[note.externalLinks||0,note.internalLinks||0]);button.append(links);
     button.onclick=()=>reviewAction('note',note.id).catch(showError);row.append(check,button);$('reviewMenuNotes').append(row);
   }
   for(const id of ['reviewRead','reviewEdit','reviewProperties','reviewConnections','reviewRefreshLinks','reviewSplit'])$(id).disabled=r.busy;
   $('reviewRead').setAttribute('aria-pressed',String(r.view==='read'));
   $('reviewEdit').setAttribute('aria-pressed',String(r.view==='edit'));
-  $('reviewSave').disabled=!r.canSave||r.busy;$('reviewSave').textContent=r.saveLabel||'Guardar y volver';
+  $('reviewSave').disabled=!r.canSave||r.busy;$('reviewSave').textContent=r.saveLabel||tx('panel_guardar_y_volver');
 }
 function reviewAction(command,note,value){
-  if(!activeReview)return Promise.reject(new Error('No hay una revisión abierta en esta ventana.'));
+  if(!activeReview)return Promise.reject(new Error(tx('panel_no_hay_una_revision_abierta_en_esta_vent')));
   return browser.runtime.sendMessage({type:'reviewCommand',id:activeReview.id,windowId:panelWindowId,command,note,value});
 }
 for(const [id,action] of Object.entries({reviewRead:'read',reviewEdit:'edit',reviewProperties:'properties',reviewConnections:'connections',reviewRefreshLinks:'refreshLinks',reviewSplit:'split',reviewFocus:'focus',reviewSave:'save'}))$(id).onclick=run(()=>reviewAction(action));
@@ -285,18 +285,18 @@ const preparation=()=>({prepareAfter:state.autoReview!==false,provider:$('provid
 for(const id of ["captureEmpty","recapture"])$(id).onclick=run(async()=>{
   const origins=[state.pageContext?.url,state.currentCapture?.url].filter(Boolean);
   const granted=await requestOrigins(origins);
-  if(!granted)throw new Error('No se ha concedido acceso a esta página.');
+  if(!granted)throw new Error(tx('panel_no_se_ha_concedido_acceso_a_esta_pagina'));
   await browser.runtime.sendMessage({type:"detectActive"});
 });
 $("prepare").onclick=run(async()=>{
   const selected=[...document.querySelectorAll("#images input:checked")].map(i=>Number(i.value));
-  if(selected.length>8)throw new Error("Selecciona como máximo ocho imágenes.");
+  if(selected.length>8)throw new Error(tx('panel_selecciona_como_maximo_ocho_imagenes'));
   const c=state.currentCapture;
   const embeds=[...document.querySelectorAll("#embeds input:checked")].map(i=>Number(i.dataset.embed));
   const embedURLs=embeds.map(i=>c.embeds?.[i]).flatMap(e=>e?.type==='clip'?[e.url]:e?.type==='pen'?['https://codepen.io/','https://cdpn.io/']:[]);
   const origins=[...new Set([...selected.map(i=>c.images[i].url),...embedURLs].map(url=>{try{const u=new URL(url);return /^https?:$/.test(u.protocol)?u.protocol+"//"+u.hostname+"/*":null;}catch{return null;}}).filter(Boolean))];
   // Keep this call before any await so Firefox preserves the user gesture.
-  if(origins.length&&!c.id){const granted=await browser.permissions.request({origins});if(!granted)throw new Error("No se ha concedido acceso a las imágenes o recursos elegidos. Desmárcalos para capturar solo el texto.");}
+  if(origins.length&&!c.id){const granted=await browser.permissions.request({origins});if(!granted)throw new Error(tx('panel_no_se_ha_concedido_acceso_a_las_imagenes'));}
   locate(c,0,true);
   await browser.runtime.sendMessage({type:"prepare",token:c.token,images:selected,embeds,intent:$("intent").value,provider:$("provider").value,note_structure:$("noteStructure").value});
   await refresh();
@@ -311,32 +311,32 @@ $("extractReader").onclick=run(async()=>{
   const c=state.currentCapture;
   const urls=(c.reader?.pages||[]).flatMap(p=>p.urls||[]);
   const granted=await requestOrigins([c.url,...urls]);
-  if(!granted)throw new Error('No se ha concedido acceso a las páginas del libro.');
+  if(!granted)throw new Error(tx('panel_no_se_ha_concedido_acceso_a_las_paginas_'));
   await browser.runtime.sendMessage({type:'extractReader',token:c.token,...preparation()});
 });
 $("extractPdf").onclick=run(async()=>{
   const c=state.currentCapture,resource=c.documents[Number($("pdfResource").value)];
-  if(resource.url.startsWith("file:"))throw new Error("Para este PDF local usa Importar archivo, en la parte superior del panel.");
-  const granted=await requestOrigins([resource.url]);if(!granted)throw new Error("No se ha concedido acceso al PDF.");
+  if(resource.url.startsWith("file:"))throw new Error(tx('panel_para_este_pdf_local_usa_importar_archivo'));
+  const granted=await requestOrigins([resource.url]);if(!granted)throw new Error(tx('panel_no_se_ha_concedido_acceso_al_pdf'));
   await browser.runtime.sendMessage({type:"importResource",token:c.token,kind:"pdf",url:resource.url,pageUrl:c.url,name:(resource.title||c.title).replace(/\.pdf$/i,"")+".pdf",pages:$("pdfPages").value,...preparation()});
 });
 $("extractVideo").onclick=run(async()=>{
   const c=state.currentCapture,video=c.videos[Number($("videoResource").value)];
-  if(video.extractable===false)throw new Error(video.unavailableReason||'No hay audio o subtítulos accesibles en este reproductor.');
+  if(video.extractable===false)throw new Error(video.unavailableReason||tx('panel_no_hay_audio_o_subtitulos_accesibles_en_'));
   const track=[...(video.tracks||[])].sort((a,b)=>(!a.language?.startsWith("es"))-(!b.language?.startsWith("es")))[0];
   const platform=AnacoObMedia.platformURL(video.url);
   const direct=video.download||(/^https?:/.test(video.url)&&!platform&&!AnacoObMedia.apiURL(video.url)&&video.url!==c.url?video.url:null);
   const granted=await requestOrigins([track?.url,direct,...(video.download?['https://drive.usercontent.google.com/','https://*.googleusercontent.com/']:[])]);
-  if(!granted)throw new Error("No se ha concedido acceso al recurso de vídeo.");
+  if(!granted)throw new Error(tx('panel_no_se_ha_concedido_acceso_al_recurso_de_'));
   const audio=direct&&!/\.mpd(?:[?#]|$)/i.test(direct)?(/\.m3u8(?:[?#]|$)/i.test(direct)?{kind:'video-hls',url:direct}:{kind:'video',url:direct,name:'video.mp4'}):platform?{kind:'video-platform',url:platform}:null;
   const request=video.subtitles?{kind:'subtitles',text:video.subtitles,fallback:audio}:track?{kind:'subtitle-url',url:track.url,frameId:video.frameId,fallback:audio}:audio;
-  if(!request)throw new Error('El reproductor no expone un recurso de audio ni subtítulos accesibles.');
+  if(!request)throw new Error(tx('panel_el_reproductor_no_expone_un_recurso_de_a'));
   await browser.runtime.sendMessage({type:"importResource",token:c.token,...request,frameId:video.frameId,frameURL:video.frameURL,title:video.title||c.title,pageUrl:c.url,...preparation()});
 });
 $("authorizeDetection").onclick=run(async()=>{
   const c=state.currentCapture;
   const granted=await browser.permissions.request({origins:c.requiredOrigins});
-  if(!granted)throw new Error('No se ha concedido acceso al contenido incrustado.');
+  if(!granted)throw new Error(tx('panel_no_se_ha_concedido_acceso_al_contenido_i'));
   await browser.runtime.sendMessage({type:'inspectFrame'});
 });
 $("videoResource").onchange=()=>{
@@ -346,14 +346,14 @@ $("videoResource").onchange=()=>{
 };
 $("importButton").onclick=run(async()=>{
   let uploadWork;
-  const file=$("importFile").files[0];if(!file)throw new Error("Selecciona primero un archivo.");
+  const file=$("importFile").files[0];if(!file)throw new Error(tx('panel_selecciona_primero_un_archivo'));
   const limit=/\.(pdf|vtt|srt)$/i.test(file.name)?100000000:1000000000;
-  if(file.size>limit)throw new Error("Límite: 100 MB para PDF/subtítulos y 1 GB para archivos locales de audio/vídeo.");
+  if(file.size>limit)throw new Error(tx('panel_limite_100_mb_para_pdf_subtitulos_y_1_gb'));
   uploadWork=await browser.runtime.sendMessage({type:'beginUploadWork',name:file.name,manual:manualImport});
   try{
     const begin=await call({action:"upload_begin",name:file.name,size:file.size,url:manualImport?"":state.currentCapture?.url||""});
     for(let offset=0;offset<file.size;offset+=393216){const bytes=new Uint8Array(await file.slice(offset,offset+393216).arrayBuffer());let binary="";for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));await call({action:"upload_chunk",upload:begin.upload,offset,data:btoa(binary)});}
-    await browser.storage.local.set({operation:file.name.toLowerCase().endsWith(".pdf")?"Leyendo PDF y renderizando páginas…":"Transcribiendo o leyendo subtítulos. Puedes seguir navegando…"});
+    await browser.storage.local.set({operation:file.name.toLowerCase().endsWith(".pdf")?tx('panel_leyendo_pdf_y_renderizando_paginas'):tx('panel_transcribiendo_o_leyendo_subtitulos_pued')});
     const c=await call({action:"upload_finish",upload:begin.upload,pages:$("importPages").value});
     await browser.runtime.sendMessage({type:"adoptUpload",capture:c,work:uploadWork.work,manual:manualImport,...preparation()});
   }catch(error){await browser.runtime.sendMessage({type:'failWork',work:uploadWork.work,error:error.message});throw error;}

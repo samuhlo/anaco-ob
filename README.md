@@ -96,6 +96,7 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 - **Relaciones verificables**: cada conexión con una nota existente se apoya en fragmentos literales de ambas notas, y la aceptas o la descartas tú.
 - **Una o varias notas**: una nota con apartados, varias enlazadas por temas o que decida la IA, con división e integración revisables.
 - **Tu IA**: Codex con tu suscripción de ChatGPT, una API compatible con OpenAI o un modelo local con Ollama o LM Studio, donde nada sale de tu ordenador.
+- **Español e inglés**: la interfaz sigue al navegador o al idioma que elijas en Opciones; el español es el principal.
 - **Privacidad**: sin servidores propios ni telemetría. El vault no se envía completo; la IA recibe la captura y fragmentos de las notas candidatas. Detalle en [PRIVACY.md](PRIVACY.md).
 
 ---
@@ -137,6 +138,7 @@ Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar
 | :--- | :--- |
 | `anaco-ob uninstall [--purge]` | Quitar el registro del navegador; `--purge` borra también los datos locales |
 | `python3 scripts/install.py` | Desarrollo: registrar el servicio desde el repositorio y generar `dist/anaco-ob-<versión>.zip` |
+| `python3 scripts/i18n.py build` | Regenerar `extension/i18n-catalog.js` tras editar `extension/_locales/*/messages.json`; `check` comprueba que ambos idiomas tienen cada clave |
 | `npm test` | Pruebas unitarias de la extensión |
 | `python3 -m unittest discover -s tests` | Pruebas del servicio |
 | `python3 tests/e2e_zen.py --profile` | Recorrido real en Zen: perfil, captura y guardado |

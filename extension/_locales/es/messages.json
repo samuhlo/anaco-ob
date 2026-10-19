@@ -1,0 +1,1856 @@
+{
+  "bg_1_2_paginas_recibidas_preparando_el_cont": {
+    "message": "$1/$2 páginas recibidas. Preparando el contenido…"
+  },
+  "bg_accion_de_revision_desconocida": {
+    "message": "Acción de revisión desconocida."
+  },
+  "bg_accion_de_revision_no_disponible": {
+    "message": "Acción de revisión no disponible."
+  },
+  "bg_anaco_ya_no_tiene_permiso_para_marcar_en": {
+    "message": "Anaco ya no tiene permiso para marcar en esta página (al recargarla se pierde). Pulsa «Detectar de nuevo» para concederlo."
+  },
+  "bg_buscando_conexiones_por_tema_en_tu_secon": {
+    "message": "Buscando conexiones por tema en tu Second Brain…"
+  },
+  "bg_cancelando_el_trabajo_y_conservando_el_a": {
+    "message": "Cancelando el trabajo y conservando el avance…"
+  },
+  "bg_captura": {
+    "message": "Captura"
+  },
+  "bg_clip_1_no_se_pudo_guardar_2": {
+    "message": "Clip «$1»: no se pudo guardar ($2)."
+  },
+  "bg_contenido_incrustado": {
+    "message": "Contenido incrustado"
+  },
+  "bg_demo_1_2_archivos_externos_no_se_pudiero": {
+    "message": "Demo «$1»: $2 archivos externos no se pudieron copiar; esa parte necesitará conexión."
+  },
+  "bg_demo_1_no_se_pudo_guardar_una_copia_sin_": {
+    "message": "Demo «$1»: no se pudo guardar una copia sin conexión ($2). Se conservan el enlace$3."
+  },
+  "bg_descargando_el_pdf": {
+    "message": "Descargando el PDF…"
+  },
+  "bg_descargando_el_recurso_del_reproductor": {
+    "message": "Descargando el recurso del reproductor…"
+  },
+  "bg_documento_pdf": {
+    "message": "Documento PDF"
+  },
+  "bg_el_lector_cambio_vuelve_a_detectarlo": {
+    "message": "El lector cambió. Vuelve a detectarlo."
+  },
+  "bg_el_libro_supera_el_limite_de_500_paginas": {
+    "message": "El libro supera el límite de 500 páginas."
+  },
+  "bg_el_libro_supera_las_500_paginas_admitida": {
+    "message": "El libro supera las 500 páginas admitidas en esta versión. No se ha extraído una parte."
+  },
+  "bg_el_recurso_devolvio_una_pagina_de_acceso": {
+    "message": "El recurso devolvió una página de acceso en lugar del vídeo o los subtítulos. Abre la lección y vuelve a detectar."
+  },
+  "bg_el_recurso_supera_el_limite_de_descarga": {
+    "message": "El recurso supera el límite de descarga."
+  },
+  "bg_el_servicio_esta_tardando_demasiado_la_c": {
+    "message": "El servicio está tardando demasiado. La captura se conserva en Pendientes."
+  },
+  "bg_el_servidor_rechazo_el_recurso_del_repro": {
+    "message": "El servidor rechazó el recurso del reproductor (HTTP $1). Se ha intentado conservar la sesión del vídeo. Inícialo y vuelve a detectar para renovar su enlace."
+  },
+  "bg_esa_revision_ya_no_esta_abierta_en_esta_": {
+    "message": "Esa revisión ya no está abierta en esta ventana."
+  },
+  "bg_esta_accion_debe_iniciarse_en_la_pagina_": {
+    "message": "Esta acción debe iniciarse en la página de revisión de la captura."
+  },
+  "bg_esta_captura_no_tiene_una_propuesta_pend": {
+    "message": "Esta captura no tiene una propuesta pendiente de revisión."
+  },
+  "bg_esta_pestana_no_contiene_una_pagina_web_": {
+    "message": "Esta pestaña no contiene una página web que se pueda capturar."
+  },
+  "bg_estudiando_una_posible_division_de_la_no": {
+    "message": "Estudiando una posible división de la nota…"
+  },
+  "bg_extrayendo_el_pdf": {
+    "message": "Extrayendo el PDF…"
+  },
+  "bg_extrayendo_pagina_1_de_2": {
+    "message": "Extrayendo página $1 de $2…"
+  },
+  "bg_guardando_recursos_incrustados_1_de_2": {
+    "message": "Guardando recursos incrustados: $1 de $2…"
+  },
+  "bg_guardar_frase_con_anaco": {
+    "message": "Guardar frase con Anaco"
+  },
+  "bg_guardar_imagen_con_anaco": {
+    "message": "Guardar imagen con Anaco"
+  },
+  "bg_la_captura_actual_sigue_procesandose_pue": {
+    "message": "La captura actual sigue procesándose. Puedes cambiar de pestaña mientras termina."
+  },
+  "bg_la_operacion_termino_pero_no_pude_volver": {
+    "message": "La operación terminó, pero no pude volver al artículo: "
+  },
+  "bg_la_pestana_cambio_antes_de_extraer_el_re": {
+    "message": "La pestaña cambió antes de extraer el recurso. Revisa el contenido actual y reintenta."
+  },
+  "bg_la_pestana_cambio_antes_de_preparar_la_n": {
+    "message": "La pestaña cambió antes de preparar la nota. Revisa la captura actual y reintenta."
+  },
+  "bg_la_preparacion_anterior_se_interrumpio_p": {
+    "message": "La preparación anterior se interrumpió. Puedes recuperar la captura en Pendientes y reintentar."
+  },
+  "bg_la_revision_se_cerro": {
+    "message": "La revisión se cerró."
+  },
+  "bg_la_transferencia_ya_no_pertenece_al_trab": {
+    "message": "La transferencia ya no pertenece al trabajo actual."
+  },
+  "bg_lector_html_se_han_elegido_1_de_2_pagina": {
+    "message": "Lector HTML: se han elegido $1 de $2 páginas/figuras detectadas para lectura visual. La selección no representa una lectura visual del libro entero."
+  },
+  "bg_leyendo_las_paginas_del_pdf": {
+    "message": "Leyendo las páginas del PDF…"
+  },
+  "bg_los_subtitulos_no_estan_disponibles_recu": {
+    "message": "Los subtítulos no están disponibles. Recuperando el audio para transcribirlo…"
+  },
+  "bg_no_puedo_localizar_este_elemento_comprue": {
+    "message": "No puedo localizar este elemento. Comprueba que el artículo sigue abierto y vuelve a capturarlo si ha cambiado."
+  },
+  "bg_no_se_ha_podido_leer_la_pagina_1_2_3_las": {
+    "message": "No se ha podido leer la página $1/$2: $3. Las páginas recibidas se conservan; vuelve a pulsar Extraer libro completo para continuar."
+  },
+  "bg_no_se_localizaron_paginas_del_lector": {
+    "message": "No se localizaron páginas del lector."
+  },
+  "bg_no_se_pudo_conectar_con_el_servicio_loca": {
+    "message": "No se pudo conectar con el servicio local. Instálalo con «anaco-ob install»."
+  },
+  "bg_no_se_pudo_conservar_una_imagen_1": {
+    "message": "No se pudo conservar una imagen: $1. Vuelve a capturar para reintentar."
+  },
+  "bg_no_se_pudo_descargar_la_imagen_esta_vers": {
+    "message": "No se pudo descargar la imagen. Esta versión admite PNG, JPEG, GIF y WebP accesibles desde el navegador."
+  },
+  "bg_no_se_pudo_leer_el_contenido_seleccionad": {
+    "message": "No se pudo leer el contenido seleccionado. Vuelve a capturarlo desde la página."
+  },
+  "bg_no_se_pudo_leer_el_recurso_del_reproduct": {
+    "message": "No se pudo leer el recurso del reproductor. Vuelve a iniciar el vídeo y a detectar su contenido; el diagnóstico incluye los intentos de descarga."
+  },
+  "bg_no_se_pudo_terminar_la_deteccion_espera_": {
+    "message": "No se pudo terminar la detección. Espera a que cargue el contenido y vuelve a intentarlo."
+  },
+  "bg_pagina_actual": {
+    "message": "Página actual"
+  },
+  "bg_pdf_del_curso": {
+    "message": "PDF del curso"
+  },
+  "bg_pdf_del_visor": {
+    "message": "PDF del visor"
+  },
+  "bg_preparando_el_archivo_de_audio": {
+    "message": "Preparando el archivo de audio…"
+  },
+  "bg_preparando_la_extraccion_del_libro_compl": {
+    "message": "Preparando la extracción del libro completo…"
+  },
+  "bg_preparando_la_propuesta": {
+    "message": "Preparando la propuesta…"
+  },
+  "bg_preparando_una_revision_del_apartado": {
+    "message": "Preparando una revisión del apartado…"
+  },
+  "bg_primero_captura_una_pagina_frase_o_image": {
+    "message": "Primero captura una página, frase o imagen."
+  },
+  "bg_primero_extrae_el_documento_detectado": {
+    "message": "Primero extrae el documento detectado."
+  },
+  "bg_reanudando_el_trabajo": {
+    "message": "Reanudando el trabajo…"
+  },
+  "bg_recuperando_subtitulos_o_audio": {
+    "message": "Recuperando subtítulos o audio…"
+  },
+  "bg_recuperando_video_del_curso_segmento_1_d": {
+    "message": "Recuperando vídeo del curso: segmento $1 de $2…"
+  },
+  "bg_recurso": {
+    "message": "Recurso"
+  },
+  "bg_supera_3_mb": {
+    "message": "supera 3 MB"
+  },
+  "bg_supera_el_limite_de_tamano": {
+    "message": "supera el límite de tamaño"
+  },
+  "bg_trabajo_cancelado_puedes_reanudarlo_desd": {
+    "message": "Trabajo cancelado. Puedes reanudarlo desde Trabajos recuperables."
+  },
+  "bg_trabajo_recuperado": {
+    "message": "Trabajo recuperado"
+  },
+  "bg_transfiriendo_archivo": {
+    "message": "Transfiriendo archivo…"
+  },
+  "bg_vuelve_a_capturar_el_articulo_para_local": {
+    "message": "Vuelve a capturar el artículo para localizar sus imágenes."
+  },
+  "bg_vuelve_a_detectar_la_pagina_del_curso": {
+    "message": "Vuelve a detectar la página del curso."
+  },
+  "bg_y_el_codigo": {
+    "message": " y el código"
+  },
+  "bg_ya_hay_un_recurso_procesandose_puedes_ca": {
+    "message": "Ya hay un recurso procesándose. Puedes cambiar de pestaña mientras termina."
+  },
+  "bg_ya_hay_un_trabajo_en_curso": {
+    "message": "Ya hay un trabajo en curso."
+  },
+  "bg_ya_hay_un_trabajo_en_curso_puedes_seguir": {
+    "message": "Ya hay un trabajo en curso. Puedes seguir navegando mientras termina."
+  },
+  "bg_ya_hay_una_extraccion_o_una_nota_en_curs": {
+    "message": "Ya hay una extracción o una nota en curso."
+  },
+  "bg_ya_hay_una_nota_preparandose": {
+    "message": "Ya hay una nota preparándose."
+  },
+  "capture_documento_del_visor": {
+    "message": "Documento del visor"
+  },
+  "capture_el_navegador_impide_leer_1_superficies": {
+    "message": "El navegador impide leer $1 superficies del visor; su contenido visual no se ha capturado."
+  },
+  "capture_el_reproductor_esta_presente_pero_todavi": {
+    "message": "El reproductor está presente, pero todavía no expone audio o subtítulos accesibles. Inicia el vídeo y pulsa Detectar de nuevo."
+  },
+  "capture_este_reproductor_usa_dash_todavia_no_se_": {
+    "message": "Este reproductor usa DASH; todavía no se puede extraer su audio."
+  },
+  "capture_la_captura_visual_del_lector_ha_alcanzad": {
+    "message": "La captura visual del lector ha alcanzado el límite de ocho candidatas o de tamaño. Hay páginas/figuras que no se han incluido; no es una lectura visual completa del libro."
+  },
+  "capture_la_pagina_supera_el_limite_de_esta_versi": {
+    "message": "La página supera el límite de esta versión; se han capturado los primeros 120.000 caracteres."
+  },
+  "capture_libro_detectado_1_paginas_disponibles_us": {
+    "message": "Libro detectado: $1 páginas disponibles. Usa Extraer libro completo para leerlas todas; las figuras de la nota se elegirán después."
+  },
+  "capture_no_se_detecto_un_articulo_principal_revi": {
+    "message": "No se detectó un artículo principal. Revisa el texto extraído antes de resumir."
+  },
+  "capture_pdf_cargado_por_el_visor": {
+    "message": "PDF cargado por el visor"
+  },
+  "capture_se_ha_capturado_el_texto_de_la_pagina_el": {
+    "message": "Se ha capturado el texto de la página. El vídeo y el contenido de marcos incrustados no se han transcrito."
+  },
+  "capture_subtitulos_del_reproductor": {
+    "message": "Subtítulos del reproductor"
+  },
+  "capture_video_incrustado": {
+    "message": "Vídeo incrustado"
+  },
+  "detect_anaco_no_tiene_permiso_para_leer_esta_pa": {
+    "message": "Anaco no tiene permiso para leer esta página ($1). Pulsa «Permitir lectura» o «Detectar contenido» para concederlo."
+  },
+  "detect_el_contenido_esta_dentro_de_un_visor_de_": {
+    "message": "El contenido está dentro de un visor de otro dominio. Autoriza su lectura para detectar el PDF o el vídeo."
+  },
+  "detect_el_lector_dibuja_sus_paginas_pero_el_nav": {
+    "message": "El lector dibuja sus páginas, pero el navegador impide leer su contenido visual. El diagnóstico indica qué superficies no se han podido capturar."
+  },
+  "detect_el_visor_esta_cargado_pero_no_expone_con": {
+    "message": "El visor está cargado, pero no expone contenido legible ni un PDF o audio accesible. Abre el recurso original y vuelve a detectar."
+  },
+  "detect_la_pagina_muestra_un_inicio_de_sesion_en": {
+    "message": "La página muestra un inicio de sesión. Entra en el curso y vuelve a detectar su contenido."
+  },
+  "detect_no_se_ha_encontrado_texto_pdf_video_ni_i": {
+    "message": "No se ha encontrado texto, PDF, vídeo ni imágenes que se puedan capturar en esta página."
+  },
+  "detect_veo_un_reproductor_pero_no_expone_audio_": {
+    "message": "Veo un reproductor, pero no expone audio ni subtítulos accesibles. Inicia el vídeo y vuelve a detectar."
+  },
+  "diag_anaco_necesita_su_servicio_local_para_pr": {
+    "message": "Anaco necesita su servicio local para preparar y guardar notas. Se instala una vez con dos comandos."
+  },
+  "diag_comprueba_que_falta": {
+    "message": "Comprueba qué falta"
+  },
+  "diag_el_servicio_local_no_responde": {
+    "message": "El servicio local no responde"
+  },
+  "diag_error_desconocido": {
+    "message": "Error desconocido."
+  },
+  "diag_falta_el_servicio_local": {
+    "message": "Falta el servicio local"
+  },
+  "diag_instala_el_servicio_local_de_anaco": {
+    "message": "Instala el servicio local de Anaco"
+  },
+  "diag_instala_pipx_con_el_gestor_de_paquetes_d": {
+    "message": "Instala pipx con el gestor de paquetes de tu sistema (por ejemplo)"
+  },
+  "diag_instala_pipx_con_homebrew": {
+    "message": "Instala pipx con Homebrew"
+  },
+  "diag_instala_pipx_necesitas_python_3_11_o_sup": {
+    "message": "Instala pipx (necesitas Python 3.11 o superior)"
+  },
+  "diag_la_extension_es_la_1_y_el_servicio_la_2_": {
+    "message": "La extensión es la $1 y el servicio la $2. Actualiza el servicio con «pipx upgrade anaco-ob» y vuelve a ejecutar «anaco-ob install»."
+  },
+  "diag_la_ia_no_esta_lista": {
+    "message": "La IA no está lista"
+  },
+  "diag_no_encuentro_tu_vault": {
+    "message": "No encuentro tu vault"
+  },
+  "diag_o": {
+    "message": "o:"
+  },
+  "diag_registralo_para_firefox_y_zen_con_la_rut": {
+    "message": "Regístralo para Firefox y Zen con la ruta de tu vault"
+  },
+  "diag_revisa_el_proveedor_de_ia_en_opciones": {
+    "message": "Revisa el proveedor de IA en Opciones."
+  },
+  "diag_ruta_de_tu_vault": {
+    "message": "RUTA/DE/TU/VAULT"
+  },
+  "diag_versiones_distintas": {
+    "message": "Versiones distintas"
+  },
+  "embeds_demo_de_codepen": {
+    "message": "Demo de CodePen"
+  },
+  "embeds_pesa_1_mb_supera_los_2_mb_recomendados": {
+    "message": "Pesa $1 MB: supera los $2 MB recomendados."
+  },
+  "embeds_tamano_desconocido_revisa_si_quieres_gua": {
+    "message": "Tamaño desconocido: revisa si quieres guardarlo en el vault."
+  },
+  "manifest_action_title": {
+    "message": "Capturar con Anaco"
+  },
+  "manifest_command_capture": {
+    "message": "Capturar página con Anaco"
+  },
+  "manifest_description": {
+    "message": "Artículos, PDF, vídeos e imágenes para Obsidian, con transcripción, descripciones visuales y relaciones revisables."
+  },
+  "media_video_1": {
+    "message": "Vídeo $1"
+  },
+  "options_99_recursos_anaco_perfil_json": {
+    "message": "99_Recursos/anaco/perfil.json"
+  },
+  "options_a_la_ia_solo_llegan_los_documentos_marca": {
+    "message": "A la IA solo llegan los documentos marcados, los nombres de carpeta y estadísticas de metadatos. El contenido de tus otras notas no sale del ordenador."
+  },
+  "options_abrir_la_guia_de_instalacion": {
+    "message": "Abrir la guía de instalación ↗"
+  },
+  "options_anaco_guarda_segun_las_reglas_de_tu_vaul": {
+    "message": "Anaco guarda según las reglas de tu vault: destinos, tipos, nombres de archivo, metadatos, adjuntos y las instrucciones que debe seguir la IA. Escanéalo para proponerlas y confírmalas."
+  },
+  "options_anaco_necesita_su_servicio_local_para_pr": {
+    "message": "Anaco necesita su servicio local para preparar notas y guardar archivos. Si no conecta, la guía de instalación tiene los comandos para tu sistema y una comprobación de cada pieza."
+  },
+  "options_aplicar_json_al_formulario": {
+    "message": "Aplicar JSON al formulario"
+  },
+  "options_automatico_primero_html_y_descripciones_": {
+    "message": "Automático · primero HTML y descripciones guardadas"
+  },
+  "options_borrar_la_clave_guardada": {
+    "message": "Borrar la clave guardada"
+  },
+  "options_busca_tu_vault_para_seleccionarlo": {
+    "message": "Busca tu vault para seleccionarlo"
+  },
+  "options_buscando_en_el_registro_de_obsidian_y_ca": {
+    "message": "Buscando en el registro de Obsidian y carpetas habituales…"
+  },
+  "options_buscar_vaults": {
+    "message": "Buscar vaults"
+  },
+  "options_cambios_sin_guardar_se_conservan_al_volv": {
+    "message": "Cambios sin guardar · se conservan al volver"
+  },
+  "options_clave_api": {
+    "message": "Clave API"
+  },
+  "options_clave_guardada_escribe_otra_para_cambiar": {
+    "message": "Clave guardada · escribe otra para cambiarla"
+  },
+  "options_como_es_tu_vault": {
+    "message": "Cómo es tu vault"
+  },
+  "options_como_localizar_el_vault": {
+    "message": "Cómo localizar el vault"
+  },
+  "options_como_obtener_los_pies_de_imagen": {
+    "message": "Cómo obtener los pies de imagen"
+  },
+  "options_comprobando_el_perfil": {
+    "message": "Comprobando el perfil…"
+  },
+  "options_comprobar_conexion": {
+    "message": "Comprobar conexión"
+  },
+  "options_con_un_modelo_local_nada_sale_de_tu_orde": {
+    "message": "). Con un modelo local nada sale de tu ordenador."
+  },
+  "options_configura_tu_vault_y_como_preparar_las_n": {
+    "message": "Configura tu vault y cómo preparar las notas. El guardado de esta versión siempre pasa por tu revisión."
+  },
+  "options_confirmar_perfil": {
+    "message": "Confirmar perfil"
+  },
+  "options_consulta_el_registro_local_de_obsidian_y": {
+    "message": "Consulta el registro local de Obsidian y carpetas habituales."
+  },
+  "options_cualquier_servidor_con_la_api_de_openai_": {
+    "message": "Cualquier servidor con la API de OpenAI: OpenAI, OpenRouter o un modelo local con Ollama ("
+  },
+  "options_detectar_automaticamente": {
+    "message": "Detectar automáticamente"
+  },
+  "options_documentos_que_puede_leer_la_ia": {
+    "message": "Documentos que puede leer la IA"
+  },
+  "options_donde_guardar_el_perfil_relativo_al_vaul": {
+    "message": "Dónde guardar el perfil, relativo al vault"
+  },
+  "options_duracion_maxima_de_video_audio_minutos": {
+    "message": "Duración máxima de vídeo/audio, minutos"
+  },
+  "options_editar_el_json_del_perfil": {
+    "message": "Editar el JSON del perfil"
+  },
+  "options_en_automatico_se_reutilizan_los_pies_des": {
+    "message": "En automático se reutilizan los pies, descripciones accesibles y nombres de archivo claros. Las imágenes con descripción suficiente no se envían a visión. Los nombres se indican como pistas, no como observaciones verificadas. Las páginas de PDF y fotogramas pueden necesitar visión para comprender el contenido completo. Si ninguna imagen necesita análisis, se mantiene el modelo de texto."
+  },
+  "options_escanear_el_vault": {
+    "message": "Escanear el vault"
+  },
+  "options_forzar_analisis_visual_de_todas_las_sele": {
+    "message": "Forzar análisis visual de todas las seleccionadas"
+  },
+  "options_fotogramas_candidatos_de_archivos_de_vid": {
+    "message": "Fotogramas candidatos de archivos de vídeo (1–6)"
+  },
+  "options_gpt_4o_mini_llama3_1_8b": {
+    "message": "gpt-4o-mini · llama3.1:8b"
+  },
+  "options_guardar_opciones": {
+    "message": "Guardar opciones"
+  },
+  "options_hay_varios_vaults_elige_el_que_quieres_u": {
+    "message": "Hay varios vaults. Elige el que quieres usar y pulsa Guardar opciones."
+  },
+  "options_https_api_openai_com_v1": {
+    "message": "https://api.openai.com/v1"
+  },
+  "options_ia_compatible_con_openai_api_propia_o_mo": {
+    "message": "IA compatible con OpenAI · API propia o modelo local"
+  },
+  "options_ia_con_codex_sesion_de_chatgpt_existente": {
+    "message": "IA con Codex · sesión de ChatGPT existente"
+  },
+  "options_idioma": {
+    "message": "Idioma"
+  },
+  "options_idioma_automatico": {
+    "message": "Automático · el del navegador"
+  },
+  "options_idioma_ayuda": {
+    "message": "Se aplica a la extensión al momento. En automático, Anaco usa inglés si el navegador está en inglés y español en los demás casos."
+  },
+  "options_idioma_de_la_interfaz": {
+    "message": "Idioma de la interfaz"
+  },
+  "options_importacion_manual": {
+    "message": "Importación manual"
+  },
+  "options_importar_un_archivo_local": {
+    "message": "Importar un archivo local ↗"
+  },
+  "options_instalacion_local": {
+    "message": "Instalación local"
+  },
+  "options_introducir_la_ruta_manualmente": {
+    "message": "Introducir la ruta manualmente"
+  },
+  "options_la_busqueda_no_lee_tus_notas_confirma_la": {
+    "message": "La búsqueda no lee tus notas. Confirma la ruta con Guardar opciones. Puedes introducir una ruta manual si tu vault está en otra ubicación."
+  },
+  "options_libros_pdf_y_video": {
+    "message": "Libros, PDF y vídeo"
+  },
+  "options_maximo_de_paginas_pdf_por_captura": {
+    "message": "Máximo de páginas PDF por captura"
+  },
+  "options_modelo": {
+    "message": "Modelo"
+  },
+  "options_modelo_de_codex_para_texto": {
+    "message": "Modelo de Codex para texto"
+  },
+  "options_modelo_visual_de_codex_cuando_haga_falta": {
+    "message": "Modelo visual de Codex cuando haga falta"
+  },
+  "options_modelo_visual_opcional": {
+    "message": "Modelo visual, opcional"
+  },
+  "options_modo_predeterminado": {
+    "message": "Modo predeterminado"
+  },
+  "options_motor_actual_cpu_int8_la_tarjeta_grafica": {
+    "message": "Motor actual: CPU · int8. La tarjeta gráfica no se utiliza en esta versión. Tiny prioriza rapidez; small requiere más tiempo y memoria. El modelo se descarga la primera vez. Se usan subtítulos cuando están disponibles."
+  },
+  "options_navegacion_de_opciones": {
+    "message": "Navegación de opciones"
+  },
+  "options_no_se_han_encontrado_vaults_puedes_intro": {
+    "message": "No se han encontrado vaults. Puedes introducir la ruta manualmente arriba."
+  },
+  "options_no_se_pudo_completar_la_busqueda_1": {
+    "message": "No se pudo completar la búsqueda: $1. Puedes introducir la ruta manualmente."
+  },
+  "options_o_lm_studio": {
+    "message": ") o LM Studio ("
+  },
+  "options_obsidian_mivault": {
+    "message": "~/Obsidian/MiVault"
+  },
+  "options_opciones": {
+    "message": "Opciones"
+  },
+  "options_opciones_anaco": {
+    "message": "Opciones · Anaco"
+  },
+  "options_opciones_guardadas": {
+    "message": "Opciones guardadas"
+  },
+  "options_opciones_guardadas_las_capturas_pendient": {
+    "message": "Opciones guardadas. Las capturas pendientes siguen disponibles desde su vault de origen."
+  },
+  "options_organizacion_predeterminada_de_las_notas": {
+    "message": "Organización predeterminada de las notas"
+  },
+  "options_paginas_candidatas_para_analisis_visual_": {
+    "message": "Páginas candidatas para análisis visual (1–8)"
+  },
+  "options_paginas_por_lote_de_lectura_del_libro_18": {
+    "message": "Páginas por lote de lectura del libro (1–8)"
+  },
+  "options_para_un_archivo_que_ya_tienes_descargado": {
+    "message": "Para un archivo que ya tienes descargado, abre la herramienta de importación. Admite PDF, audio, vídeo y subtítulos."
+  },
+  "options_perfil_del_vault": {
+    "message": "Perfil del vault"
+  },
+  "options_preparacion_de_notas": {
+    "message": "Preparación de notas"
+  },
+  "options_proponer_con_ia": {
+    "message": "Proponer con IA"
+  },
+  "options_puedes_cambiarlo_antes_de_preparar_cada_": {
+    "message": "Puedes cambiarlo antes de preparar cada captura. El código relevante se conserva con su explicación en cualquiera de los modos."
+  },
+  "options_revisa_la_propuesta": {
+    "message": "Revisa la propuesta"
+  },
+  "options_ruta_del_vault": {
+    "message": "Ruta del vault"
+  },
+  "options_ruta_guardada": {
+    "message": "Ruta guardada"
+  },
+  "options_se_guarda_solo_en_el_servicio_local_de_t": {
+    "message": "Se guarda solo en el servicio local de tu ordenador."
+  },
+  "options_se_leen_todas_las_paginas_del_libro_y_de": {
+    "message": "Se leen todas las páginas del libro y después se sintetizan juntas. Los lotes completados se conservan si hay que reintentar."
+  },
+  "options_selecciona_un_vault": {
+    "message": "Selecciona un vault"
+  },
+  "options_selecciona_un_vault_detectado_o_introduc": {
+    "message": "Selecciona un vault detectado o introduce su ruta manualmente."
+  },
+  "options_servicio_conectado_localiza_tu_vault_par": {
+    "message": "Servicio conectado. Localiza tu vault para empezar."
+  },
+  "options_servicio_conectado_vault_configurado_dis": {
+    "message": "Servicio conectado · vault configurado disponible."
+  },
+  "options_si_se_deja_vacio_se_usa_el_modelo_anteri": {
+    "message": "Si se deja vacío, se usa el modelo anterior"
+  },
+  "options_sin_vision_metadatos_y_descripciones_gua": {
+    "message": "Sin visión · metadatos y descripciones guardadas"
+  },
+  "options_transcripcion_local": {
+    "message": "Transcripción local"
+  },
+  "options_tu_second_brain": {
+    "message": "Tu Second Brain"
+  },
+  "options_un_archivo_json_en_una_carpeta_normal_ob": {
+    "message": "Un archivo .json en una carpeta normal: Obsidian no lo muestra como nota y tu sincronización lo lleva a otros ordenadores."
+  },
+  "options_un_lugar_para_lo_que_aprendes": {
+    "message": "Un lugar para lo que aprendes."
+  },
+  "options_url_base": {
+    "message": "URL base"
+  },
+  "options_usar_la_propuesta_automatica": {
+    "message": "Usar la propuesta automática"
+  },
+  "options_vacia_para_modelos_locales": {
+    "message": "Vacía para modelos locales"
+  },
+  "options_vault_localizado_revisa_la_ruta_y_pulsa_": {
+    "message": "Vault localizado. Revisa la ruta y pulsa Guardar opciones para usarlo."
+  },
+  "options_vault_seleccionado_1_aun_no_esta_en_uso_": {
+    "message": "Vault seleccionado: $1\nAún no está en uso. Pulsa Guardar y volver para aplicarlo."
+  },
+  "options_vaults_encontrados": {
+    "message": "Vaults encontrados"
+  },
+  "options_volver_a_la_captura": {
+    "message": "← Volver a la captura"
+  },
+  "options_whisper_base_equilibrio": {
+    "message": "Whisper base · equilibrio"
+  },
+  "options_whisper_small_mas_precision_mas_lento": {
+    "message": "Whisper small · más precisión, más lento"
+  },
+  "options_whisper_tiny_rapido": {
+    "message": "Whisper tiny · rápido"
+  },
+  "panel_1_2_paginas_capturadas_estas_imagenes_so": {
+    "message": "$1/$2 páginas capturadas. Estas imágenes son figuras candidatas para la nota; la lectura del libro incluye todas las páginas."
+  },
+  "panel_1_5_8_vacio_rango_inicial_configurado": {
+    "message": "1-5,8 · vacío: rango inicial configurado"
+  },
+  "panel_1_8_elegidas_2_disponibles": {
+    "message": "$1 / 8 elegidas · $2 disponibles"
+  },
+  "panel_1_con_notas_existentes_2_entre_temas": {
+    "message": "$1 con notas existentes · $2 entre temas"
+  },
+  "panel_1_de_2_de_audio_3": {
+    "message": "$1 de $2 de audio · $3 %"
+  },
+  "panel_1_de_2_notas_incluidas_3": {
+    "message": "$1 de $2 notas incluidas · $3"
+  },
+  "panel_1_paginas_localizadas_se_extraeran_todas": {
+    "message": "$1 páginas localizadas. Se extraerán todas."
+  },
+  "panel_abrir_en_obsidian": {
+    "message": "Abrir en Obsidian ↗"
+  },
+  "panel_abrir_fuente": {
+    "message": "Abrir fuente ↗"
+  },
+  "panel_abrir_la_revision": {
+    "message": "Abrir la revisión ↗"
+  },
+  "panel_abrir_la_revision_al_terminar_de_extraer": {
+    "message": "Abrir la revisión al terminar de extraer"
+  },
+  "panel_abrir_opciones": {
+    "message": "Abrir Opciones ↗"
+  },
+  "panel_actualizar_pendientes": {
+    "message": "Actualizar pendientes"
+  },
+  "panel_ajustes_de_esta_captura": {
+    "message": "Ajustes de esta captura"
+  },
+  "panel_archivo_local": {
+    "message": "archivo local"
+  },
+  "panel_articulo": {
+    "message": "ARTÍCULO"
+  },
+  "panel_articulo_web_prioriza_la_pagina": {
+    "message": "Artículo web · prioriza la página"
+  },
+  "panel_asistente_de_revision": {
+    "message": "ASISTENTE DE REVISIÓN"
+  },
+  "panel_automatico_articulos_y_cursos": {
+    "message": "Automático · artículos y cursos"
+  },
+  "panel_automatico_que_decida_la_ia": {
+    "message": "Automático · que decida la IA"
+  },
+  "panel_avance_del_trabajo": {
+    "message": "Avance del trabajo"
+  },
+  "panel_buscando_subtitulos": {
+    "message": "BUSCANDO SUBTÍTULOS"
+  },
+  "panel_buscar_conexiones": {
+    "message": "Buscar conexiones"
+  },
+  "panel_cancelado": {
+    "message": "Cancelado"
+  },
+  "panel_cancelar_y_conservar_avance": {
+    "message": "Cancelar y conservar avance"
+  },
+  "panel_captura_manual_sin_ia": {
+    "message": "Captura manual · sin IA"
+  },
+  "panel_capturar_conectar_aprender": {
+    "message": "Capturar · Conectar · Aprender"
+  },
+  "panel_capturas_pendientes": {
+    "message": "Capturas pendientes"
+  },
+  "panel_clip": {
+    "message": "Clip"
+  },
+  "panel_clip_silencioso": {
+    "message": "Clip silencioso"
+  },
+  "panel_clips_de_video": {
+    "message": "Clips de vídeo"
+  },
+  "panel_como_instalarlo": {
+    "message": "Cómo instalarlo ↗"
+  },
+  "panel_comprobando_el_archivo": {
+    "message": "COMPROBANDO EL ARCHIVO"
+  },
+  "panel_conectando": {
+    "message": "Conectando…"
+  },
+  "panel_contenido_de_esta_pagina": {
+    "message": "Contenido de esta página"
+  },
+  "panel_contenido_de_la_pestana_actual": {
+    "message": "Contenido de la pestaña actual"
+  },
+  "panel_contenido_detectado_revision_antes_de_gu": {
+    "message": "Contenido detectado · revisión antes de guardar"
+  },
+  "panel_copia_ejecutable_sin_conexion": {
+    "message": " · copia ejecutable sin conexión"
+  },
+  "panel_copiado": {
+    "message": "Copiado ✓"
+  },
+  "panel_copiar": {
+    "message": "Copiar"
+  },
+  "panel_copiar_diagnostico": {
+    "message": "Copiar diagnóstico"
+  },
+  "panel_copiar_error_y_diagnostico": {
+    "message": "Copiar error y diagnóstico"
+  },
+  "panel_crear_nota_del_pdf": {
+    "message": "Crear nota del PDF"
+  },
+  "panel_crear_nota_del_video": {
+    "message": "Crear nota del vídeo"
+  },
+  "panel_crear_notas_del_libro_completo": {
+    "message": "Crear notas del libro completo"
+  },
+  "panel_curso_deteccion_clasica": {
+    "message": "Curso · detección clásica"
+  },
+  "panel_demo": {
+    "message": "Demo"
+  },
+  "panel_demos_de_codepen": {
+    "message": "Demos de CodePen"
+  },
+  "panel_descargando_audio": {
+    "message": "DESCARGANDO AUDIO"
+  },
+  "panel_destino_e_imagenes": {
+    "message": "Destino e imágenes"
+  },
+  "panel_detectando_el_contenido_de_esta_pestana": {
+    "message": "Detectando el contenido de esta pestaña…"
+  },
+  "panel_detectar_contenido": {
+    "message": "Detectar contenido"
+  },
+  "panel_detectar_de_nuevo": {
+    "message": "Detectar de nuevo"
+  },
+  "panel_diagnostico_de_deteccion": {
+    "message": "Diagnóstico de detección"
+  },
+  "panel_diagnostico_de_deteccion_2": {
+    "message": "Diagnóstico de detección:\n"
+  },
+  "panel_editar_markdown": {
+    "message": "Editar Markdown"
+  },
+  "panel_el_reproductor_no_expone_un_recurso_de_a": {
+    "message": "El reproductor no expone un recurso de audio ni subtítulos accesibles."
+  },
+  "panel_en_curso": {
+    "message": "EN CURSO"
+  },
+  "panel_en_curso_job": {
+    "message": "En curso"
+  },
+  "panel_error_recuperable": {
+    "message": "Error recuperable"
+  },
+  "panel_error_y_diagnostico_para_copiar": {
+    "message": "Error y diagnóstico para copiar"
+  },
+  "panel_esta_fase_no_ofrece_un_porcentaje_medibl": {
+    "message": "Esta fase no ofrece un porcentaje medible."
+  },
+  "panel_este_recurso_todavia_no_se_ha_extraido": {
+    "message": "Este recurso todavía no se ha extraído."
+  },
+  "panel_este_vault_aun_no_tiene_perfil_escanealo": {
+    "message": "Este vault aún no tiene perfil: escanéalo en Opciones antes de guardar notas."
+  },
+  "panel_extraccion_de_archivo": {
+    "message": "Extracción de archivo"
+  },
+  "panel_extraer_archivo": {
+    "message": "Extraer archivo"
+  },
+  "panel_extraer_libro_completo": {
+    "message": "Extraer libro completo"
+  },
+  "panel_extraer_pdf_y_paginas": {
+    "message": "Extraer PDF y páginas"
+  },
+  "panel_extraer_subtitulos_o_transcribir": {
+    "message": "Extraer subtítulos o transcribir"
+  },
+  "panel_extraer_y_preparar_nota": {
+    "message": "Extraer y preparar nota"
+  },
+  "panel_extrayendo_fotogramas": {
+    "message": "EXTRAYENDO FOTOGRAMAS"
+  },
+  "panel_fotogramas_del_video_para_incorporar_dia": {
+    "message": "Fotogramas del vídeo para incorporar diagramas o diapositivas a los apuntes."
+  },
+  "panel_frase": {
+    "message": "FRASE"
+  },
+  "panel_guardar_y_volver": {
+    "message": "Guardar y volver"
+  },
+  "panel_ia_servidor_compatible_con_openai": {
+    "message": "IA · servidor compatible con OpenAI"
+  },
+  "panel_ia_tu_sesion_de_codex_chatgpt": {
+    "message": "IA · tu sesión de Codex / ChatGPT"
+  },
+  "panel_imagen": {
+    "message": "IMAGEN"
+  },
+  "panel_imagen_1": {
+    "message": "Imagen $1"
+  },
+  "panel_imagenes": {
+    "message": "Imágenes"
+  },
+  "panel_imagenes_disponibles_desplazate_para_ver": {
+    "message": "Imágenes disponibles; desplázate para ver todas"
+  },
+  "panel_importacion_manual_de_un_archivo_local": {
+    "message": "Importación manual de un archivo local"
+  },
+  "panel_incluir_1": {
+    "message": "Incluir $1"
+  },
+  "panel_interrumpido": {
+    "message": "Interrumpido"
+  },
+  "panel_la_primera_carga_puede_descargar_el_mode": {
+    "message": "La primera carga puede descargar el modelo. El audio se procesa en este equipo."
+  },
+  "panel_la_revision_se_abrira_en_una_pestana_amp": {
+    "message": "La revisión se abrirá en una pestaña amplia. Al guardar o descartar volverás al artículo."
+  },
+  "panel_lector_html": {
+    "message": "LECTOR HTML"
+  },
+  "panel_lectura": {
+    "message": "Lectura"
+  },
+  "panel_leyendo_pdf_y_renderizando_paginas": {
+    "message": "Leyendo PDF y renderizando páginas…"
+  },
+  "panel_limite_100_mb_para_pdf_subtitulos_y_1_gb": {
+    "message": "Límite: 100 MB para PDF/subtítulos y 1 GB para archivos locales de audio/vídeo."
+  },
+  "panel_modo_de_captura": {
+    "message": "Modo de captura"
+  },
+  "panel_no_hay_audio_o_subtitulos_accesibles_en_": {
+    "message": "No hay audio o subtítulos accesibles en este reproductor."
+  },
+  "panel_no_hay_capturas_pendientes": {
+    "message": "No hay capturas pendientes."
+  },
+  "panel_no_hay_una_revision_abierta_en_esta_vent": {
+    "message": "No hay una revisión abierta en esta ventana."
+  },
+  "panel_no_se_encuentra_esta_imagen_en_el_articu": {
+    "message": "No se encuentra esta imagen en el artículo. Puede haber cambiado desde la captura."
+  },
+  "panel_no_se_encuentra_este_recurso_en_el_artic": {
+    "message": "No se encuentra este recurso en el artículo. Puede haber cambiado desde la captura."
+  },
+  "panel_no_se_ha_concedido_acceso_a_esta_pagina": {
+    "message": "No se ha concedido acceso a esta página."
+  },
+  "panel_no_se_ha_concedido_acceso_a_las_imagenes": {
+    "message": "No se ha concedido acceso a las imágenes o recursos elegidos. Desmárcalos para capturar solo el texto."
+  },
+  "panel_no_se_ha_concedido_acceso_a_las_paginas_": {
+    "message": "No se ha concedido acceso a las páginas del libro."
+  },
+  "panel_no_se_ha_concedido_acceso_al_contenido_i": {
+    "message": "No se ha concedido acceso al contenido incrustado."
+  },
+  "panel_no_se_ha_concedido_acceso_al_pdf": {
+    "message": "No se ha concedido acceso al PDF."
+  },
+  "panel_no_se_ha_concedido_acceso_al_recurso_de_": {
+    "message": "No se ha concedido acceso al recurso de vídeo."
+  },
+  "panel_nota_guardada": {
+    "message": "Nota guardada: "
+  },
+  "panel_opciones": {
+    "message": "Opciones ↗"
+  },
+  "panel_organizacion_de_la_propuesta": {
+    "message": "Organización de la propuesta"
+  },
+  "panel_origen_del_trabajo_1": {
+    "message": "Origen del trabajo: $1"
+  },
+  "panel_pagina_1": {
+    "message": "Página: $1"
+  },
+  "panel_paginas_a_procesar": {
+    "message": "Páginas a procesar"
+  },
+  "panel_paginas_del_pdf_opcional": {
+    "message": "Páginas del PDF, opcional"
+  },
+  "panel_para_documentos_locales_o_recursos_priva": {
+    "message": "Para documentos locales o recursos privados que el visor no permita extraer. PDF/subtítulos hasta 100 MB; audio/vídeo hasta 1 GB."
+  },
+  "panel_para_este_pdf_local_usa_importar_archivo": {
+    "message": "Para este PDF local usa Importar archivo, en la parte superior del panel."
+  },
+  "panel_pasa_por_un_recurso_para_localizarlo_en_": {
+    "message": "Pasa por un recurso para localizarlo en el artículo. Se insertan en su sitio dentro de la nota; los clips y las demos se guardan en el vault."
+  },
+  "panel_pasa_por_una_imagen_para_localizarla_y_r": {
+    "message": "Pasa por una imagen para localizarla y resaltarla en el artículo. También puedes usar el teclado."
+  },
+  "panel_pdf_detectado": {
+    "message": "PDF detectado"
+  },
+  "panel_pendiente": {
+    "message": "Pendiente"
+  },
+  "panel_permitir_detectar_el_contenido_del_visor": {
+    "message": "Permitir detectar el contenido del visor"
+  },
+  "panel_permitir_lectura_de": {
+    "message": "Permitir lectura de "
+  },
+  "panel_por_que_quieres_guardarlo": {
+    "message": "¿Por qué quieres guardarlo?"
+  },
+  "panel_preparacion_de_nota": {
+    "message": "Preparación de nota"
+  },
+  "panel_preparando_contenido": {
+    "message": "Preparando contenido"
+  },
+  "panel_preparando_el_motor": {
+    "message": "PREPARANDO EL MOTOR"
+  },
+  "panel_preparar_con": {
+    "message": "Preparar con"
+  },
+  "panel_preparar_y_abrir_revision": {
+    "message": "Preparar y abrir revisión ↗"
+  },
+  "panel_primero_se_buscan_subtitulos_la_transcri": {
+    "message": "Primero se buscan subtítulos. La transcripción local puede tardar varios minutos y continúa al cerrar el panel."
+  },
+  "panel_proponer_division": {
+    "message": "Proponer división"
+  },
+  "panel_publicacion": {
+    "message": "Publicación"
+  },
+  "panel_publicacion_incrustada": {
+    "message": "Publicación incrustada"
+  },
+  "panel_publicaciones_de_x": {
+    "message": "Publicaciones de X"
+  },
+  "panel_puedes_seguir_navegando_o_cerrar_este_pa": {
+    "message": "Puedes seguir navegando o cerrar este panel. El trabajo continúa."
+  },
+  "panel_pulsa_ctrl_c": {
+    "message": "Pulsa Ctrl+C"
+  },
+  "panel_que_se_envia_a_la_ia": {
+    "message": "Qué se envía a la IA"
+  },
+  "panel_que_te_interesa_que_quieres_aprender_o_d": {
+    "message": "Qué te interesa, qué quieres aprender o dónde podrías aplicarlo…"
+  },
+  "panel_reanudar": {
+    "message": "Reanudar"
+  },
+  "panel_recursos_incrustados": {
+    "message": "Recursos incrustados"
+  },
+  "panel_recursos_incrustados_desplazate_para_ver": {
+    "message": "Recursos incrustados; desplázate para ver todos"
+  },
+  "panel_regenerar_y_abrir_revision": {
+    "message": "Regenerar y abrir revisión"
+  },
+  "panel_revisar_contenido_capturado": {
+    "message": "Revisar contenido capturado"
+  },
+  "panel_revisar_perfil": {
+    "message": "Revisar perfil ↗"
+  },
+  "panel_revision_abierta": {
+    "message": "Revisión abierta"
+  },
+  "panel_se_detectaran_los_articulos_pdf_imagenes": {
+    "message": "Se detectarán los artículos, PDF, imágenes y vídeos accesibles de esta página."
+  },
+  "panel_se_envian_el_contenido_y_fragmentos_de_n": {
+    "message": "Se envían el contenido y fragmentos de notas candidatas. En automático se aprovechan primero los pies y descripciones del HTML. Solo se adjuntan a visión las imágenes que lo necesitan; los PDF y fotogramas pueden requerirla para leer su contenido. Puedes desactivar visión en Opciones."
+  },
+  "panel_se_recuperan_todas_las_paginas_del_lecto": {
+    "message": "Se recuperan todas las páginas del lector. Después se prepara un resumen del libro y se eligen las figuras para la nota."
+  },
+  "panel_selecciona_como_maximo_ocho_imagenes": {
+    "message": "Selecciona como máximo ocho imágenes."
+  },
+  "panel_selecciona_paginas_candidatas_la_ia_prop": {
+    "message": "Selecciona páginas candidatas. La IA propondrá cuáles aportan valor; podrás cambiar la selección en la revisión."
+  },
+  "panel_selecciona_primero_un_archivo": {
+    "message": "Selecciona primero un archivo."
+  },
+  "panel_seleccionar_un_archivo_local": {
+    "message": "Seleccionar un archivo local"
+  },
+  "panel_servicio_local_conectado": {
+    "message": "SERVICIO LOCAL CONECTADO"
+  },
+  "panel_servicio_sin_conectar": {
+    "message": "SERVICIO SIN CONECTAR"
+  },
+  "panel_sin_contenido": {
+    "message": "SIN CONTENIDO"
+  },
+  "panel_sin_descripcion_localizala_en_el_articul": {
+    "message": "Sin descripción · localízala en el artículo"
+  },
+  "panel_trabajo_en_curso": {
+    "message": "Trabajo en curso"
+  },
+  "panel_trabajo_en_curso_caps": {
+    "message": "TRABAJO EN CURSO"
+  },
+  "panel_trabajos_recuperables": {
+    "message": "Trabajos recuperables"
+  },
+  "panel_transcribiendo_o_leyendo_subtitulos_pued": {
+    "message": "Transcribiendo o leyendo subtítulos. Puedes seguir navegando…"
+  },
+  "panel_transcripcion_local": {
+    "message": "TRANSCRIPCIÓN LOCAL"
+  },
+  "panel_una_nota_con_apartados": {
+    "message": "Una nota con apartados"
+  },
+  "panel_varias_notas_enlazadas_por_temas": {
+    "message": "Varias notas enlazadas por temas"
+  },
+  "panel_ver_conexiones": {
+    "message": "Ver conexiones"
+  },
+  "panel_video": {
+    "message": "Vídeo"
+  },
+  "panel_video_audio": {
+    "message": "VÍDEO / AUDIO"
+  },
+  "panel_video_de_plataforma": {
+    "message": "Vídeo de plataforma"
+  },
+  "panel_video_o_audio_detectado": {
+    "message": "Vídeo o audio detectado"
+  },
+  "panel_visor": {
+    "message": "VISOR"
+  },
+  "panel_volver_a_la_revision": {
+    "message": "Volver a la revisión ↗"
+  },
+  "panel_y_1_mas": {
+    "message": " (y $1 más)"
+  },
+  "profile_1_2_de_3_marcadas": {
+    "message": "$1 · $2 de $3 marcadas"
+  },
+  "profile_1_documento_de_tu_vault": {
+    "message": "$1 documento de tu vault"
+  },
+  "profile_1_documentos_de_tu_vault": {
+    "message": "$1 documentos de tu vault"
+  },
+  "profile_adjuntos": {
+    "message": "Adjuntos"
+  },
+  "profile_admite_variables": {
+    "message": "Admite {date}, {slug_}, {slug-}, {title}, {type} y {variant}."
+  },
+  "profile_ajustar_adjuntos_y_relaciones": {
+    "message": "Ajustar adjuntos y relaciones"
+  },
+  "profile_ajustar_destinos_1": {
+    "message": "Ajustar destinos ($1)"
+  },
+  "profile_ajustar_documentos_para_la_ia_1": {
+    "message": "Ajustar documentos para la IA ($1)"
+  },
+  "profile_ajustar_encabezados": {
+    "message": "Ajustar encabezados"
+  },
+  "profile_ajustar_metadatos_1": {
+    "message": "Ajustar metadatos ($1)"
+  },
+  "profile_ajustar_tipos_y_nombres_de_archivo_1": {
+    "message": "Ajustar tipos y nombres de archivo ($1)"
+  },
+  "profile_archivo": {
+    "message": "Archivo"
+  },
+  "profile_asistido_por_ia": {
+    "message": "Asistido por IA"
+  },
+  "profile_autor_de_la_fuente": {
+    "message": "Autor de la fuente"
+  },
+  "profile_cada_campo_dice_de_donde_sale_su_valor_l": {
+    "message": "Cada campo dice de dónde sale su valor. Las relaciones solo incluyen las que aceptes al revisar."
+  },
+  "profile_carpeta_de_adjuntos": {
+    "message": "Carpeta de adjuntos"
+  },
+  "profile_carpeta_n_o_1_de_la_ruta_sin_el_prefijo_": {
+    "message": "Carpeta n.º $1 de la ruta, sin el prefijo numérico."
+  },
+  "profile_carpetas_donde_buscar_notas_relacionadas": {
+    "message": "Carpetas donde buscar notas relacionadas:"
+  },
+  "profile_detalle": {
+    "message": "Detalle"
+  },
+  "profile_el_json_no_es_valido": {
+    "message": "El JSON no es válido: "
+  },
+  "profile_encabezado_1": {
+    "message": "Encabezado: $1"
+  },
+  "profile_este_vault_aun_no_tiene_perfil_escanealo": {
+    "message": "Este vault aún no tiene perfil. Escanéalo para que Anaco sepa dónde y cómo guardar."
+  },
+  "profile_etiquetas_propuestas": {
+    "message": "Etiquetas propuestas"
+  },
+  "profile_fecha_de_creacion": {
+    "message": "Fecha de creación"
+  },
+  "profile_fecha_de_guardado": {
+    "message": "Fecha de guardado"
+  },
+  "profile_formato_de_la_fuente": {
+    "message": "Formato de la fuente"
+  },
+  "profile_guarda_en": {
+    "message": "Guarda en"
+  },
+  "profile_guias": {
+    "message": "Guías"
+  },
+  "profile_incluir_este_campo": {
+    "message": "Incluir este campo"
+  },
+  "profile_instrucciones_y_skills": {
+    "message": "Instrucciones y skills"
+  },
+  "profile_json_aplicado_al_formulario_revisalo_y_c": {
+    "message": "JSON aplicado al formulario. Revísalo y confirma."
+  },
+  "profile_la_ia_esta_leyendo_tus_instrucciones": {
+    "message": "La IA está leyendo tus instrucciones…"
+  },
+  "profile_la_ia_redacta_con": {
+    "message": "La IA redacta con"
+  },
+  "profile_las_instrucciones_del_vault_mandan_sobre": {
+    "message": "Las instrucciones del vault mandan sobre el estilo y la estructura de las notas."
+  },
+  "profile_lo_que_hara_anaco": {
+    "message": "Lo que hará Anaco"
+  },
+  "profile_metadatos": {
+    "message": "Metadatos"
+  },
+  "profile_modelo_de_ia": {
+    "message": "Modelo de IA"
+  },
+  "profile_no_se_han_encontrado_instrucciones_ni_pl": {
+    "message": "No se han encontrado instrucciones ni plantillas en el vault."
+  },
+  "profile_nombre": {
+    "message": "Nombre"
+  },
+  "profile_nombre_de_archivo_de": {
+    "message": "Nombre de archivo de "
+  },
+  "profile_nombre_de_una_carpeta_de_la_ruta": {
+    "message": "Nombre de una carpeta de la ruta"
+  },
+  "profile_nombre_visible_de": {
+    "message": "Nombre visible de "
+  },
+  "profile_origen": {
+    "message": "Origen"
+  },
+  "profile_origen_de": {
+    "message": "Origen de "
+  },
+  "profile_otros_documentos_1": {
+    "message": "Otros documentos ($1)"
+  },
+  "profile_perfil_confirmado_en_1_2_carpetas_de_des": {
+    "message": "Perfil confirmado en $1 · $2 carpetas de destino."
+  },
+  "profile_perfil_guardado_en_1_las_notas_nuevas_se": {
+    "message": "Perfil guardado en $1. Las notas nuevas seguirán estas reglas; las existentes no se modifican."
+  },
+  "profile_plantillas": {
+    "message": "Plantillas"
+  },
+  "profile_por_defecto": {
+    "message": "Por defecto"
+  },
+  "profile_por_que_se_propone_asi": {
+    "message": "Por qué se propone así"
+  },
+  "profile_relaciones_aceptadas": {
+    "message": "Relaciones aceptadas"
+  },
+  "profile_revisa_el_perfil": {
+    "message": "Revisa el perfil:\n"
+  },
+  "profile_segun_la_carpeta": {
+    "message": "Según la carpeta"
+  },
+  "profile_si_te_encaja_confirmalo_puedes_ajustar_c": {
+    "message": "Si te encaja, confírmalo. Puedes ajustar cualquier parte en los desplegables."
+  },
+  "profile_sin_valores_editalos_en_el_json": {
+    "message": "Sin valores: edítalos en el JSON."
+  },
+  "profile_solo_con_ia": {
+    "message": "solo con IA"
+  },
+  "profile_solo_en_1": {
+    "message": "solo en $1"
+  },
+  "profile_solo_sin_ia": {
+    "message": "solo sin IA"
+  },
+  "profile_solo_tipos_1": {
+    "message": "solo tipos $1"
+  },
+  "profile_tipo_por_defecto": {
+    "message": "Tipo por defecto"
+  },
+  "profile_tipo_predeterminado_en": {
+    "message": "Tipo predeterminado en "
+  },
+  "profile_tipos": {
+    "message": "Tipos"
+  },
+  "profile_tipos_en": {
+    "message": "Tipos en "
+  },
+  "profile_url_de_la_fuente": {
+    "message": "URL de la fuente"
+  },
+  "profile_usar_este_destino": {
+    "message": "Usar este destino"
+  },
+  "profile_vacio_se_usa_el_encabezado_por_defecto": {
+    "message": "Vacío: se usa el encabezado por defecto."
+  },
+  "profile_valor_de": {
+    "message": "Valor de "
+  },
+  "profile_valor_fijo": {
+    "message": "Valor fijo"
+  },
+  "profile_volver_a_escanear": {
+    "message": "Volver a escanear"
+  },
+  "profile_y_1_mas": {
+    "message": " y $1 más"
+  },
+  "profile_zonas_donde_anaco_puede_guardar_notas_co": {
+    "message": "Zonas donde Anaco puede guardar notas, con los tipos que admite cada una."
+  },
+  "render_ampliar_1": {
+    "message": "Ampliar: $1"
+  },
+  "render_clip_de_video_se_guardara_en_el_vault": {
+    "message": "Clip de vídeo · se guardará en el vault: "
+  },
+  "render_imagen_conservada_localmente_pulsa_para_": {
+    "message": "Imagen conservada localmente · pulsa para ampliar"
+  },
+  "render_imagen_local": {
+    "message": "Imagen local: "
+  },
+  "resource_direccion_de_recurso_no_admitida": {
+    "message": "Dirección de recurso no admitida."
+  },
+  "resource_la_descarga_del_reproductor_se_interrump": {
+    "message": "La descarga del reproductor se interrumpió."
+  },
+  "resource_la_lectura_con_el_contexto_del_reproduct": {
+    "message": "La lectura con el contexto del reproductor no está disponible."
+  },
+  "resource_limite_de_descarga_no_valido": {
+    "message": "Límite de descarga no válido."
+  },
+  "review_1_conexiones_2_3": {
+    "message": "$1 conexiones con notas existentes · $2 entre temas · $3 candidatas revisadas"
+  },
+  "review_1_conexiones_propuestas_2_3": {
+    "message": "$1 conexiones propuestas con notas existentes · $2 entre temas · $3 candidatas revisadas"
+  },
+  "review_abrir_panel_lateral": {
+    "message": "Abrir panel lateral"
+  },
+  "review_actual": {
+    "message": "Actual"
+  },
+  "review_ajustar_esta_nota": {
+    "message": "Ajustar esta nota"
+  },
+  "review_ampliar_imagen": {
+    "message": "Ampliar imagen "
+  },
+  "review_ampliar_una_nota_existente": {
+    "message": "Ampliar una nota existente"
+  },
+  "review_aplicar_al_borrador": {
+    "message": "Aplicar al borrador"
+  },
+  "review_aplicar_division_al_borrador": {
+    "message": "Aplicar división al borrador"
+  },
+  "review_asistido_por": {
+    "message": "Asistido por "
+  },
+  "review_buscando_relaciones_para_cada_tema_y_ent": {
+    "message": "Buscando relaciones para cada tema y entre las notas…"
+  },
+  "review_cancelar_ajuste": {
+    "message": "Cancelar ajuste"
+  },
+  "review_captura_manual_sin_resumen_generado": {
+    "message": "Captura manual · sin resumen generado"
+  },
+  "review_cargando_tu_propuesta": {
+    "message": "Cargando tu propuesta…"
+  },
+  "review_carpeta": {
+    "message": "Carpeta"
+  },
+  "review_cerrar": {
+    "message": "Cerrar ×"
+  },
+  "review_cerrar_imagen": {
+    "message": "Cerrar imagen"
+  },
+  "review_conexiones_con_tu_conocimiento": {
+    "message": "Conexiones con tu conocimiento"
+  },
+  "review_conocimiento_que_merece_quedarse": {
+    "message": "Conocimiento que merece quedarse."
+  },
+  "review_conservar_la_nota_actual": {
+    "message": "Conservar la nota actual"
+  },
+  "review_contenido_a_revisar": {
+    "message": "Contenido a revisar"
+  },
+  "review_contenido_de_la_nota": {
+    "message": "Contenido de la nota"
+  },
+  "review_contexto": {
+    "message": "Contexto"
+  },
+  "review_desarrollar": {
+    "message": "Desarrollar"
+  },
+  "review_descartar": {
+    "message": "Descartar"
+  },
+  "review_descartar_cambio": {
+    "message": "Descartar cambio"
+  },
+  "review_descripcion_accesible_del_html": {
+    "message": "Descripción accesible del HTML"
+  },
+  "review_descripcion_de_la_imagen": {
+    "message": "Descripción de la imagen "
+  },
+  "review_descripcion_existente": {
+    "message": "Descripción existente"
+  },
+  "review_descripcion_por_analisis_visual": {
+    "message": "Descripción por análisis visual"
+  },
+  "review_descripcion_visual_reutilizada_sin_nuevo": {
+    "message": "Descripción visual reutilizada · sin nuevo análisis"
+  },
+  "review_deshacer_ajuste": {
+    "message": "Deshacer ajuste"
+  },
+  "review_el_borrador_conserva_tus_ediciones": {
+    "message": "El borrador conserva tus ediciones."
+  },
+  "review_el_texto_cambio_mientras_se_preparaba_la": {
+    "message": "El texto cambió mientras se preparaba la propuesta. Solicita el ajuste de nuevo."
+  },
+  "review_en_esta_nota": {
+    "message": "En esta nota:\n"
+  },
+  "review_en_la_captura": {
+    "message": "En la captura:\\n"
+  },
+  "review_en_la_nota_existente": {
+    "message": "\\n\\nEn la nota existente:\\n"
+  },
+  "review_entre_las_notas_nuevas": {
+    "message": "Entre las notas nuevas"
+  },
+  "review_esta_captura_ya_existe": {
+    "message": "Esta captura ya existe: "
+  },
+  "review_estudiando_temas_para_sugerir_una_divisi": {
+    "message": "Estudiando temas para sugerir una división…"
+  },
+  "review_etiqueta_accesible_del_html": {
+    "message": "Etiqueta accesible del HTML"
+  },
+  "review_etiquetas_separadas_por_comas": {
+    "message": "Etiquetas, separadas por comas"
+  },
+  "review_excluida_del_guardado": {
+    "message": "Excluida del guardado · "
+  },
+  "review_explicar_mejor": {
+    "message": "Explicar mejor"
+  },
+  "review_guardando_la_propuesta_revisada": {
+    "message": "Guardando la propuesta revisada…"
+  },
+  "review_guardar_1_notas_y_volver": {
+    "message": "Guardar $1 notas y volver ✓"
+  },
+  "review_guardar_como": {
+    "message": "Guardar como"
+  },
+  "review_guardar_propuesta_y_volver": {
+    "message": "Guardar propuesta y volver ✓"
+  },
+  "review_guardar_y_volver": {
+    "message": "Guardar y volver ✓"
+  },
+  "review_he_revisado_el_aporte_y_quiero_anadirlo": {
+    "message": "He revisado el aporte y quiero añadirlo"
+  },
+  "review_imagen_de_la_fuente": {
+    "message": "Imagen de la fuente"
+  },
+  "review_imagenes_conservadas": {
+    "message": "Imágenes conservadas"
+  },
+  "review_incluir_en_esta_nota": {
+    "message": "Incluir en esta nota"
+  },
+  "review_indicacion_opcional": {
+    "message": "Indicación opcional"
+  },
+  "review_integrar_con_otra_nota_de_esta_propuesta": {
+    "message": "Integrar con otra nota de esta propuesta"
+  },
+  "review_la_evidencia_cambio_buscar_conexiones": {
+    "message": "La evidencia cambió · buscar conexiones"
+  },
+  "review_la_imagen_esta_incompleta": {
+    "message": "La imagen está incompleta."
+  },
+  "review_la_nota_actual_orientara_el_conjunto": {
+    "message": "La nota actual orientará el conjunto"
+  },
+  "review_la_nota_conserva_su_contenido_y_tus_edic": {
+    "message": "La nota conserva su contenido y tus ediciones."
+  },
+  "review_la_nota_ya_no_esta_en_la_propuesta": {
+    "message": "La nota ya no está en la propuesta."
+  },
+  "review_la_otra_nota_cambio_solicita_de_nuevo_la": {
+    "message": "La otra nota cambió. Solicita de nuevo la integración."
+  },
+  "review_los_adjuntos_y_las_relaciones_aceptadas_": {
+    "message": "Los adjuntos y las relaciones aceptadas se añaden al final. Tus cambios se conservan mientras escribes."
+  },
+  "review_marca_las_relaciones_que_tengan_sentido_": {
+    "message": "Marca las relaciones que tengan sentido para ti. Revisa los fragmentos que las justifican."
+  },
+  "review_markdown_completo_y_frontmatter": {
+    "message": "Markdown completo y frontmatter"
+  },
+  "review_no_se_completo_la_busqueda_puedes_reinte": {
+    "message": "No se completó la búsqueda. Puedes reintentarlo sin regenerar la nota."
+  },
+  "review_no_se_ha_indicado_una_captura_valida": {
+    "message": "No se ha indicado una captura válida."
+  },
+  "review_no_se_pudo_mostrar_la_imagen": {
+    "message": "No se pudo mostrar la imagen "
+  },
+  "review_nombre_de_archivo_y_etiquetas": {
+    "message": "Nombre de archivo y etiquetas"
+  },
+  "review_nombre_del_archivo": {
+    "message": "Nombre del archivo"
+  },
+  "review_nombre_del_archivo_pista_sin_verificacio": {
+    "message": "Nombre del archivo · pista sin verificación visual"
+  },
+  "review_nota_existente": {
+    "message": "Nota existente"
+  },
+  "review_nota_nueva": {
+    "message": "Nota nueva"
+  },
+  "review_pie_original_del_html": {
+    "message": "Pie original del HTML"
+  },
+  "review_preparando_un_cambio_revisable": {
+    "message": "Preparando un cambio revisable…"
+  },
+  "review_procedencia": {
+    "message": "PROCEDENCIA"
+  },
+  "review_propiedades_y_destino": {
+    "message": "Propiedades y destino"
+  },
+  "review_proponer_integracion": {
+    "message": "Proponer integración"
+  },
+  "review_propuesta": {
+    "message": "Propuesta"
+  },
+  "review_propuesta_de_division": {
+    "message": "Propuesta de división"
+  },
+  "review_propuesta_guardada": {
+    "message": "Propuesta guardada. "
+  },
+  "review_puedes_ampliar_cada_imagen_en_la_vista_d": {
+    "message": "Puedes ampliar cada imagen en la vista de lectura."
+  },
+  "review_que_necesita_mejorar_este_apartado": {
+    "message": "Qué necesita mejorar este apartado"
+  },
+  "review_reducir": {
+    "message": "Reducir"
+  },
+  "review_revisa_la_propuesta_antes_de_aplicarla": {
+    "message": "Revisa la propuesta antes de aplicarla."
+  },
+  "review_revisa_los_campos": {
+    "message": "Revisa los campos"
+  },
+  "review_revisa_los_campos_y_conexiones_antes_de_": {
+    "message": "Revisa los campos y conexiones antes de guardar."
+  },
+  "review_revisa_los_temas_y_el_contenido_propuest": {
+    "message": "Revisa los temas y el contenido propuestos. Se conserva el texto de tus apartados, código y anotaciones. Al aceptar cambiará el borrador; después podrás revisar las notas antes de guardarlas."
+  },
+  "review_revisa_y_acepta_las_ampliaciones_pendien": {
+    "message": "Revisa y acepta las ampliaciones pendientes"
+  },
+  "review_revisado_con": {
+    "message": "Revisado con "
+  },
+  "review_revisar_el_cambio_propuesto": {
+    "message": "Revisar el cambio propuesto"
+  },
+  "review_revisar_nota_anaco": {
+    "message": "Revisar nota · Anaco"
+  },
+  "review_se_anadira_al_final": {
+    "message": "Se añadirá al final"
+  },
+  "review_selecciona_una_nota_existente": {
+    "message": "Selecciona una nota existente"
+  },
+  "review_sin_conexiones_con_evidencia_suficiente_": {
+    "message": "Sin conexiones con evidencia suficiente. Puedes relacionarla más adelante."
+  },
+  "review_sin_conexiones_internas_para_esta_selecc": {
+    "message": "Sin conexiones internas para esta selección."
+  },
+  "review_sin_conexiones_propuestas_con_notas_exis": {
+    "message": "Sin conexiones propuestas con notas existentes. Los enlaces entre las notas nuevas se muestran en la vista de lectura."
+  },
+  "review_sugerencia_descartada_conservas_la_nota_": {
+    "message": "Sugerencia descartada. Conservas la nota actual."
+  },
+  "review_sugerencia_preparada_la_nota_todavia_no_": {
+    "message": "Sugerencia preparada. La nota todavía no se ha dividido."
+  },
+  "review_termina_la_operacion_o_resuelve_la_propu": {
+    "message": "Termina la operación o resuelve la propuesta abierta antes de continuar."
+  },
+  "review_texto_alternativo_del_html": {
+    "message": "Texto alternativo del HTML"
+  },
+  "review_tipo_archivo_y_etiquetas": {
+    "message": "Tipo, archivo y etiquetas"
+  },
+  "review_tipo_de_nota": {
+    "message": "Tipo de nota"
+  },
+  "review_titulo": {
+    "message": "Título"
+  },
+  "review_titulo_de_la_imagen": {
+    "message": "Título de la imagen"
+  },
+  "review_toda_esta_nota": {
+    "message": "Toda esta nota"
+  },
+  "review_ver_contenido_actual": {
+    "message": "Ver contenido actual"
+  },
+  "review_ver_contenido_propuesto": {
+    "message": "Ver contenido propuesto"
+  },
+  "review_ver_evidencia": {
+    "message": "Ver evidencia"
+  },
+  "review_ver_que_conecta_las_dos_notas": {
+    "message": "Ver qué conecta las dos notas"
+  },
+  "review_vista_actualizada": {
+    "message": "Vista actualizada"
+  },
+  "review_vista_previa_de_la_nota": {
+    "message": "Vista previa de la nota"
+  },
+  "review_volver_al_articulo": {
+    "message": "← Volver al artículo"
+  },
+  "review_volviendo_al_origen": {
+    "message": "Volviendo al origen…"
+  },
+  "review_ya_existe_1": {
+    "message": "Ya existe: $1"
+  },
+  "stream_el_manifiesto_del_video_contiene_demasia": {
+    "message": "El manifiesto del vídeo contiene demasiados niveles."
+  },
+  "stream_el_recurso_no_es_un_manifiesto_hls_valid": {
+    "message": "El recurso no es un manifiesto HLS válido; puede ser una página de acceso."
+  },
+  "stream_el_servidor_del_video_rechazo_el_acceso_": {
+    "message": "El servidor del vídeo rechazó el acceso (HTTP $1)."
+  },
+  "stream_el_video_contiene_una_direccion_no_compa": {
+    "message": "El vídeo contiene una dirección no compatible."
+  },
+  "stream_el_video_no_expone_una_lista_completa_de": {
+    "message": "El vídeo no expone una lista completa de segmentos. Los directos no se pueden capturar todavía."
+  },
+  "stream_el_video_supera_el_limite_de_100_mb_de_e": {
+    "message": "El vídeo supera el límite de 100 MB de esta captura."
+  },
+  "stream_el_video_supera_la_duracion_maxima_confi": {
+    "message": "El vídeo supera la duración máxima configurada."
+  },
+  "stream_este_video_usa_rangos_de_segmentos_que_t": {
+    "message": "Este vídeo usa rangos de segmentos que todavía no admite el capturador."
+  },
+  "stream_este_video_usa_segmentos_cifrados_no_se_": {
+    "message": "Este vídeo usa segmentos cifrados. No se puede transcribir con el capturador actual."
+  },
+  "stream_no_se_ha_encontrado_una_lista_de_segment": {
+    "message": "No se ha encontrado una lista de segmentos de tamaño compatible."
+  },
+  "stream_no_se_pudo_leer_un_recurso_del_video_en_1": {
+    "message": "No se pudo leer un recurso del vídeo en $1. Puede requerir permiso para ese dominio."
+  },
+  "surfaces_el_visor_todavia_no_ha_dibujado_esta_pag": {
+    "message": "El visor todavía no ha dibujado esta página. No se ha aceptado una captura vacía."
+  },
+  "surfaces_esta_pagina_no_expone_texto_ni_una_image": {
+    "message": "Esta página no expone texto ni una imagen que se pueda leer."
+  },
+  "surfaces_la_imagen_de_esta_pagina_todavia_no_esta": {
+    "message": "La imagen de esta página todavía no está cargada."
+  },
+  "surfaces_la_pagina_cambio_mientras_se_extraia_el_": {
+    "message": "La página cambió mientras se extraía el libro. Vuelve a detectar el lector."
+  },
+  "surfaces_pagina": {
+    "message": "Página "
+  },
+  "surfaces_pagina_del_libro": {
+    "message": "Página del libro"
+  },
+  "surfaces_pagina_del_visor": {
+    "message": "Página del visor"
+  },
+  "welcome_abrir_opciones": {
+    "message": "Abrir Opciones"
+  },
+  "welcome_anaco_aprende_donde_y_como_guardar_segun": {
+    "message": ": Anaco aprende dónde y cómo guardar según tus carpetas, metadatos e instrucciones. Elige también tu IA: Codex con tu cuenta de ChatGPT, un servidor compatible con OpenAI o un modelo local."
+  },
+  "welcome_anaco_convierte_lo_que_lees_en_el_navega": {
+    "message": "Anaco convierte lo que lees en el navegador en notas revisadas para tu vault de Obsidian. Para preparar y guardar notas usa un pequeño servicio en tu ordenador. Se instala una vez."
+  },
+  "welcome_bienvenida_a_anaco": {
+    "message": "Bienvenida a Anaco"
+  },
+  "welcome_bienvenida_anaco": {
+    "message": "Bienvenida · Anaco"
+  },
+  "welcome_comprobar_ahora": {
+    "message": "Comprobar ahora"
+  },
+  "welcome_comprueba_la_conexion": {
+    "message": "Comprueba la conexión"
+  },
+  "welcome_configura_tu_vault": {
+    "message": "Configura tu vault"
+  },
+  "welcome_en_opciones_elige_tu_vault_y_confirma_su": {
+    "message": "En Opciones elige tu vault y confirma su"
+  },
+  "welcome_instala_el_servicio_local": {
+    "message": "Instala el servicio local"
+  },
+  "welcome_los_pdf_y_videos_usan_poppler_ffmpeg_y_y": {
+    "message": ". Los PDF y vídeos usan Poppler, FFmpeg y yt-dlp de tu sistema;"
+  },
+  "welcome_no_tienes_python_descargalo_de_python_or": {
+    "message": "¿No tienes Python? Descárgalo de python.org (3.11 o superior). Más ayuda sobre pipx: pipx.pypa.io."
+  },
+  "welcome_opcional": {
+    "message": "Opcional"
+  },
+  "welcome_para_transcribir_en_tu_ordenador_ejecuta": {
+    "message": "Para transcribir en tu ordenador ejecuta"
+  },
+  "welcome_paso_1": {
+    "message": "Paso 1"
+  },
+  "welcome_paso_2": {
+    "message": "Paso 2"
+  },
+  "welcome_paso_3": {
+    "message": "Paso 3"
+  },
+  "welcome_pasos_para_1_copia_cada_comando_en_una_t": {
+    "message": "Pasos para $1. Copia cada comando en una terminal$2."
+  },
+  "welcome_perfil_del_vault_confirmado": {
+    "message": "Perfil del vault confirmado"
+  },
+  "welcome_privacidad_anaco_no_tiene_servidores_ni_": {
+    "message": "Privacidad: Anaco no tiene servidores ni telemetría. Lo que capturas solo sale de tu ordenador hacia la IA que elijas. Detalle en PRIVACY.md del repositorio."
+  },
+  "welcome_seleccionalo_y_copia": {
+    "message": "Selecciónalo y copia"
+  },
+  "welcome_servicio_local_conectado": {
+    "message": "Servicio local conectado"
+  },
+  "welcome_te_dice_cuales_faltan": {
+    "message": "te dice cuáles faltan."
+  },
+  "welcome_todo_listo_abre_el_panel_de_anaco_en_cua": {
+    "message": "Todo listo. Abre el panel de Anaco en cualquier artículo."
+  },
+  "welcome_tu_vault_aun_no_tiene_perfil_confirmalo_": {
+    "message": "Tu vault aún no tiene perfil: confírmalo en Opciones."
+  },
+  "welcome_video_audio_y_pdf": {
+    "message": "Vídeo, audio y PDF"
+  }
+}

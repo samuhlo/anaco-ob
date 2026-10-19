@@ -1,9 +1,10 @@
+const I18N = require('./i18n.cjs');
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const ctx=vm.createContext({URL,TextDecoder,Blob,AbortSignal});
-vm.runInContext(fs.readFileSync('extension/stream.js','utf8')+';globalThis.stream=AnacoObStream;',ctx);
+vm.runInContext(I18N+fs.readFileSync('extension/stream.js','utf8')+';globalThis.stream=AnacoObStream;',ctx);
 const stream=ctx.stream;
 
 test('HLS resolves master variants, relative segments and initialization data',()=>{

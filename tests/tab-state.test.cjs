@@ -1,3 +1,4 @@
+const I18N = require('./i18n.cjs');
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -7,7 +8,7 @@ function app(){
  const event=()=>({addListener(){}});
  const browser={webNavigation:{onCompleted:event()},runtime:{getURL:p=>'moz-extension://test/'+p,onMessage:event()},permissions:{contains:async()=>true},storage:{local:{get:async keys=>Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(k=>[k,data[k]])),set:async values=>Object.assign(data,values)}},tabs:{onRemoved:event()},browserAction:{onClicked:event()},commands:{onCommand:event()},menus:{create(){},onClicked:event()}};
  const ctx=vm.createContext({browser,URL,crypto:require('node:crypto').webcrypto,setTimeout,clearTimeout,AbortSignal});
- vm.runInContext(fs.readFileSync('extension/detection.js','utf8')+fs.readFileSync('extension/background.js','utf8'),ctx);
+ vm.runInContext(I18N+fs.readFileSync('extension/detection.js','utf8')+fs.readFileSync('extension/background.js','utf8'),ctx);
  return {ctx,data};
 }
 const tab=id=>({id,url:`https://course.example/page-${id}`,windowId:1,title:`Page ${id}`});
@@ -109,7 +110,7 @@ test('resource downloads use the selected iframe and avoid an unnecessary backgr
 });
 test('page CORS failures can fall back to extension permissions and record safe contexts',async()=>{
  const {ctx}=app();ctx.diagnostic={attempts:[]};
- ctx.browser.tabs.executeScript=async(id,target)=>{if(target.file)return [];throw new TypeError('CORS denied for secret signed URL');};
+ ctx.browser.tabs.executeScript=async(id,target)=>{if(target.file||target.code.startsWith('globalThis.AnacoObLang'))return [];throw new TypeError('CORS denied for secret signed URL');};
  ctx.fetch=async()=>new Response('abc');
  const result=await vm.runInContext('resourceBytes("https://cdn.example/video.mp4?signature=secret",{tabId:1},37,100,diagnostic)',ctx);
  assert.equal(result.size,3);assert.equal(ctx.diagnostic.attempts[0].reason,'page-fetch');

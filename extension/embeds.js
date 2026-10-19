@@ -32,8 +32,8 @@ if(!globalThis.AnacoObEmbeds)globalThis.AnacoObEmbeds=(()=>{
     return !(Number.isFinite(video.duration)&&video.duration>120);
   }
   function clipWarning(size){
-    if(!Number.isFinite(size)||size<=0)return 'Tamaño desconocido: revisa si quieres guardarlo en el vault.';
-    return size>CLIP_LIMIT?`Pesa ${Math.round(size/1_000_000)} MB: supera los ${CLIP_LIMIT/1_000_000} MB recomendados.`:'';
+    if(!Number.isFinite(size)||size<=0)return tx('embeds_tamano_desconocido_revisa_si_quieres_gua');
+    return size>CLIP_LIMIT?tx('embeds_pesa_1_mb_supera_los_2_mb_recomendados',[Math.round(size/1_000_000),CLIP_LIMIT/1_000_000]):'';
   }
 
   // ===========================================================================
@@ -62,12 +62,12 @@ if(!globalThis.AnacoObEmbeds)globalThis.AnacoObEmbeds=(()=>{
       const url=frame.dataset.tweetId?'https://twitter.com/i/status/'+frame.dataset.tweetId:within(host(src),'platform.twitter.com')&&/\/embed\/Tweet\.html/i.test(src)?tweetURL(src):null;
       if(url){add(frame.closest('.twitter-tweet-rendered')||frame,{type:'tweet',url,text:'',author:''},url.split('/').pop());continue;}
       const pen=penFromURL(src);
-      if(pen&&/\/embed\//.test(new URL(src).pathname))add(frame.closest('.cp_embed_wrapper')||frame,{type:'pen',...pen,title:(frame.title||'').trim().slice(0,200)||'Demo de CodePen'},pen.slug);
+      if(pen&&/\/embed\//.test(new URL(src).pathname))add(frame.closest('.cp_embed_wrapper')||frame,{type:'pen',...pen,title:(frame.title||'').trim().slice(0,200)||tx('embeds_demo_de_codepen')},pen.slug);
     }
     // Before CodePen's script runs, the embed is a placeholder paragraph.
     for(const node of root.querySelectorAll('.codepen[data-slug-hash][data-user]')){
       const pen=penFromURL(`https://codepen.io/${node.dataset.user}/embed/${node.dataset.slugHash}`);
-      if(pen)add(node,{type:'pen',...pen,title:(node.dataset.penTitle||'').trim().slice(0,200)||'Demo de CodePen'},pen.slug);
+      if(pen)add(node,{type:'pen',...pen,title:(node.dataset.penTitle||'').trim().slice(0,200)||tx('embeds_demo_de_codepen')},pen.slug);
     }
     for(const video of root.querySelectorAll('video')){
       const src=absolute(video.currentSrc||video.src||video.querySelector('source')?.src||'');

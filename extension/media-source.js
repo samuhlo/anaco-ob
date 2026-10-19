@@ -16,7 +16,7 @@ globalThis.AnacoObMedia=(()=>{
   function label(video,index=0){
     const url=platformURL(video.url),origin=url?.includes('youtube.com')?'YouTube':url?.includes('vimeo.com')?'Vimeo':null;
     let title=(video.title||'').trim();
-    if(!title||/^https?:\/\//.test(title)||/^[\w.-]+\.(?:com|net|org)(?:\/.*)?$/.test(title))title='Vídeo '+(index+1);
+    if(!title||/^https?:\/\//.test(title)||/^[\w.-]+\.(?:com|net|org)(?:\/.*)?$/.test(title))title=tx('media_video_1',[index+1]);
     return (origin?origin+' · ':'')+title;
   }
   return {platformURL,apiURL,label};

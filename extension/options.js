@@ -11,7 +11,7 @@ function rememberDraft() {
   localStorage.setItem(draftKey, JSON.stringify({
     values: Object.fromEntries(configKeys.map(k => [k, $(k).value])), manualPath
   }));
-  $('options-draft-status').textContent = 'Cambios sin guardar · se conservan al volver';
+  $('options-draft-status').textContent = tx('options_cambios_sin_guardar_se_conservan_al_volv');
 }
 
 async function returnToCapture(event) {
@@ -37,7 +37,7 @@ function applyMode() {
   $("settings").querySelector('[type="submit"]').disabled = automatic && detecting;
   $('save-and-back').disabled = automatic && detecting;
   if ($('vault').value && $('vault').value !== savedPath) {
-    notice(`Vault seleccionado: ${$('vault').value}\nAún no está en uso. Pulsa Guardar y volver para aplicarlo.`);
+    notice(tx('options_vault_seleccionado_1_aun_no_esta_en_uso_',[$('vault').value]));
   }
 }
 
@@ -45,28 +45,28 @@ async function detectVaults(preferred = $("detected-vault").value || savedPath) 
   if (detecting) return;
   detecting = true;
   $("detect-vaults").disabled = true;
-  $("vault-help").textContent = "Buscando en el registro de Obsidian y carpetas habituales…";
+  $("vault-help").textContent = tx('options_buscando_en_el_registro_de_obsidian_y_ca');
   applyMode();
   try {
     const {vaults} = await call({action: "discover_vaults"});
     const select = $("detected-vault");
-    select.replaceChildren(new Option("Selecciona un vault", ""));
+    select.replaceChildren(new Option(tx('options_selecciona_un_vault'), ""));
     for (const vault of vaults) {
       select.add(new Option(`${vault.name} · ${vault.path} · ${vault.source}`, vault.path));
     }
     // Keep an already saved, available vault even outside the search locations.
     if (savedAvailable && !vaults.some(v => v.path === savedPath)) {
-      select.add(new Option(`${savedPath} · Ruta guardada`, savedPath));
+      select.add(new Option(`${savedPath} · ${tx('options_ruta_guardada')}`, savedPath));
     }
     const paths = [...select.options].map(o => o.value).filter(Boolean);
     select.value = paths.includes(preferred) ? preferred : paths.length === 1 ? paths[0] : "";
     $("vault-help").textContent = paths.length === 0
-      ? "No se han encontrado vaults. Puedes introducir la ruta manualmente arriba."
+      ? tx('options_no_se_han_encontrado_vaults_puedes_intro')
       : paths.length === 1
-        ? "Vault localizado. Revisa la ruta y pulsa Guardar opciones para usarlo."
-        : "Hay varios vaults. Elige el que quieres usar y pulsa Guardar opciones.";
+        ? tx('options_vault_localizado_revisa_la_ruta_y_pulsa_')
+        : tx('options_hay_varios_vaults_elige_el_que_quieres_u');
   } catch (error) {
-    $("vault-help").textContent = "No se pudo completar la búsqueda: " + error.message + ". Puedes introducir la ruta manualmente.";
+    $("vault-help").textContent = tx('options_no_se_pudo_completar_la_busqueda_1', [error.message]);
   } finally {
     detecting = false;
     $("detect-vaults").disabled = false;
@@ -86,7 +86,7 @@ async function load() {
     if (!s.config.describe_images) $("vision_policy").value = "metadata";
     // The key never comes back from the service: only whether one is stored.
     $("api_key").value = "";
-    $("api_key").placeholder = s.config.api_key_set ? "Clave guardada · escribe otra para cambiarla" : "Vacía para modelos locales";
+    $("api_key").placeholder = s.config.api_key_set ? tx('options_clave_guardada_escribe_otra_para_cambiar') : tx('options_vacia_para_modelos_locales');
     applyProvider();
     let draft;
     try { draft = JSON.parse(localStorage.getItem(draftKey)); } catch { localStorage.removeItem(draftKey); }
@@ -94,9 +94,9 @@ async function load() {
       for (const k of configKeys) if (typeof draft.values[k] === 'string') $(k).value = draft.values[k];
       manualPath = draft.manualPath ?? draft.values.vault;
       dirty = true;
-      $('options-draft-status').textContent = 'Cambios sin guardar · se conservan al volver';
+      $('options-draft-status').textContent = tx('options_cambios_sin_guardar_se_conservan_al_volv');
     }
-    notice(savedAvailable ? "Servicio conectado · vault configurado disponible." : "Servicio conectado. Localiza tu vault para empezar.");
+    notice(savedAvailable ? tx('options_servicio_conectado_vault_configurado_dis') : tx('options_servicio_conectado_localiza_tu_vault_par'));
     applyMode();
     applyProvider();
     if ($("vault_mode").value === "auto") await detectVaults(draft?.values?.vault || savedPath);
@@ -123,7 +123,7 @@ $("detect-vaults").onclick = () => detectVaults();
 $("settings").onsubmit = async event => {
   event.preventDefault();
   if (!$("vault").value.trim()) {
-    notice("Selecciona un vault detectado o introduce su ruta manualmente.", true);
+    notice(tx('options_selecciona_un_vault_detectado_o_introduc'), true);
     return;
   }
   const submit = $("settings").querySelector('[type="submit"]');
@@ -137,15 +137,15 @@ $("settings").onsubmit = async event => {
     const config = await call({action: "configure", values});
     savedPath = config.vault;
     $("api_key").value = "";$("api_key_clear").checked = false;
-    $("api_key").placeholder = config.api_key_set ? "Clave guardada · escribe otra para cambiarla" : "Vacía para modelos locales";
+    $("api_key").placeholder = config.api_key_set ? tx('options_clave_guardada_escribe_otra_para_cambiar') : tx('options_vacia_para_modelos_locales');
     savedAvailable = true;
     $("vault").value = savedPath;
     if (config.vault_mode === "manual") manualPath = savedPath;
     localStorage.removeItem(draftKey);
     dirty = false;
-    $('options-draft-status').textContent = 'Opciones guardadas';
+    $('options-draft-status').textContent = tx('options_opciones_guardadas');
     await browser.storage.local.set({currentCapture: null, draftResult: null, editorFields: null, operationError: "", settingsRevision: crypto.randomUUID()});
-    notice("Opciones guardadas. Las capturas pendientes siguen disponibles desde su vault de origen.");
+    notice(tx('options_opciones_guardadas_las_capturas_pendient'));
     globalThis.AnacoObProfileCard?.refresh();
     if (event.submitter?.id === 'save-and-back') await returnToCapture(event);
   } catch (e) { notice(e.message, true); }
@@ -156,3 +156,8 @@ $('back-to-capture').onclick = returnToCapture;
 $('settings').addEventListener('input', rememberDraft);
 $('settings').addEventListener('change', rememberDraft);
 load();
+
+// The interface language lives in this browser, not in the local service.
+const uiLanguage=document.getElementById('ui_language');
+uiLanguage.value=AnacoObI18n.chosen();
+uiLanguage.addEventListener('change',()=>{AnacoObI18n.set(uiLanguage.value);location.reload();});

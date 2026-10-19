@@ -4,10 +4,10 @@ const NAMES={linux:'Linux',mac:'macOS',win:'Windows'};
 
 async function steps(){
   const {os}=await browser.runtime.getPlatformInfo();
-  $('platformNote').textContent=`Pasos para ${NAMES[os]||os}. Copia cada comando en una terminal${os==='win'?' (PowerShell)':''}.`;
+  $('platformNote').textContent=tx('welcome_pasos_para_1_copia_cada_comando_en_una_t',[NAMES[os]||os,os==='win'?' (PowerShell)':'']);
   for(const step of AnacoObDiagnosis.installSteps(os)){
-    const copy=Object.assign(document.createElement('button'),{type:'button',className:'copy-small',textContent:'Copiar'});
-    copy.onclick=async()=>{try{await navigator.clipboard.writeText(step.command);copy.textContent='Copiado ✓';}catch{copy.textContent='Selecciónalo y copia';}setTimeout(()=>{copy.textContent='Copiar';},2000);};
+    const copy=Object.assign(document.createElement('button'),{type:'button',className:'copy-small',textContent:tx('panel_copiar')});
+    copy.onclick=async()=>{try{await navigator.clipboard.writeText(step.command);copy.textContent=tx('panel_copiado');}catch{copy.textContent=tx('welcome_seleccionalo_y_copia');}setTimeout(()=>{copy.textContent=tx('panel_copiar');},2000);};
     const item=document.createElement('li'),text=document.createElement('p'),code=document.createElement('pre');
     text.textContent=step.text;code.textContent=step.command;item.append(text,code,copy);$('steps').append(item);
   }
@@ -20,11 +20,11 @@ async function check(){
   $('checks').replaceChildren();$('check').disabled=true;
   try{
     const status=await browser.runtime.sendMessage({type:'native',message:{action:'status'}});
-    line(true,'Servicio local conectado');
+    line(true,tx('welcome_servicio_local_conectado'));
     const problems=AnacoObDiagnosis.status(status,browser.runtime.getManifest().version);
     for(const problem of problems)line(false,problem.title+': '+problem.text);
-    line(!status.profile?.missing,status.profile?.missing?'Tu vault aún no tiene perfil: confírmalo en Opciones.':'Perfil del vault confirmado');
-    if(!problems.length&&!status.profile?.missing)line(true,'Todo listo. Abre el panel de Anaco en cualquier artículo.');
+    line(!status.profile?.missing,status.profile?.missing?tx('welcome_tu_vault_aun_no_tiene_perfil_confirmalo_'):tx('welcome_perfil_del_vault_confirmado'));
+    if(!problems.length&&!status.profile?.missing)line(true,tx('welcome_todo_listo_abre_el_panel_de_anaco_en_cua'));
   }catch(error){
     const problem=AnacoObDiagnosis.connection(error);line(false,problem.title+': '+problem.text);
   }finally{$('check').disabled=false;}
