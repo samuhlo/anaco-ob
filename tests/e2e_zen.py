@@ -67,6 +67,7 @@ def main():
     parser.add_argument("--manual-import", action="store_true", help="Check the separate manual importer and its review")
     parser.add_argument("--detection", action="store_true", help="Exercise active-tab detection and nested authenticated course resources")
     parser.add_argument("--options", action="store_true", help="Exercise vault discovery and manual configuration in Options")
+    parser.add_argument('--welcome',action='store_true',help='Welcome page with install steps and live checks; panel health notice when the AI is not ready')
     parser.add_argument('--openai',action='store_true',help='OpenAI-compatible provider: configure it in Options and prepare a note against a local fake server')
     parser.add_argument('--readme-shots',action='store_true',help='Network: README screenshots of the profile, the panel, a highlighted clip and the review on the real Codrops spotlight')
     parser.add_argument('--profile',action='store_true',help='Vault without profile: scan in Options, confirm, save a note with the vault frontmatter and detect a moved guide')
@@ -93,6 +94,7 @@ def main():
     if args.profile:out=ROOT/'.test-artifacts/zen-profile';out.mkdir(parents=True,exist_ok=True)
     if args.readme_shots:out=ROOT/'.test-artifacts/readme-shots';out.mkdir(parents=True,exist_ok=True)
     if args.openai:out=ROOT/'.test-artifacts/zen-openai';out.mkdir(parents=True,exist_ok=True)
+    if args.welcome:out=ROOT/'.test-artifacts/zen-welcome';out.mkdir(parents=True,exist_ok=True)
     if args.split_review:out=ROOT/'.test-artifacts/zen-split-review';out.mkdir(parents=True,exist_ok=True)
     run_dir = Path(tempfile.mkdtemp(prefix="run-",dir=out))
     vault = run_dir / "Vault"
@@ -677,6 +679,23 @@ def main():
             driver.save_screenshot(str(out/'accepted.png'));finish_and_return('save',c['source']['tabId'])
             report={'passed':True,'suggestion_does_not_change_draft':True,'discard_preserves_note_and_edits':True,'accept_requires_user_click':True,'code_and_personal_annotation_preserved':True,'accepted_split_survives_reload':True,'review_before_save':True,'saved_new_notes':3,'vault':str(vault)}
             (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,indent=2));return
+        if args.welcome:
+            panel_url=driver.current_url;driver.get(panel.replace('panel.html','welcome.html'))
+            wait.until(lambda d:'Linux' in d.find_element(By.ID,'platformNote').text)
+            commands='\n'.join(e.text for e in driver.find_elements(By.CSS_SELECTOR,'#steps pre'))
+            assert 'pipx install git+https://github.com/samuhlo/anaco-ob' in commands and 'anaco-ob install --vault' in commands,commands
+            driver.find_element(By.ID,'check').click()
+            wait.until(lambda d:'Todo listo' in d.find_element(By.ID,'checks').text)
+            checks=driver.find_element(By.ID,'checks').text;assert 'Servicio local conectado' in checks and 'Perfil del vault confirmado' in checks,checks
+            driver.save_screenshot(str(out/'welcome.png'))
+            # The chosen AI cannot run: the panel says so and points to Options.
+            config_path=run_dir/'state/config.json';values=json.loads(config_path.read_text());values.update(provider='codex',codex='/no/existe/codex');config_path.write_text(json.dumps(values))
+            driver.get(panel_url)
+            wait.until(lambda d:d.find_element(By.ID,'healthNotice').is_displayed())
+            assert 'La IA no está lista' in driver.find_element(By.ID,'healthTitle').text and 'Opciones' in driver.find_element(By.ID,'healthAction').text
+            driver.save_screenshot(str(out/'panel-health.png'))
+            report={'passed':True,'install_steps':True,'live_checks':True,'ai_not_ready_notice':True}
+            (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
         if args.openai:
             sys.path.insert(0,str(ROOT/'tests'))
             from test_ai_provider import FakeOpenAI

@@ -131,7 +131,7 @@ anaco-ob install-media
 codex login
 ```
 
-Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`, hasta que esté publicada en addons.mozilla.org. Abre **Opciones**, elige tu vault y confirma su **Perfil del vault**. La guía completa, paso a paso, está en [PRUEBA.md](PRUEBA.md).
+Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`, hasta que esté publicada en addons.mozilla.org. Al instalarla se abre una página de bienvenida con estos comandos para tu sistema y una comprobación de cada pieza; si algo falta, el panel lo explica y enlaza a la solución. Abre **Opciones**, elige tu vault y confirma su **Perfil del vault**. La guía completa, paso a paso, está en [PRUEBA.md](PRUEBA.md).
 
 | COMANDO | PARA QUÉ |
 | :--- | :--- |
