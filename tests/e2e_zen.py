@@ -67,6 +67,7 @@ def main():
     parser.add_argument("--manual-import", action="store_true", help="Check the separate manual importer and its review")
     parser.add_argument("--detection", action="store_true", help="Exercise active-tab detection and nested authenticated course resources")
     parser.add_argument("--options", action="store_true", help="Exercise vault discovery and manual configuration in Options")
+    parser.add_argument('--openai',action='store_true',help='OpenAI-compatible provider: configure it in Options and prepare a note against a local fake server')
     parser.add_argument('--readme-shots',action='store_true',help='Network: README screenshots of the profile, the panel, a highlighted clip and the review on the real Codrops spotlight')
     parser.add_argument('--profile',action='store_true',help='Vault without profile: scan in Options, confirm, save a note with the vault frontmatter and detect a moved guide')
     parser.add_argument('--embeds-live',action='store_true',help='Network: capture the real Codrops spotlight with its tweets, pens and clips')
@@ -91,6 +92,7 @@ def main():
     if args.review_menu:out=ROOT/'.test-artifacts/zen-review-menu';out.mkdir(parents=True,exist_ok=True)
     if args.profile:out=ROOT/'.test-artifacts/zen-profile';out.mkdir(parents=True,exist_ok=True)
     if args.readme_shots:out=ROOT/'.test-artifacts/readme-shots';out.mkdir(parents=True,exist_ok=True)
+    if args.openai:out=ROOT/'.test-artifacts/zen-openai';out.mkdir(parents=True,exist_ok=True)
     if args.split_review:out=ROOT/'.test-artifacts/zen-split-review';out.mkdir(parents=True,exist_ok=True)
     run_dir = Path(tempfile.mkdtemp(prefix="run-",dir=out))
     vault = run_dir / "Vault"
@@ -675,6 +677,37 @@ def main():
             driver.save_screenshot(str(out/'accepted.png'));finish_and_return('save',c['source']['tabId'])
             report={'passed':True,'suggestion_does_not_change_draft':True,'discard_preserves_note_and_edits':True,'accept_requires_user_click':True,'code_and_personal_annotation_preserved':True,'accepted_split_survives_reload':True,'review_before_save':True,'saved_new_notes':3,'vault':str(vault)}
             (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,indent=2));return
+        if args.openai:
+            sys.path.insert(0,str(ROOT/'tests'))
+            from test_ai_provider import FakeOpenAI
+            ai_server=http.server.ThreadingHTTPServer(('127.0.0.1',0),FakeOpenAI);threading.Thread(target=ai_server.serve_forever,daemon=True).start()
+            panel_url=driver.current_url;driver.get(panel.replace('panel.html','options.html'))
+            wait.until(lambda d:'Servicio conectado' in d.find_element(By.ID,'message').text)
+            assert not driver.find_element(By.ID,'openai-settings').is_displayed()
+            Select(driver.find_element(By.ID,'provider')).select_by_value('openai')
+            assert driver.find_element(By.ID,'openai-settings').is_displayed()
+            for key,value in (('api_base',f'http://127.0.0.1:{ai_server.server_port}/v1'),('api_model','llama3.1:8b'),('api_key','sk-e2e')):
+                box=driver.find_element(By.ID,key);box.clear();box.send_keys(value)
+            driver.find_element(By.CSS_SELECTOR,'#settings [type="submit"]').click()
+            wait.until(lambda d:'Opciones guardadas' in d.find_element(By.ID,'message').text)
+            stored=message({'type':'native','message':{'action':'settings'}})['config']
+            assert stored['provider']=='openai' and stored['api_key_set'] and 'api_key' not in stored,stored
+            assert driver.find_element(By.ID,'api_key').get_attribute('value')=='' and 'guardada' in driver.find_element(By.ID,'api_key').get_attribute('placeholder')
+            assert not driver.find_element(By.ID,'model').is_displayed()
+            driver.execute_script('document.getElementById("provider").scrollIntoView({block:"start"});window.scrollBy(0,-90)');time.sleep(.5)
+            driver.save_screenshot(str(out/'options.png'))
+            driver.get(panel_url)
+            c=capture({});wait.until(lambda d:Select(field('provider')).first_selected_option.get_attribute('value')=='openai')
+            driver.find_element(By.ID,'prepare').click();open_review()
+            assert FakeOpenAI.requests and FakeOpenAI.requests[0]['auth']=='Bearer sk-e2e',FakeOpenAI.requests[:1]
+            assert driver.find_element(By.ID,'title').get_attribute('value')=='Recuperación activa'
+            driver.save_screenshot(str(out/'review.png'))
+            finish_and_return('save',c['source']['tabId'])
+            note=next(vault.rglob('nota_recuperacion_activa*.md')).read_text()
+            assert 'llm_modelo: "llama3.1:8b"' in note,note[:500]
+            ai_server.shutdown()
+            report={'passed':True,'options_provider':True,'key_hidden':True,'draft_with_openai_server':True,'note_model':'llama3.1:8b'}
+            (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
         if args.readme_shots:
             shots=ROOT/'docs/assets';shots.mkdir(parents=True,exist_ok=True)
             def shot(name,selector=None,pad=24):

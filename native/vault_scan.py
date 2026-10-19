@@ -541,7 +541,7 @@ def interpret(app, chosen):
     """Proposal for review: refined by the model when the provider allows it."""
     facts = scan(app)
     base = propose(facts)
-    if app.config()["provider"] != "codex":
+    if app.config()["provider"] == "manual":
         return {**base, "assisted": False, "warnings": []}
     vault = app.vault()
     known = {d["path"] for d in facts["documents"]}
@@ -570,7 +570,7 @@ def interpret(app, chosen):
               + json.dumps({"facts": summary, "automatic_proposal": base["profile"], "documents": texts}, ensure_ascii=False))
     warnings = []
     try:
-        answer = app.codex_json(prompt, response_schema())
+        answer = app.ai_json(prompt, response_schema())
         profile = sanitize(from_response(answer), facts, set(texts), warnings)
         from vault_profile import validate
         validate(vault, json.loads(json.dumps(profile)))

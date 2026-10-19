@@ -2,6 +2,19 @@
 
 Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/audio. Prepara una propuesta editable y guarda Markdown y adjuntos en tu vault. Las relaciones, las imágenes recomendadas y sus descripciones se revisan antes de guardar.
 
+## Proveedor compatible con OpenAI
+
+En **Opciones → Preparación de notas**, elige **IA compatible con OpenAI** e indica la URL base, el modelo y, si hace falta, la clave API:
+
+| SERVIDOR | URL BASE | CLAVE |
+| :--- | :--- | :--- |
+| **OpenAI** | `https://api.openai.com/v1` | La de tu cuenta |
+| **OpenRouter** | `https://openrouter.ai/api/v1` | La de tu cuenta |
+| **Ollama** | `http://localhost:11434/v1` | Vacía |
+| **LM Studio** | `http://localhost:1234/v1` | Vacía |
+
+Pulsa **Guardar opciones**. La clave se guarda en el servicio local y no se vuelve a mostrar. El panel ofrece el mismo proveedor en **Ajustes de esta captura**, y Codex sigue disponible. Para describir imágenes hace falta un modelo con visión; puedes indicarlo en **Modelo visual**. Si el servidor no admite salidas por esquema, Anaco reintenta pidiendo JSON simple.
+
 ## Perfil del vault: comprobar 0.11.0
 
 Recarga la extensión y abre el panel. Mientras el vault no tenga perfil verás **Este vault aún no tiene perfil** con **Revisar perfil**.

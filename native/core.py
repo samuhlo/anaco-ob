@@ -145,6 +145,16 @@ def suggested_path(facts):
     return (base + "/" if base else "") + "anaco/perfil.json"
 
 
+PROVIDERS = ("codex", "openai", "manual")
+
+
+def public_config(cfg):
+    """Settings the extension may see: the API key only as present or absent."""
+    out = {k: v for k, v in cfg.items() if k != "api_key"}
+    out["api_key_set"] = bool(cfg.get("api_key"))
+    return out
+
+
 class App:
     def __init__(self, state=STATE):
         self.progress = lambda message: None
@@ -162,7 +172,8 @@ class App:
         default = {"vault": str(DEFAULT_VAULT), "vault_mode": "auto", "note_structure": "single",
                    "model": "gpt-6-luna", "vision_model":"gpt-6.1-sol", "describe_images":True,"vision_policy":"auto",
                    "reader_batch_pages":6,"pdf_page_limit":60,"pdf_visual_pages":6,"video_minutes":120,"video_frames":3,"asr_model":"base",
-                   "provider": "codex", "codex": shutil.which("codex") or "codex"}
+                   "provider": "codex", "codex": shutil.which("codex") or "codex",
+                   "api_base": "https://api.openai.com/v1", "api_model": "", "api_vision_model": ""}
         if path.exists():
             saved = json.loads(path.read_text())
             default.update(saved)
@@ -179,9 +190,14 @@ class App:
 
     def set_config(self, values):
         cfg = self.config()
-        for key in ("vault", "vault_mode", "note_structure", "model", "vision_model", "describe_images", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model", "provider"):
+        for key in ("vault", "vault_mode", "note_structure", "model", "vision_model", "describe_images", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model", "provider", "api_base", "api_model", "api_vision_model"):
             if key in values:
                 cfg[key] = values[key]
+        # The form sends an empty key to keep the stored one and null to remove it.
+        if values.get("api_key"):
+            cfg["api_key"] = clean(values["api_key"], 500).strip()
+        elif "api_key" in values and values["api_key"] is None:
+            cfg.pop("api_key", None)
         if "vault" in values and "vault_mode" not in values:
             cfg["vault_mode"] = "manual"
         if cfg["vault_mode"] not in ("auto", "manual"):
@@ -199,8 +215,15 @@ class App:
         if cfg.get("vault") != str(vault) and "vault" in values:
             cfg.pop("profile_path", None)
         cfg["vault"] = str(vault)
-        if cfg["provider"] not in ("codex", "manual"):
+        if cfg["provider"] not in PROVIDERS:
             raise UserError("Proveedor desconocido.")
+        if not re.fullmatch(r"https?://[^\s]+", clean(cfg["api_base"], 500)):
+            raise UserError("La URL base de la IA debe empezar por http:// o https://.")
+        for key in ("api_model", "api_vision_model"):
+            if cfg[key] and not re.fullmatch(r"[\w.:/@+-]{1,120}", clean(cfg[key], 200)):
+                raise UserError("Identificador de modelo no válido.")
+        if cfg["provider"] == "openai" and not cfg["api_model"]:
+            raise UserError("Indica el modelo del servidor compatible con OpenAI.")
         if not re.fullmatch(r"[a-zA-Z0-9_.-]{1,80}", clean(cfg["model"])):
             raise UserError("Identificador de modelo no válido.")
         if not re.fullmatch(r"[a-zA-Z0-9_.-]{1,80}",clean(cfg["vision_model"])):raise UserError("Modelo visual no válido.")
@@ -209,7 +232,8 @@ class App:
         if type(cfg["describe_images"]) is not bool or cfg["asr_model"] not in ("tiny","base","small"):raise UserError("Opciones de análisis visual/transcripción no válidas.")
         if cfg["vision_policy"] not in ('auto','metadata','always'):raise UserError("Política de análisis visual no válida.")
         json_dump(self.state / "config.json", cfg)
-        return cfg
+        os.chmod(self.state / "config.json", 0o600)
+        return public_config(cfg)
 
     def vault_profile(self):
         """The validated profile of the current vault, reloaded when its file changes."""
@@ -380,7 +404,18 @@ class App:
                   embed_guidance(capture)+
                   json.dumps({"profile": profile, "capture": {k: (for_prompt(v) if k=="embeds" else v) for k, v in self.public(capture).items() if k not in ("fingerprint", "id")},
                               "candidates": candidates, "folders": folders,"note_types_by_folder":{folder:vault_profile.types_for(folder) for folder in folders}}, ensure_ascii=False))
-        return self.codex_json(prompt,schema(list(vault_profile.labels())),model,[{**capture['images'][i],'_prompt_index':i} for i in chosen])
+        return self.ai_json(prompt,schema(list(vault_profile.labels())),model,[{**capture['images'][i],'_prompt_index':i} for i in chosen])
+
+    def ai_json(self,prompt,spec,model=None,images=None):
+        """Every model call goes through here: Codex by default, or the OpenAI-compatible server.
+        The provider chosen for a draft applies to its calls; manual mode uses Codex for later tools."""
+        provider=getattr(self,'_provider',None) or self.config()["provider"]
+        if provider=="openai":
+            from ai import openai_json
+            self.check_cancel()
+            return openai_json(self.config(),prompt,spec,images)
+        # Same call shape as before, so the Codex path is unchanged.
+        return self.codex_json(prompt,spec) if model is None and images is None else self.codex_json(prompt,spec,model,images)
 
     def codex_json(self,prompt,spec,model=None,images=None):
         cfg=self.config();model=model or cfg["model"]
@@ -437,10 +472,14 @@ class App:
             raise UserError("El vault no tiene carpetas de destino admitidas. Crea una categoría o curso/asignatura primero.")
         candidates = self.candidates(c)
         provider = provider or self.config()["provider"]
-        if provider not in ("manual", "codex"):
+        if provider not in PROVIDERS:
             raise UserError("Proveedor desconocido.")
-        if provider == "codex":
-            result = self.codex_generate(c, candidates, folders)
+        if provider != "manual":
+            self._provider = provider
+            try:
+                result = self.codex_generate(c, candidates, folders)
+            finally:
+                self._provider = None
             if not isinstance(result, dict) or not all(k in result for k in ("title","context","body","folder","tags","relations")):
                 raise UserError("Faltan campos en la propuesta de IA.")
         else:
@@ -465,7 +504,7 @@ class App:
                     self.db.execute('INSERT OR REPLACE INTO image_captions VALUES (?,?,?)',(digest,description,c['images'][index]['caption_model']))
                     self.db.commit()
             if item.get("useful") is False and (c["kind"] in ("pdf","video") or c.get('reader',{}).get('job')) and index in recommended:recommended.remove(index)
-        if provider=="codex" and any(i not in described for i in visual):
+        if provider!="manual" and any(i not in described for i in visual):
             raise UserError("La IA no devolvió descripciones para todas las imágenes seleccionadas. La captura sigue pendiente; regenera o selecciona menos imágenes.")
         title = clean(result["title"], 300).strip() or c["title"]
         folder = result["folder"] if result["folder"] in folders else folders[0]
@@ -478,10 +517,10 @@ class App:
         reused_model=next((c["images"][i].get("caption_model") for i in recommended if c["images"][i].get("caption_model")),"")
         draft = {"title": title, "context": clean(result["context"], 1000), "body": body,
                  "folder": folder, "tags": self.tags(result.get("tags", [])), "relations": valid,
-                 "filename": self.filename(c, title, folder), "model": result.get("_model",self.config()["model"]) if provider == "codex" else reused_model,
+                 "filename": self.filename(c, title, folder), "model": result.get("_model",self.config()["model"]) if provider != "manual" else reused_model,
                  "selected_images":recommended,
-                 "visual_image_count":len(visual) if provider=='codex' else 0,
-                 "assisted": provider == "codex" or bool(reused_model), "profile_hash": self.guide()["hash"]}
+                 "visual_image_count":len(visual) if provider!='manual' else 0,
+                 "assisted": provider != "manual" or bool(reused_model), "profile_hash": self.guide()["hash"]}
         draft['provider']=provider
         draft=editorial.build(c,result,draft,candidates,folders)
         c.update({"draft": draft, "status": "draft"})
@@ -674,10 +713,10 @@ class App:
                 state = {"path": profile.path, "hash": self.guide()["hash"], "problems": profile.problems()}
             except UserError as exc:
                 folders, state = [], {"missing": True, "message": str(exc)}
-            return {"version": "0.11.0", "config": self.config(), "folders": folders, "pending": self.pending(), 'jobs':pending(self), "profile": state, "profile_hash": state.get("hash")}
+            return {"version": "0.11.0", "config": public_config(self.config()), "folders": folders, "pending": self.pending(), 'jobs':pending(self), "profile": state, "profile_hash": state.get("hash")}
         if action == "settings":
             cfg = self.config()
-            return {"config": cfg, "vault_available": Path(cfg["vault"]).expanduser().is_dir()}
+            return {"config": public_config(cfg), "vault_available": Path(cfg["vault"]).expanduser().is_dir()}
         if action == "discover_vaults":
             return {"vaults": discover_vaults()}
         if action == "configure":

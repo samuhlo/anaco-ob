@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 const call = message => browser.runtime.sendMessage({type: "native", message});
-const configKeys = ["vault", "vault_mode", "note_structure", "provider", "model", "vision_model", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model"];
+const configKeys = ["vault", "vault_mode", "note_structure", "provider", "api_base", "api_model", "api_vision_model", "model", "vision_model", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model"];
 let manualPath = "", savedPath = "", savedAvailable = false, detecting = false;
 const draftKey = 'optionsDraft';
 let loaded = false, dirty = false;
@@ -84,6 +84,10 @@ async function load() {
     savedPath = manualPath = s.config.vault;
     savedAvailable = s.vault_available;
     if (!s.config.describe_images) $("vision_policy").value = "metadata";
+    // The key never comes back from the service: only whether one is stored.
+    $("api_key").value = "";
+    $("api_key").placeholder = s.config.api_key_set ? "Clave guardada · escribe otra para cambiarla" : "Vacía para modelos locales";
+    applyProvider();
     let draft;
     try { draft = JSON.parse(localStorage.getItem(draftKey)); } catch { localStorage.removeItem(draftKey); }
     if (draft?.values) {
@@ -94,6 +98,7 @@ async function load() {
     }
     notice(savedAvailable ? "Servicio conectado · vault configurado disponible." : "Servicio conectado. Localiza tu vault para empezar.");
     applyMode();
+    applyProvider();
     if ($("vault_mode").value === "auto") await detectVaults(draft?.values?.vault || savedPath);
     loaded = true;
   } catch (e) { notice(e.message, true); }
@@ -106,6 +111,12 @@ $("vault_mode").onchange = () => {
     detectVaults();
   } else applyMode();
 };
+function applyProvider() {
+  $("openai-settings").hidden = $("provider").value !== "openai";
+  // Codex models only matter with Codex; the other provider has its own fields.
+  for (const block of document.querySelectorAll(".codex-only")) block.hidden = $("provider").value !== "codex";
+}
+$("provider").addEventListener("change", applyProvider);
 $("vault").oninput = () => { if ($("vault_mode").value === "manual") manualPath = $("vault").value; };
 $("detected-vault").onchange = applyMode;
 $("detect-vaults").onclick = () => detectVaults();
@@ -121,8 +132,12 @@ $("settings").onsubmit = async event => {
     const values = Object.fromEntries(configKeys.map(k => [k, $(k).value]));
     for (const k of ["reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames"]) values[k] = Number(values[k]);
     values.describe_images = values.vision_policy !== "metadata";
+    if ($("api_key").value.trim()) values.api_key = $("api_key").value.trim();
+    else if ($("api_key_clear").checked) values.api_key = null;
     const config = await call({action: "configure", values});
     savedPath = config.vault;
+    $("api_key").value = "";$("api_key_clear").checked = false;
+    $("api_key").placeholder = config.api_key_set ? "Clave guardada · escribe otra para cambiarla" : "Vacía para modelos locales";
     savedAvailable = true;
     $("vault").value = savedPath;
     if (config.vault_mode === "manual") manualPath = savedPath;

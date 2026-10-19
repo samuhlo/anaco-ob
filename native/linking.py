@@ -75,7 +75,7 @@ def calculate(app,c,fields):
             'Ordena por utilidad. Propón como máximo cuatro conexiones existentes por nota, veinticuatro en total y doce pares entre temas; son límites, no cuotas que haya que llenar. Devuelve listas vacías cuando no haya evidencia suficiente.\n\n'+
             json.dumps({'task':'note_connections','notes':[{'id':k,'title':n['title'],'context':n['context'],'evidence':n['evidence']} for k,n in note_data.items()],
                         'candidates':[{'id':k,'title':v['title'],'evidence':v['evidence']} for k,v in pool.items()]},ensure_ascii=False))
-    result=app.codex_json(prompt,spec)
+    result=app.ai_json(prompt,spec)
     external={key:[] for key in notes};internal={key:[] for key in notes};seen=set();rejected=0
     def evidence(node,index):
         return next((v['text'] for v in node['evidence'] if type(index) is int and v['id']==index),'')
