@@ -15,7 +15,7 @@ const AnacoObDetection = (() => {
     const chosen=possible.filter(p=>!possible.some(child=>child!==p&&hasAncestor(child,p.frameId)));
     const readerPages=pages.filter(p=>p.reader&&!['authentication','wrapper'].includes(p.frameRole)).filter(p=>!pages.some(child=>child!==p&&child.reader&&!['authentication','wrapper'].includes(child.frameRole)&&hasAncestor(child,p.frameId)));
     const reader=readerPages.length?{scope:'detected',overflow:readerPages.some(p=>p.reader.overflow),pages:readerPages.flatMap(p=>(p.reader.pages||[]).map(page=>({...page,frameId:p.frameId}))),frames:[...new Set(readerPages.map(p=>p.frameId))]}:null;
-    const base = top || {kind:'article',title:tab.title || 'Página actual',text:'',images:[],warnings:[]};
+    const base = top || {kind:'article',title:tab.title || tx('bg_pagina_actual'),text:'',images:[],warnings:[]};
     const result = {...base, reader, url:tab.url, title: chosen[0]?.title || base.title,
       text: chosen.map(p => p.text).filter(Boolean).join('\n\n').slice(0,120000),
       images: reader?[]:unique(chosen.flatMap(p => (p.images || []).map(i => ({...i, frameId:p.frameId})))),
@@ -31,20 +31,20 @@ const AnacoObDetection = (() => {
         blockedDetails:blocked.map(f=>({host:(()=>{try{return new URL(f.url).hostname;}catch{return '';}})(),id:f.frameId,reason:f.reason||(f.needsPermission===false?'unreadable':'permission-required')}))}
     };
     for(const video of result.videos)if(video.extractable===false&&video.unavailableReason)result.warnings.push(video.unavailableReason);
-    if (result.documents.length || result.videos.some(v=>v.extractable!==false)) result.warnings = result.warnings.filter(w => !w.includes('no se han transcrito'));
+    if (result.documents.length || result.videos.some(v=>v.extractable!==false)) result.warnings = result.warnings.filter(w => w!==tx('capture_se_ha_capturado_el_texto_de_la_pagina_el'));
     return result;
   }
   function problem(c) {
     if (c.contentReady || c.documents?.length || c.videos?.some(v => v.extractable !== false)) return '';
-    if(c.detection?.surfaces?.blocked)return 'El lector dibuja sus páginas, pero el navegador impide leer su contenido visual. El diagnóstico indica qué superficies no se han podido capturar.';
+    if(c.detection?.surfaces?.blocked)return tx('detect_el_lector_dibuja_sus_paginas_pero_el_nav');
     // The page itself (not an embedded viewer) needs access, e.g. after a reload ends the active-tab grant.
     const page = c.frames?.find(f => f.top && f.needsPermission !== false);
-    if (page) return `Anaco no tiene permiso para leer esta página (${(()=>{try{return new URL(page.url).hostname;}catch{return 'esta web';}})()}). Pulsa «Permitir lectura» o «Detectar contenido» para concederlo.`;
-    if (c.requiredOrigins?.length) return 'El contenido está dentro de un visor de otro dominio. Autoriza su lectura para detectar el PDF o el vídeo.';
-    if (c.detection?.loginPage) return 'La página muestra un inicio de sesión. Entra en el curso y vuelve a detectar su contenido.';
-    if (c.videos?.length) return c.videos[0].unavailableReason || 'Veo un reproductor, pero no expone audio ni subtítulos accesibles. Inicia el vídeo y vuelve a detectar.';
-    if(c.detection?.framesUnreadable)return 'El visor está cargado, pero no expone contenido legible ni un PDF o audio accesible. Abre el recurso original y vuelve a detectar.';
-    return 'No se ha encontrado texto, PDF, vídeo ni imágenes que se puedan capturar en esta página.';
+    if (page) return tx('detect_anaco_no_tiene_permiso_para_leer_esta_pa',[(()=>{try{return new URL(page.url).hostname;}catch{return 'esta web';}})()]);
+    if (c.requiredOrigins?.length) return tx('detect_el_contenido_esta_dentro_de_un_visor_de_');
+    if (c.detection?.loginPage) return tx('detect_la_pagina_muestra_un_inicio_de_sesion_en');
+    if (c.videos?.length) return c.videos[0].unavailableReason || tx('detect_veo_un_reproductor_pero_no_expone_audio_');
+    if(c.detection?.framesUnreadable)return tx('detect_el_visor_esta_cargado_pero_no_expone_con');
+    return tx('detect_no_se_ha_encontrado_texto_pdf_video_ni_i');
   }
   return {origin, pdfURL, unique, usable, merge, problem};
 })();

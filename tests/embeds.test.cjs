@@ -1,9 +1,10 @@
+const I18N = require('./i18n.cjs');
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const ctx = vm.createContext({URL,TextEncoder,TextDecoder});
-vm.runInContext(fs.readFileSync('extension/embeds.js','utf8')+';globalThis.embeds=AnacoObEmbeds;',ctx);
+vm.runInContext(I18N+fs.readFileSync('extension/embeds.js','utf8')+';globalThis.embeds=AnacoObEmbeds;',ctx);
 const embeds=ctx.embeds;
 
 test('only known post and code demo frames are treated as embeds',()=>{

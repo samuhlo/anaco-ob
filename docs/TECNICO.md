@@ -32,3 +32,13 @@ La CI instala el paquete con `pipx` en los tres sistemas y comprueba el servicio
 ## Proveedores de IA
 
 Todas las llamadas al modelo pasan por `App.ai_json`. Con Codex (predeterminado) se ejecuta `codex exec` como siempre. Con el proveedor compatible con OpenAI, `native/ai.py` envía `POST {api_base}/chat/completions` con `response_format: json_schema` estricto. Si el servidor rechaza el esquema, reintenta con `json_object` y el esquema en el texto. Las imágenes viajan como URL `data:` al modelo visual, o al modelo principal si no hay visual. La clave API vive en `config.json` (permisos 0600) y las respuestas a la extensión solo indican `api_key_set`.
+
+## Idiomas de la interfaz
+
+La extensión está en español (principal y respaldo) e inglés. Los textos viven en `extension/_locales/{es,en}/messages.json`, en el formato de `browser.i18n`, que también traduce el manifiesto (`default_locale: es`). `scripts/i18n.py build` los reúne en `extension/i18n-catalog.js`, porque `browser.i18n` solo sigue el idioma del navegador y Anaco permite elegirlo en Opciones.
+
+- **Código:** `tx('clave', [valores])` sustituye `$1`…`$n`; en HTML, `data-i18n` para el texto y `data-i18n-<atributo>` para `placeholder`, `title`, `aria-label` y `alt`. `i18n.js` traduce cada página al cargar.
+- **Elección:** `localStorage['anaco-ob:lang']` (`auto`, `es` o `en`). En automático se usa inglés si el navegador está en inglés. Al cambiarlo, las páginas abiertas se recargan y el fondo actualiza los menús contextuales.
+- **Scripts de contenido:** no leen el almacenamiento de la extensión. El fondo inyecta `globalThis.AnacoObLang` con el idioma resuelto y después el catálogo, antes de `capture.js` y `resource.js`.
+- **Fuera de alcance de la interfaz:** las notas y los encabezados predeterminados siguen en español, y los mensajes del servicio local también; su idioma se tratará aparte.
+- **Comprobación:** `python3 scripts/i18n.py check` (en CI) exige cada clave usada en ambos idiomas con los mismos marcadores, rechaza claves calculadas y avisa si el catálogo no está al día.

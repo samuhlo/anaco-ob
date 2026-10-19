@@ -98,7 +98,7 @@ globalThis.AnacoObCapture = async (input = {}) => {
   const warnings = [];
   const documents=[],videos=[],frames=[];
   const seenDocs=new Set(),seenVideos=new Set();
-  function addDocument(url,title){url=absolute(url);if(url&&!seenDocs.has(url)){seenDocs.add(url);documents.push({url,title:title||"Documento PDF"});}}
+  function addDocument(url,title){url=absolute(url);if(url&&!seenDocs.has(url)){seenDocs.add(url);documents.push({url,title:title||tx('bg_documento_pdf')});}}
   function addVideo(video){
     if(AnacoObMedia.apiURL(video.url))return;
     video.url=AnacoObMedia.platformURL(video.url)||video.url;
@@ -112,7 +112,7 @@ globalThis.AnacoObCapture = async (input = {}) => {
       frames.push({url:src,title:node.title||new URL(src).hostname});
       const u=new URL(src);const nested=u.searchParams.get('file')||u.searchParams.get('url');
       if(nested&&/\.pdf(?:[?#]|$)/i.test(nested))addDocument(new URL(nested,src).href,node.title);
-      if(AnacoObMedia.platformURL(src)||/drive\.google\.com\/file\/d\//i.test(src)){const id=src.match(/drive\.google\.com\/file\/d\/([^/?#]+)/)?.[1];addVideo({url:src,title:node.title||"Vídeo incrustado",tracks:[],download:id?'https://drive.google.com/uc?export=download&id='+encodeURIComponent(id):undefined});}
+      if(AnacoObMedia.platformURL(src)||/drive\.google\.com\/file\/d\//i.test(src)){const id=src.match(/drive\.google\.com\/file\/d\/([^/?#]+)/)?.[1];addVideo({url:src,title:node.title||tx('capture_video_incrustado'),tracks:[],download:id?'https://drive.google.com/uc?export=download&id='+encodeURIComponent(id):undefined});}
     }
   }
   for(const link of document.querySelectorAll('a[href]')){
@@ -124,11 +124,11 @@ globalThis.AnacoObCapture = async (input = {}) => {
   }
   // A paginated/scrolling HTML viewer can fetch its PDF without exposing a link.
   for(const resource of performance.getEntriesByType('resource')){
-    try{if(/\.pdf$/i.test(new URL(resource.name).pathname))addDocument(resource.name,'PDF cargado por el visor');}catch{}
+    try{if(/\.pdf$/i.test(new URL(resource.name).pathname))addDocument(resource.name,tx('capture_pdf_cargado_por_el_visor'));}catch{}
   }
   if(bookRoot?.matches('.pdfViewer')){
     const file=new URL(location.href).searchParams.get('file');
-    if(file)addDocument(file,document.title||'Documento del visor');
+    if(file)addDocument(file,document.title||tx('capture_documento_del_visor'));
   }
   for(const video of document.querySelectorAll('video,audio')){
     if(video.closest('[data-anaco-ob-embed]'))continue;
@@ -139,11 +139,11 @@ globalThis.AnacoObCapture = async (input = {}) => {
     // by the player. Resource Timing reveals only resources this frame loaded.
     const loaded=performance.getEntriesByType('resource').map(r=>r.name);
     if(!src||src.startsWith('blob:'))src=loaded.filter(u=>/\.(mp4|webm|m4a|mp3|m3u8)(?:[?#]|$)/i.test(u)).at(-1)||src;
-    for(const url of loaded.filter(u=>/\.(vtt|srt)(?:[?#]|$)/i.test(u)).slice(-8))if(!tracks.some(t=>t.url===url))tracks.push({url,language:'',label:'Subtítulos del reproductor'});
+    for(const url of loaded.filter(u=>/\.(vtt|srt)(?:[?#]|$)/i.test(u)).slice(-8))if(!tracks.some(t=>t.url===url))tracks.push({url,language:'',label:tx('capture_subtitulos_del_reproductor')});
     const dash=/\.mpd(?:[?#]|$)/i.test(src);
     const extractable=Boolean(cues||tracks.length||(/^https?:/.test(src)&&!dash));
     addVideo({url:src||location.href,title:video.title||document.title,tracks,subtitles:cues,extractable,
-      unavailableReason:extractable?'':dash?'Este reproductor usa DASH; todavía no se puede extraer su audio.':'El reproductor está presente, pero todavía no expone audio o subtítulos accesibles. Inicia el vídeo y pulsa Detectar de nuevo.',
+      unavailableReason:extractable?'':dash?tx('capture_este_reproductor_usa_dash_todavia_no_se_'):tx('capture_el_reproductor_esta_presente_pero_todavi'),
       duration:Number.isFinite(video.duration)?video.duration:null,poster:absolute(video.poster)});
   }
   if(/(?:youtube\.com\/watch|youtu\.be\/|vimeo\.com\/\d+)/i.test(location.href))addVideo({url:location.href,title:document.title,tracks:[]});
@@ -159,16 +159,16 @@ globalThis.AnacoObCapture = async (input = {}) => {
   const courseShell=authenticationFrame||(canvasHost&&!courseRoot)||
     ((canvasHost||providerFrame)&&frames.length>0&&!bookRoot&&!inventory.pages.length&&!images.length&&!documents.length&&!videos.length);
   const reader=Boolean(readerHint&&!courseShell&&inventory.pages.length);
-  if(reader)warnings.push(`Libro detectado: ${inventory.pages.length} páginas disponibles. Usa Extraer libro completo para leerlas todas; las figuras de la nota se elegirán después.`);
-  if(rendered.limited)warnings.push('La captura visual del lector ha alcanzado el límite de ocho candidatas o de tamaño. Hay páginas/figuras que no se han incluido; no es una lectura visual completa del libro.');
-  if(rendered.blocked)warnings.push('El navegador impide leer '+rendered.blocked+' superficies del visor; su contenido visual no se ha capturado.');
+  if(reader)warnings.push(tx('capture_libro_detectado_1_paginas_disponibles_us',[inventory.pages.length]));
+  if(rendered.limited)warnings.push(tx('capture_la_captura_visual_del_lector_ha_alcanzad'));
+  if(rendered.blocked)warnings.push(tx('capture_el_navegador_impide_leer_1_superficies',[rendered.blocked]));
   const contentReady=!loginPage && (kind==='quote'?Boolean(text.trim()):kind==='image'?Boolean(selectedImages[0]?.url):
     (!courseShell && text.replace(/https?:\/\/\S+/g,'').length>=120 && text.split(/\s+/).length>=18) || (!courseShell&&selectedImages.length>0));
-  if (root === document.body && kind === "article") warnings.push("No se detectó un artículo principal. Revisa el texto extraído antes de resumir.");
+  if (root === document.body && kind === "article") warnings.push(tx('capture_no_se_detecto_un_articulo_principal_revi'));
   const untouchedMedia=[...document.querySelectorAll('video,iframe')].filter(n=>!embeds.length||!(n.closest('[data-anaco-ob-embed]')||AnacoObEmbeds.embedFrame(n.src)||!AnacoObSurfaces.visible(n)));
   for(const node of root.querySelectorAll('[data-anaco-ob-embed]'))delete node.dataset.anacoObEmbed;
-  if (untouchedMedia.length && kind === "article") warnings.push("Se ha capturado el texto de la página. El vídeo y el contenido de marcos incrustados no se han transcrito.");
-  if (text.length > 120000) warnings.push("La página supera el límite de esta versión; se han capturado los primeros 120.000 caracteres.");
+  if (untouchedMedia.length && kind === "article") warnings.push(tx('capture_se_ha_capturado_el_texto_de_la_pagina_el'));
+  if (text.length > 120000) warnings.push(tx('capture_la_pagina_supera_el_limite_de_esta_versi'));
   return {reader:reader?{scope:"detected",pages:inventory.pages,overflow:inventory.overflow,visual_limited:false,pageElements:root.querySelectorAll(".page,.pf,[data-page-number]").length,canvas:rendered.canvas,svg:rendered.svg,backgrounds:rendered.backgrounds}:null,documentType:document.contentType,frameRole:authenticationFrame?"authentication":courseShell?"wrapper":"content",surfaces:{canvas:rendered.canvas,svg:rendered.svg,backgrounds:rendered.backgrounds,blocked:rendered.blocked,limited:rendered.limited,failures:rendered.failures},kind, url: location.href, title: document.querySelector('meta[property="og:title"]')?.content || document.title,
     author: document.querySelector('meta[name="author"]')?.content || "", text: text.slice(0,120000), context,
     images: selectedImages, warnings,documents,videos,frames,embeds,contentReady,loginPage};

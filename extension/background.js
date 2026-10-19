@@ -26,11 +26,11 @@ browser.tabs.onActivated?.addListener(info=>{
 });
 async function reviewCommand(message){
   const session=reviewSessions[message.id];
-  if(!session||session.windowId!==message.windowId)throw new Error('Esa revisión ya no está abierta en esta ventana.');
+  if(!session||session.windowId!==message.windowId)throw new Error(tx('bg_esa_revision_ya_no_esta_abierta_en_esta_'));
   const commands=['focus','note','include','read','edit','properties','connections','refreshLinks','split','save'];
-  if(!commands.includes(message.command))throw new Error('Acción de revisión no disponible.');
+  if(!commands.includes(message.command))throw new Error(tx('bg_accion_de_revision_no_disponible'));
   const tab=await browser.tabs.get(session.tabId);
-  if(tab.url!==browser.runtime.getURL('review.html')+'?capture='+encodeURIComponent(message.id)){await clearReviewTab(tab.id);throw new Error('La revisión se cerró.');}
+  if(tab.url!==browser.runtime.getURL('review.html')+'?capture='+encodeURIComponent(message.id)){await clearReviewTab(tab.id);throw new Error(tx('bg_la_revision_se_cerro'));}
   await browser.tabs.update(tab.id,{active:true});
   if(message.command==='focus')return true;
   const pending=browser.runtime.sendMessage({type:'reviewControl',id:message.id,instance:session.instance,command:message.command,note:message.note,value:message.value});
@@ -79,10 +79,10 @@ async function allowSidebar(windowId){
   return !inheritedSidebarWindows.delete(windowId);
 }
 const cancelledWork=new Set(),workResources=new Map(),workAbortControllers=new Map();
-function checkWork(){if(workClaim&&cancelledWork.has(workClaim))throw new Error('Trabajo cancelado. Puedes reanudarlo desde Trabajos recuperables.');}
+function checkWork(){if(workClaim&&cancelledWork.has(workClaim))throw new Error(tx('bg_trabajo_cancelado_puedes_reanudarlo_desd'));}
 const requests = new Map();
 browser.storage.local.get(["operation","activeWork"]).then(({operation,activeWork}) => {
-  if (operation||activeWork) browser.storage.local.set({activeWork:null,operation:"",operationError:"La preparación anterior se interrumpió. Puedes recuperar la captura en Pendientes y reintentar."});
+  if (operation||activeWork) browser.storage.local.set({activeWork:null,operation:"",operationError:tx('bg_la_preparacion_anterior_se_interrumpio_p')});
 });
 function native(message, timeoutMs=2400000) {
   return new Promise((resolve, reject) => {
@@ -97,24 +97,24 @@ function native(message, timeoutMs=2400000) {
         response.ok ? pending.resolve(response.result) : pending.reject(new Error(response.error));
       });
       port.onDisconnect.addListener(() => {
-        const error = port?.error?.message || "No se pudo conectar con el servicio local. Instálalo con «anaco-ob install».";
+        const error = port?.error?.message || tx('bg_no_se_pudo_conectar_con_el_servicio_loca');
         port = null;
         for (const pending of requests.values()) { clearTimeout(pending.timer); pending.reject(new Error(error)); }
         requests.clear();
       });
     }
     const requestId = crypto.randomUUID();
-    const timer = setTimeout(() => {requests.delete(requestId); reject(new Error("El servicio está tardando demasiado. La captura se conserva en Pendientes."));}, timeoutMs);
+    const timer = setTimeout(() => {requests.delete(requestId); reject(new Error(tx('bg_el_servicio_esta_tardando_demasiado_la_c')));}, timeoutMs);
     requests.set(requestId, {resolve, reject, timer,workId:workClaim});
     try { port.postMessage({...message, requestId,task:workClaim}); } catch (error) { clearTimeout(timer); requests.delete(requestId); reject(error); }
   });
 }
 
 async function beginWork(c,operation,showCapture=true){
-  if(workClaim)throw new Error('Ya hay un trabajo en curso. Puedes seguir navegando mientras termina.');
+  if(workClaim)throw new Error(tx('bg_ya_hay_un_trabajo_en_curso_puedes_seguir'));
   const id=crypto.randomUUID();workClaim=id;++detectionSequence;
   if(typeof AbortController==='function')workAbortControllers.set(id,new AbortController());
-  const activeWork={id,title:c.title||'Captura',source:c.source||{url:c.url},captureToken:c.token,captureId:c.id,startedAt:Date.now()};
+  const activeWork={id,title:c.title||tx('bg_captura'),source:c.source||{url:c.url},captureToken:c.token,captureId:c.id,startedAt:Date.now()};
   try{
     const {workSources={}}=await browser.storage.local.get('workSources');workSources[id]={source:activeWork.source,title:activeWork.title};await browser.storage.local.set({workSources});
     await browser.storage.local.set({activeWork,operation,operationProgress:null,operationError:'',operationDiagnostic:null,
@@ -130,7 +130,7 @@ async function endWork(id,error=null){
 }
 async function cancelWork(){
   if(!workClaim)return;
-  const id=workClaim;cancelledWork.add(id);await browser.storage.local.set({operation:'Cancelando el trabajo y conservando el avance…'});
+  const id=workClaim;cancelledWork.add(id);await browser.storage.local.set({operation:tx('bg_cancelando_el_trabajo_y_conservando_el_a')});
   workAbortControllers.get(id)?.abort();
   for(const r of workResources.get(id)||[])browser.tabs.executeScript(r.tabId,{frameId:r.frameId,code:`AnacoObResource.close(${JSON.stringify(r.job)});void 0;`}).catch(()=>{});
   const result=await browser.runtime.sendNativeMessage(HOST,{action:'cancel_job',job:id});if(!result.ok)throw new Error(result.error);
@@ -141,10 +141,17 @@ let detectionSequence = 0;
 const keyFor = tab => `${tab.id}:${tab.url}`;
 const sourceFor = tab => ({tabId:tab.id, windowId:tab.windowId, url:tab.url, session:SESSION});
 function pdfCapture(tab) {
-  return {kind:"pdf",url:tab.url,title:tab.title||"Documento PDF",text:"",images:[],warnings:[],documents:[{url:tab.url,title:tab.title||"PDF"}],videos:[],frames:[],contentReady:false,requiredOrigins:[]};
+  return {kind:"pdf",url:tab.url,title:tab.title||tx('bg_documento_pdf'),text:"",images:[],warnings:[],documents:[{url:tab.url,title:tab.title||"PDF"}],videos:[],frames:[],contentReady:false,requiredOrigins:[]};
+}
+// Content scripts cannot read the extension's storage: they get the language from here.
+async function injectI18n(tabId,target){
+  await browser.tabs.executeScript(tabId,{...target,code:`globalThis.AnacoObLang=${JSON.stringify(AnacoObI18n.language())};void 0;`});
+  await browser.tabs.executeScript(tabId,{...target,file:"i18n-catalog.js"});
+  await browser.tabs.executeScript(tabId,{...target,file:"i18n.js"});
 }
 async function readFrame(tabId, frameId, input = {}) {
   const target = {frameId, matchAboutBlank:true};
+  await injectI18n(tabId, target);
   await browser.tabs.executeScript(tabId, {...target, file:"surfaces.js"});
   await browser.tabs.executeScript(tabId, {...target, file:"media-source.js"});
   await browser.tabs.executeScript(tabId, {...target, file:"embeds.js"});
@@ -168,7 +175,7 @@ async function scanTab(tab, input = {}) {
   catch {
     const granted = await browser.permissions.contains({origins:[AnacoObDetection.origin(tab.url)].filter(Boolean)});
     if (granted && await probePDF(tab.url)) return pdfCapture(tab);
-    blocked.push({url:tab.url,title:tab.title||'Página actual',needsPermission:!granted,top:true});
+    blocked.push({url:tab.url,title:tab.title||tx('bg_pagina_actual'),needsPermission:!granted,top:true});
   }
   if (input.kind === 'quote' || input.kind === 'image') return pages[0];
   const all = await browser.webNavigation.getAllFrames({tabId:tab.id}).catch(() => []);
@@ -176,13 +183,13 @@ async function scanTab(tab, input = {}) {
   const frames = (all || []).filter(f => f.frameId !== 0 && !f.errorOccurred &&
     !/doubleclick|recaptcha|googlesyndication/i.test(f.url) && !(embeds&&AnacoObEmbeds.embedFrame(f.url))).slice(0,40);
   const results = await Promise.allSettled(frames.map(async frame => {
-    if (AnacoObDetection.pdfURL(frame.url)) return {kind:'pdf',url:frame.url,frameId:frame.frameId,documents:[{url:frame.url,title:'PDF del curso'}]};
+    if (AnacoObDetection.pdfURL(frame.url)) return {kind:'pdf',url:frame.url,frameId:frame.frameId,documents:[{url:frame.url,title:tx('bg_pdf_del_curso')}]};
     try { return {...await readFrame(tab.id, frame.frameId),parentFrameId:frame.parentFrameId}; }
     catch {
       const origin=AnacoObDetection.origin(frame.url);
       const granted=origin&&await browser.permissions.contains({origins:[origin]});
-      if(granted&&await probePDF(frame.url))return {kind:'pdf',url:frame.url,frameId:frame.frameId,documents:[{url:frame.url,title:'PDF del visor'}]};
-      return {blocked:true,url:frame.url,title:'Contenido incrustado',needsPermission:!granted,frameId:frame.frameId,reason:granted?'script-unreadable':'permission-required'};
+      if(granted&&await probePDF(frame.url))return {kind:'pdf',url:frame.url,frameId:frame.frameId,documents:[{url:frame.url,title:tx('bg_pdf_del_visor')}]};
+      return {blocked:true,url:frame.url,title:tx('bg_contenido_incrustado'),needsPermission:!granted,frameId:frame.frameId,reason:granted?'script-unreadable':'permission-required'};
     }
   }));
   for (const result of results) if (result.status === 'fulfilled') {
@@ -211,11 +218,11 @@ function capture(tab,input={},options={}){
 }
 async function performCapture(tab, input = {}, {automatic = false, fresh = true} = {}) {
   if (automatic && tab?.url?.startsWith(browser.runtime.getURL(''))) return null;
-  if(workClaim){if(automatic)return (await browser.storage.local.get('currentCapture')).currentCapture;throw new Error('La captura actual sigue procesándose. Puedes cambiar de pestaña mientras termina.');}
+  if(workClaim){if(automatic)return (await browser.storage.local.get('currentCapture')).currentCapture;throw new Error(tx('bg_la_captura_actual_sigue_procesandose_pue'));}
   const sequence = ++detectionSequence;
   if (!tab?.id || !/^(https?:|file:)/.test(tab.url || '')) {
     if (automatic && tab?.url?.startsWith(browser.runtime.getURL(''))) return null;
-    await browser.storage.local.set({currentCapture:null,draftResult:null,pageContext:{tabId:tab?.id,url:tab?.url,status:'error',error:'Esta pestaña no contiene una página web que se pueda capturar.'}});
+    await browser.storage.local.set({currentCapture:null,draftResult:null,pageContext:{tabId:tab?.id,url:tab?.url,status:'error',error:tx('bg_esta_pestana_no_contiene_una_pagina_web_')}});
     return null;
   }
   const existing=await browser.storage.local.get(['currentCapture','pageContext']);
@@ -229,8 +236,8 @@ async function performCapture(tab, input = {}, {automatic = false, fresh = true}
   if(!samePage||!automatic)await browser.storage.local.set({currentCapture:null,draftResult:null,operationError:'',pageContext:{...sourceFor(tab),status:'loading'}});
   try {
     let timer;
-    const result = await Promise.race([scanTab(tab,input), new Promise((_,reject) => {timer=setTimeout(() => reject(new Error('No se pudo terminar la detección. Espera a que cargue el contenido y vuelve a intentarlo.')),12000);})]).finally(()=>clearTimeout(timer));
-    if (!result) throw new Error('No se pudo leer el contenido seleccionado. Vuelve a capturarlo desde la página.');
+    const result = await Promise.race([scanTab(tab,input), new Promise((_,reject) => {timer=setTimeout(() => reject(new Error(tx('bg_no_se_pudo_terminar_la_deteccion_espera_'))),12000);})]).finally(()=>clearTimeout(timer));
+    if (!result) throw new Error(tx('bg_no_se_pudo_leer_el_contenido_seleccionad'));
     result.source = sourceFor(tab); result.token = crypto.randomUUID();
     result.detectionError = AnacoObDetection.problem(result);
     // Empty detections are still shown, with their specific explanation.
@@ -272,10 +279,10 @@ async function imageData(image) {
   try {
     const response = await fetch(image.url, {credentials: "include", signal: controller.signal});
     if (!response.ok) throw new Error("HTTP " + response.status);
-    if (Number(response.headers.get("content-length")) > 3000000) throw new Error("supera 3 MB");
+    if (Number(response.headers.get("content-length")) > 3000000) throw new Error(tx('bg_supera_3_mb'));
     const reader = response.body.getReader();
     const parts = []; let size = 0;
-    while (true) { const {value, done} = await reader.read(); if (done) break; size += value.length; if (size > 3000000) {await reader.cancel(); throw new Error("supera 3 MB");} parts.push(value); }
+    while (true) { const {value, done} = await reader.read(); if (done) break; size += value.length; if (size > 3000000) {await reader.cancel(); throw new Error(tx('bg_supera_3_mb'));} parts.push(value); }
     const bytes = new Uint8Array(size); let offset = 0; for (const part of parts) {bytes.set(part,offset); offset += part.length;}
     let binary = ""; for (let i=0; i<bytes.length; i+=8192) binary += String.fromCharCode(...bytes.subarray(i,i+8192));
     return {...image, data: btoa(binary)};
@@ -306,7 +313,7 @@ async function fetchBytes(url,limit,credentials='include'){
   const response=await fetch(url,{credentials,signal:AbortSignal.timeout(30000)});
   if(!response.ok)throw new Error('HTTP '+response.status);
   const raw=new Uint8Array(await response.arrayBuffer());
-  if(raw.length>limit)throw new Error('supera el límite de tamaño');
+  if(raw.length>limit)throw new Error(tx('bg_supera_el_limite_de_tamano'));
   return raw;
 }
 // Runs inside the CodePen embed frame: its tabs hold the original source.
@@ -338,13 +345,13 @@ async function penPackage(item,source,warnings){
     if(!code){code=compiledPenCode(doc);code_source='compiled';}
     // Public CDNs answer with a wildcard CORS header, which rejects cookies.
     const offline=await AnacoObEmbeds.vendor(page,`https://cdpn.io/${item.user}/fullembedgrid/${item.slug}`,url=>{checkWork();return fetchBytes(url,10000000,'omit');});
-    if(offline.missing.length)warnings.push(`Demo «${item.title}»: ${offline.missing.length} archivos externos no se pudieron copiar; esa parte necesitará conexión.`);
+    if(offline.missing.length)warnings.push(tx('bg_demo_1_2_archivos_externos_no_se_pudiero',[item.title,offline.missing.length]));
     const libs=[];
     for(const file of offline.files)libs.push({url:file.url,name:file.name,...await uploadAsset(/\.css$/.test(file.name)?'lib.css':'lib.js',[file.bytes],file.bytes.length)});
     const raw=new TextEncoder().encode(offline.page);
     const html=await uploadAsset('index.html',[raw],raw.length);
     demo={page:html.asset,libs:libs.map(l=>({url:l.url,name:l.name,asset:l.asset}))};
-  }catch(error){warnings.push(`Demo «${item.title}»: no se pudo guardar una copia sin conexión (${error.message}). Se conservan el enlace${code?' y el código':''}.`);}
+  }catch(error){warnings.push(tx('bg_demo_1_no_se_pudo_guardar_una_copia_sin_',[item.title,error.message,code?tx('bg_y_el_codigo'):'']));}
   return {...item,code:code||{},code_source,...(demo?{demo}:{})};
 }
 async function embedResources(c,selection,warnings){
@@ -352,34 +359,34 @@ async function embedResources(c,selection,warnings){
   for(const [index,value] of (c.embeds||[]).entries()){
     const {thumbnail,warning,index:_,...item}=value;const selected=chosen.has(index);
     if(!selected||item.type==='tweet'){out.push({...item,selected});continue;}
-    checkWork();await browser.storage.local.set({operation:`Guardando recursos incrustados: ${++done} de ${total}…`});
+    checkWork();await browser.storage.local.set({operation:tx('bg_guardando_recursos_incrustados_1_de_2',[++done,total])});
     if(item.type==='pen'){out.push({...await penPackage(item,c.source,warnings),selected});continue;}
     try{out.push({...item,selected,...await clipAsset(item,c.source)});}
-    catch(error){warnings.push(`Clip «${item.title}»: no se pudo guardar (${error.message}).`);out.push({...item,selected:false});}
+    catch(error){warnings.push(tx('bg_clip_1_no_se_pudo_guardar_2',[item.title,error.message]));out.push({...item,selected:false});}
   }
   return out;
 }
 
 async function prepare(message,ownedCapture=null) {
   const {operation,currentCapture:capture}=await browser.storage.local.get(['operation','currentCapture']);
-  if(operation||workClaim)throw new Error('Ya hay una nota preparándose.');
+  if(operation||workClaim)throw new Error(tx('bg_ya_hay_una_nota_preparandose'));
   let c=ownedCapture||capture;
-  if(!c)throw new Error('Primero captura una página, frase o imagen.');
-  if(message.token&&c.token!==message.token)throw new Error('La pestaña cambió antes de preparar la nota. Revisa la captura actual y reintenta.');
-  if(!c.id&&(c.reader||c.kind==='pdf'||!AnacoObDetection.usable(c)))throw new Error('Primero extrae el documento detectado.');
+  if(!c)throw new Error(tx('bg_primero_captura_una_pagina_frase_o_image'));
+  if(message.token&&c.token!==message.token)throw new Error(tx('bg_la_pestana_cambio_antes_de_preparar_la_n'));
+  if(!c.id&&(c.reader||c.kind==='pdf'||!AnacoObDetection.usable(c)))throw new Error(tx('bg_primero_extrae_el_documento_detectado'));
   c={...c,intent:message.intent||'',selected_images:message.images||c.selected_images};
-  const work=await beginWork(c,'Preparando la propuesta…');
+  const work=await beginWork(c,tx('bg_preparando_la_propuesta'));
   try {
     let selected=message.images;
     if (!c.id) {
       const images = [];
       const warnings = [...c.warnings];
-      if(c.reader&&(message.images||[]).length<c.images.length)warnings.push(`Lector HTML: se han elegido ${(message.images||[]).length} de ${c.images.length} páginas/figuras detectadas para lectura visual. La selección no representa una lectura visual del libro entero.`);
+      if(c.reader&&(message.images||[]).length<c.images.length)warnings.push(tx('bg_lector_html_se_han_elegido_1_de_2_pagina',[(message.images||[]).length,c.images.length]));
       for (const index of message.images || []) {
         try { images.push(await imageData(c.images[index])); }
-        catch (e) { warnings.push("No se pudo conservar una imagen: " + e.message + ". Vuelve a capturar para reintentar."); }
+        catch (e) { warnings.push(tx('bg_no_se_pudo_conservar_una_imagen_1',[e.message])); }
       }
-      if (c.kind === "image" && !images.length) throw new Error("No se pudo descargar la imagen. Esta versión admite PNG, JPEG, GIF y WebP accesibles desde el navegador.");
+      if (c.kind === "image" && !images.length) throw new Error(tx('bg_no_se_pudo_descargar_la_imagen_esta_vers'));
       const embeds = c.embeds?.length ? await embedResources(c, message.embeds, warnings) : undefined;
       const source = c.source, token = c.token;
       c = {...await native({action: "capture", capture: {...c, images, warnings, embeds}}), source, token};
@@ -405,7 +412,7 @@ async function prepare(message,ownedCapture=null) {
 
 async function openReview(id,{automatic=false,source}={}) {
   const c = await native({action:"load",id});
-  if (!c.draft || c.status !== "draft") throw new Error("Esta captura no tiene una propuesta pendiente de revisión.");
+  if (!c.draft || c.status !== "draft") throw new Error(tx('bg_esta_captura_no_tiene_una_propuesta_pend'));
   const url = browser.runtime.getURL("review.html") + "?capture=" + encodeURIComponent(id);
   const {reviews={},sources={}} = await browser.storage.local.get(["reviews","sources"]);
   source=source||sources[id];let windowId,active=!automatic;
@@ -430,13 +437,14 @@ async function locateImage(message) {
   const {currentCapture:c}=await browser.storage.local.get("currentCapture");
   if(!c || c.token!==message.token)return {found:false};
   const source=c.source;
-  if(!source?.tabId || source.session!==SESSION)throw new Error("Vuelve a capturar el artículo para localizar sus imágenes.");
+  if(!source?.tabId || source.session!==SESSION)throw new Error(tx('bg_vuelve_a_capturar_el_articulo_para_local'));
   // Embedded resources live in the top frame and carry their own locator.
   const embed=message.embed?c.embeds?.[message.index]:null;
   const image=message.embed?null:c.images[message.index];
   const frameId=image?.frameId||0;
   if(!message.clear&&!image&&!embed?.locator)return {found:false};
   try {
+    await injectI18n(source.tabId,{frameId,matchAboutBlank:true});
     await browser.tabs.executeScript(source.tabId,{file:"locate.js",frameId,matchAboutBlank:true});
     if(sequence!==locateSequence)return {found:false};
     const input=message.clear?{clear:true}:embed?{locator:embed.locator,label:message.label}:{imageId:image.imageId,url:image.url,index:message.index};
@@ -444,8 +452,8 @@ async function locateImage(message) {
     return result;
   } catch {
     const origin=AnacoObDetection.origin(c.url);
-    if(origin&&!await browser.permissions.contains({origins:[origin]}))throw new Error("Anaco ya no tiene permiso para marcar en esta página (al recargarla se pierde). Pulsa «Detectar de nuevo» para concederlo.");
-    throw new Error("No puedo localizar este elemento. Comprueba que el artículo sigue abierto y vuelve a capturarlo si ha cambiado.");
+    if(origin&&!await browser.permissions.contains({origins:[origin]}))throw new Error(tx('bg_anaco_ya_no_tiene_permiso_para_marcar_en'));
+    throw new Error(tx('bg_no_puedo_localizar_este_elemento_comprue'));
   }
 }
 
@@ -455,12 +463,12 @@ async function reviewData(id) {
 
 async function finishReview(message,sender) {
   const expected=browser.runtime.getURL("review.html")+"?capture="+encodeURIComponent(message.id);
-  if(!sender.tab || sender.url!==expected)throw new Error("Esta acción debe iniciarse en la página de revisión de la captura.");
+  if(!sender.tab || sender.url!==expected)throw new Error(tx('bg_esta_accion_debe_iniciarse_en_la_pagina_'));
   const c=await native({action:"load",id:message.id});
   let result;
   if(message.decision==="save")result=await native({action:"save",id:message.id,fields:message.fields});
   else if(message.decision==="discard")result=await native({action:"discard",id:message.id});
-  else if(message.decision!=="back")throw new Error("Acción de revisión desconocida.");
+  else if(message.decision!=="back")throw new Error(tx('bg_accion_de_revision_desconocida'));
   if(message.decision!=="back"){
     localStorage.removeItem("editor:"+message.id);
     for (const [key,value] of tabCaptures) if(value.currentCapture?.id===message.id)tabCaptures.delete(key);
@@ -478,7 +486,7 @@ async function finishReview(message,sender) {
     else{const url=source.url||c.url;await browser.tabs.create({url:/^https?:/.test(url)?url:browser.runtime.getURL("panel.html"),active:true});}
     delete reviews[message.id];await browser.storage.local.set({reviews});
     await browser.tabs.remove(sender.tab.id);
-  } catch(error) {return {result,completed:message.decision!=="back",returnError:"La operación terminó, pero no pude volver al artículo: "+error.message};}
+  } catch(error) {return {result,completed:message.decision!=="back",returnError:tx('bg_la_operacion_termino_pero_no_pude_volver')+error.message};}
   return {result,completed:true};
 }
 
@@ -512,6 +520,7 @@ async function resourceBytes(url,source,frameId=0,maxBytes=100000000,diagnostic)
   if(Number.isInteger(source?.tabId)){
     const target={frameId,matchAboutBlank:true};let job,phase='frame-access';
     try{
+      await injectI18n(source.tabId,target);
       await browser.tabs.executeScript(source.tabId,{...target,file:'resource.js'});
       phase='page-fetch';
       const [opened]=await browser.tabs.executeScript(source.tabId,{...target,code:`AnacoObResource.open(${JSON.stringify(url)},${maxBytes})`});
@@ -525,13 +534,13 @@ async function resourceBytes(url,source,frameId=0,maxBytes=100000000,diagnostic)
           const [chunk]=await browser.tabs.executeScript(source.tabId,{...target,code:`AnacoObResource.read(${JSON.stringify(job)})`});
           if(chunk.done)break;
           const binary=atob(chunk.data),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
-          size+=bytes.length;if(size>maxBytes)throw new Error('El recurso supera el límite de descarga.');parts.push(bytes);
+          size+=bytes.length;if(size>maxBytes)throw new Error(tx('bg_el_recurso_supera_el_limite_de_descarga'));parts.push(bytes);
         }
         return {parts,size,url:opened.url};
       }
     }catch(error){frameError=error;resourceAttempt(diagnostic,{context:'player',host,reason:phase,error:error.name||'Error'});}
     finally{if(job){await browser.tabs.executeScript(source.tabId,{...target,code:`AnacoObResource.close(${JSON.stringify(job)});void 0;`}).catch(()=>{});if(owner)workResources.set(owner,(workResources.get(owner)||[]).filter(v=>v.job!==job));}}
-    if(frameError?.message?.includes('límite de descarga'))throw frameError;
+    if(frameError?.message===tx('bg_el_recurso_supera_el_limite_de_descarga'))throw frameError;
   }
   // A CDN may allow the extension but reject page CORS. Try its authorized read.
   let response;
@@ -539,15 +548,15 @@ async function resourceBytes(url,source,frameId=0,maxBytes=100000000,diagnostic)
   try{response=await fetch(url,{credentials:'include',signal:workSignal?AbortSignal.any([workSignal,AbortSignal.timeout(30000)]):AbortSignal.timeout(30000)});}
   catch{
     resourceAttempt(diagnostic,{context:'extension',host,reason:'network-or-cors'});
-    throw new Error('No se pudo leer el recurso del reproductor. Vuelve a iniciar el vídeo y a detectar su contenido; el diagnóstico incluye los intentos de descarga.');
+    throw new Error(tx('bg_no_se_pudo_leer_el_recurso_del_reproduct'));
   }
   resourceAttempt(diagnostic,{context:'extension',host,status:response.status,reason:''});
-  if(!response.ok)throw new Error(`El servidor rechazó el recurso del reproductor (HTTP ${response.status}). Se ha intentado conservar la sesión del vídeo. Inícialo y vuelve a detectar para renovar su enlace.`);
+  if(!response.ok)throw new Error(tx('bg_el_servidor_rechazo_el_recurso_del_repro',[response.status]));
   const type=response.headers.get('content-type')||'';
-  if(/text\/html|application\/xhtml/i.test(type))throw new Error('El recurso devolvió una página de acceso en lugar del vídeo o los subtítulos. Abre la lección y vuelve a detectar.');
-  if(Number(response.headers.get('content-length'))>maxBytes){await response.body?.cancel();throw new Error('El recurso supera el límite de descarga.');}
+  if(/text\/html|application\/xhtml/i.test(type))throw new Error(tx('bg_el_recurso_devolvio_una_pagina_de_acceso'));
+  if(Number(response.headers.get('content-length'))>maxBytes){await response.body?.cancel();throw new Error(tx('bg_el_recurso_supera_el_limite_de_descarga'));}
   let size=0;const parts=[],reader=response.body.getReader();
-  while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>maxBytes){await reader.cancel();throw new Error('El recurso supera el límite de descarga.');}parts.push(value);}
+  while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>maxBytes){await reader.cancel();throw new Error(tx('bg_el_recurso_supera_el_limite_de_descarga'));}parts.push(value);}
   return {parts,size,url:response.url||url};
 }
 async function subtitleText(url, source, frameId=0,diagnostic){
@@ -556,11 +565,11 @@ async function subtitleText(url, source, frameId=0,diagnostic){
 }
 async function importResource(message){
   const {operation,currentCapture}=await browser.storage.local.get(['operation','currentCapture']);
-  if(operation)throw new Error('Ya hay un recurso procesándose. Puedes cambiar de pestaña mientras termina.');
-  if(message.token&&currentCapture?.token!==message.token)throw new Error('La pestaña cambió antes de extraer el recurso. Revisa el contenido actual y reintenta.');
+  if(operation)throw new Error(tx('bg_ya_hay_un_recurso_procesandose_puedes_ca'));
+  if(message.token&&currentCapture?.token!==message.token)throw new Error(tx('bg_la_pestana_cambio_antes_de_extraer_el_re'));
   const source=currentCapture?.source||await sourceForImport();
   const diagnostic={kind:message.kind,frameId:message.frameId||0,playerHost:resourceHost(message.frameURL||source?.url),resourceHost:resourceHost(message.url),attempts:[]};
-  const work=await beginWork(currentCapture||{title:message.title||'Recurso',source},message.kind==='pdf'?'Extrayendo el PDF…':'Recuperando subtítulos o audio…',Boolean(currentCapture));
+  const work=await beginWork(currentCapture||{title:message.title||tx('bg_recurso'),source},message.kind==='pdf'?tx('bg_extrayendo_el_pdf'):tx('bg_recuperando_subtitulos_o_audio'),Boolean(currentCapture));
   try{
     let c;
     if(message.kind==="subtitles"||message.kind==="subtitle-url"){
@@ -569,25 +578,25 @@ async function importResource(message){
         c=await native({action:"subtitles",url:message.pageUrl,title:message.title,text});
       }catch(error){
         if(!message.fallback)throw error;
-        await browser.storage.local.set({operation:'Los subtítulos no están disponibles. Recuperando el audio para transcribirlo…'});
+        await browser.storage.local.set({operation:tx('bg_los_subtitulos_no_estan_disponibles_recu')});
         message={...message,...message.fallback};diagnostic.kind=message.kind;diagnostic.resourceHost=resourceHost(message.url);
       }
     }
     if(!c&&message.kind==="video-platform")c=await native({action:"video_url",url:message.url});
     else if(!c){
-      await browser.storage.local.set({operation:message.kind==='pdf'?'Descargando el PDF…':'Descargando el recurso del reproductor…',operationProgress:{stage:'download',message:'Descargando el recurso del reproductor…'}});
+      await browser.storage.local.set({operation:message.kind==='pdf'?tx('bg_descargando_el_pdf'):tx('bg_descargando_el_recurso_del_reproductor'),operationProgress:{stage:'download',message:tx('bg_descargando_el_recurso_del_reproductor')}});
       let parts=[],size=0;
       if(message.kind==='video-hls'){
         const {config}=await native({action:'settings'});
         ({parts,size}=await AnacoObStream.download(message.url,{load:(url,limit)=>resourceBytes(url,source,message.frameId||0,limit,diagnostic),maxSeconds:config.video_minutes*60,onProgress:(n,total)=>{
-          if(n===1||n===total||n%10===0)browser.storage.local.set({operation:`Recuperando vídeo del curso: segmento ${n} de ${total}…`});
+          if(n===1||n===total||n%10===0)browser.storage.local.set({operation:tx('bg_recuperando_video_del_curso_segmento_1_d',[n,total])});
         }}));
       }else{
         ({parts,size}=await resourceBytes(message.url,source,message.frameId||0,100000000,diagnostic));
       }
       const begin=await native({action:"upload_begin",name:message.name||(message.kind==="pdf"?"documento.pdf":"video.mp4"),size,url:message.pageUrl||message.url});
       await uploadParts(begin.upload,parts);
-      await browser.storage.local.set({operation:message.kind==='pdf'?'Leyendo las páginas del PDF…':'Preparando el archivo de audio…',operationProgress:null});
+      await browser.storage.local.set({operation:message.kind==='pdf'?tx('bg_leyendo_las_paginas_del_pdf'):tx('bg_preparando_el_archivo_de_audio'),operationProgress:null});
       c=await native({action:"upload_finish",upload:begin.upload,pages:message.pages||""});
     }
     const adopted=await adoptMedia(c,source);
@@ -598,22 +607,22 @@ async function importResource(message){
 let readingBook=false;
 async function extractReader(message){
   const {currentCapture:c,operation}=await browser.storage.local.get(['currentCapture','operation']);
-  if(operation||readingBook)throw new Error('Ya hay una extracción o una nota en curso.');
-  if(!c?.reader||c.token!==message.token)throw new Error('El lector cambió. Vuelve a detectarlo.');
-  if(c.reader.overflow)throw new Error('El libro supera las 500 páginas admitidas en esta versión. No se ha extraído una parte.');
+  if(operation||readingBook)throw new Error(tx('bg_ya_hay_una_extraccion_o_una_nota_en_curs'));
+  if(!c?.reader||c.token!==message.token)throw new Error(tx('bg_el_lector_cambio_vuelve_a_detectarlo'));
+  if(c.reader.overflow)throw new Error(tx('bg_el_libro_supera_las_500_paginas_admitida'));
   const frames=[...new Set([0,...c.reader.frames,...(c.detection?.frameDetails||[]).map(f=>f.id).filter(Number.isInteger)])];
-  const work=await beginWork(c,'Preparando la extracción del libro completo…');
+  const work=await beginWork(c,tx('bg_preparando_la_extraccion_del_libro_compl'));
   let failure=null;
   readingBook=true;
   try{
     const pages=[];
     for(const frameId of c.reader.frames){
       const [inventory]=await browser.tabs.executeScript(c.source.tabId,{frameId,matchAboutBlank:true,code:'AnacoObSurfaces.inventory(globalThis.AnacoObReaderRoot||document.body)'});
-      if(inventory.overflow)throw new Error('El libro supera el límite de 500 páginas.');
+      if(inventory.overflow)throw new Error(tx('bg_el_libro_supera_el_limite_de_500_paginas'));
       pages.push(...inventory.pages.map(p=>({...p,frameId})));
     }
-    if(!pages.length)throw new Error('No se localizaron páginas del lector.');
-    if(pages.length>500)throw new Error('El libro supera el límite de 500 páginas.');
+    if(!pages.length)throw new Error(tx('bg_no_se_localizaron_paginas_del_lector'));
+    if(pages.length>500)throw new Error(tx('bg_el_libro_supera_el_limite_de_500_paginas'));
     for(const frameId of frames)await browser.tabs.executeScript(c.source.tabId,{frameId,matchAboutBlank:true,code:'AnacoObSurfaces.start();void 0;'}).catch(()=>{});
     const identity=c.token+':'+pages.map(p=>p.id).join(',');
     const {readerJobs={}}=await browser.storage.local.get('readerJobs');
@@ -623,7 +632,7 @@ async function extractReader(message){
     const done=new Set(begin.done);
     for(let i=0;i<pages.length;i++){
       if(done.has(i+1))continue;
-      await browser.storage.local.set({operation:`Extrayendo página ${i+1} de ${pages.length}…`});
+      await browser.storage.local.set({operation:tx('bg_extrayendo_pagina_1_de_2',[i+1,pages.length])});
       const page=pages[i];
       try{
         const [value]=await browser.tabs.executeScript(c.source.tabId,{frameId:page.frameId,matchAboutBlank:true,code:`AnacoObSurfaces.read(${JSON.stringify(page.id)})`});
@@ -636,9 +645,9 @@ async function extractReader(message){
           for(let at=0;at<data.length;at+=524288){const chunk=data.slice(at,at+524288);await native({action:'reader_chunk',job:begin.job,index:i+1,offset,data:chunk});offset+=atob(chunk).length;}
           await native({action:'reader_page_finish',job:begin.job,index:i+1});
         }
-      }catch(error){throw new Error(`No se ha podido leer la página ${i+1}/${pages.length}: ${error.message}. Las páginas recibidas se conservan; vuelve a pulsar Extraer libro completo para continuar.`);}
+      }catch(error){throw new Error(tx('bg_no_se_ha_podido_leer_la_pagina_1_2_3_las',[i+1,pages.length,error.message]));}
     }
-    await browser.storage.local.set({operation:`${pages.length}/${pages.length} páginas recibidas. Preparando el contenido…`});
+    await browser.storage.local.set({operation:tx('bg_1_2_paginas_recibidas_preparando_el_cont',[pages.length,pages.length])});
     const result=await native({action:'reader_finish',job:begin.job});
     return await adoptMedia(result,c.source);
   }catch(error){failure=error;throw error;}
@@ -651,7 +660,7 @@ async function extractReader(message){
 
 async function inspectFrame(message){
   const {currentCapture:c}=await browser.storage.local.get('currentCapture');
-  if(!c?.source?.tabId)throw new Error('Vuelve a detectar la página del curso.');
+  if(!c?.source?.tabId)throw new Error(tx('bg_vuelve_a_detectar_la_pagina_del_curso'));
   const tab=await browser.tabs.get(c.source.tabId);
   return capture(tab);
 }
@@ -672,8 +681,13 @@ browser.commands.onCommand.addListener(async command => {
   if(tab.url?.startsWith(browser.runtime.getURL(''))||Object.values(reviewSessions).some(r=>r.windowId===tab.windowId))return;
   capture(tab).catch(error => browser.storage.local.set({operationError:error.message}));
 });
-browser.menus.create({id: "quote", title: "Guardar frase con Anaco", contexts: ["selection"]});
-browser.menus.create({id: "image", title: "Guardar imagen con Anaco", contexts: ["image"]});
+browser.menus.create({id: "quote", title: tx('bg_guardar_frase_con_anaco'), contexts: ["selection"]});
+browser.menus.create({id: "image", title: tx('bg_guardar_imagen_con_anaco'), contexts: ["image"]});
+globalThis.addEventListener?.('storage',event=>{
+  if(event.key!=='anaco-ob:lang')return;
+  browser.menus.update("quote",{title:tx('bg_guardar_frase_con_anaco')});
+  browser.menus.update("image",{title:tx('bg_guardar_imagen_con_anaco')});
+});
 browser.menus.onClicked.addListener((info, tab) => {
   openSidebar(tab);
   capture(tab, {kind: info.menuItemId, selection: info.selectionText, src: info.srcUrl})
@@ -710,17 +724,17 @@ browser.runtime.onMessage.addListener((message, sender) => {
   if (message.type === "inspectFrame") return inspectFrame(message);
   if(message.type==='beginUploadWork')return (async()=>{
     const {operation,currentCapture}=await browser.storage.local.get(['operation','currentCapture']);
-    if(operation||workClaim)throw new Error('Ya hay un trabajo en curso.');
+    if(operation||workClaim)throw new Error(tx('bg_ya_hay_un_trabajo_en_curso'));
     const tab=message.manual?(sender.tab||(await browser.tabs.query({url:sender.url}))[0]):null;
     const source=message.manual?{tabId:tab?.id,windowId:tab?.windowId,url:sender.url,session:SESSION}:currentCapture?.source||await sourceForImport();
-    const work=await beginWork({...currentCapture,title:message.name,source},'Transfiriendo archivo…',!message.manual&&Boolean(currentCapture));
+    const work=await beginWork({...currentCapture,title:message.name,source},tx('bg_transfiriendo_archivo'),!message.manual&&Boolean(currentCapture));
     return {work,source};
   })();
   if(message.type==='failWork')return endWork(message.work,new Error(message.error));
   if(message.type==='cancelWork')return cancelWork();
   if(message.type==='resumeJob')return (async()=>{
-    const request=await native({action:'resume_job',job:message.job});const {workSources={}}=await browser.storage.local.get('workSources');const info=workSources[message.job]||{title:'Trabajo recuperado'};
-    const work=await beginWork({...info,source:info.source},'Reanudando el trabajo…',false);
+    const request=await native({action:'resume_job',job:message.job});const {workSources={}}=await browser.storage.local.get('workSources');const info=workSources[message.job]||{title:tx('bg_trabajo_recuperado')};
+    const work=await beginWork({...info,source:info.source},tx('bg_reanudando_el_trabajo'),false);
     try{
       const result=await native(request,7200000);
       if(request.action==='draft'){result.capture.source=info.source;await publishCapture(result.capture,result);await openReview(result.capture.id,{automatic:true,source:info.source});}
@@ -735,12 +749,12 @@ browser.runtime.onMessage.addListener((message, sender) => {
     const c=await native({action:'load',id:message.id});
     const {sources={},currentCapture:current}=await browser.storage.local.get(['sources','currentCapture']);
     const source=sources[c.id]||(current?.id===c.id?current.source:null)||{url:c.url};
-    const work=await beginWork({...c,source,token:current?.id===c.id?current.token:undefined},connecting?'Buscando conexiones por tema en tu Second Brain…':splitting?'Estudiando una posible división de la nota…':'Preparando una revisión del apartado…',connecting);
+    const work=await beginWork({...c,source,token:current?.id===c.id?current.token:undefined},connecting?tx('bg_buscando_conexiones_por_tema_en_tu_secon'):splitting?tx('bg_estudiando_una_posible_division_de_la_no'):tx('bg_preparando_una_revision_del_apartado'),connecting);
     try{const result=await native({...message,action:connecting?'refresh_links':splitting?'propose_split':'revise'});await endWork(work);return result;}catch(error){await endWork(work,error);throw error;}
   })();
   if(message.type==='splitDecision')return native({...message,action:'split_decision'});
   if (message.type === "adoptUpload") return (async()=>{
-    if(message.work!==workClaim)throw new Error('La transferencia ya no pertenece al trabajo actual.');
+    if(message.work!==workClaim)throw new Error(tx('bg_la_transferencia_ya_no_pertenece_al_trab'));
     const {activeWork}=await browser.storage.local.get('activeWork');
     try{const result=await adoptMedia(message.capture,activeWork.source);await endWork(message.work);return message.prepareAfter?prepare({token:result.token,images:result.images.map((_,i)=>i),provider:message.provider,intent:message.intent,note_structure:message.note_structure},result):result;}
     catch(error){await endWork(message.work,error);throw error;}

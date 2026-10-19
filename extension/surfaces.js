@@ -47,7 +47,7 @@ if (!globalThis.AnacoObSurfaces) {
       image.onload=()=>{clearTimeout(timer);resolve();};image.onerror=()=>{clearTimeout(timer);reject(new Error('svg'));};
       image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(clone));
     });
-    return raster(node,image,'Página del visor');
+    return raster(node,image,tx('surfaces_pagina_del_visor'));
   }
   async function collect(root, existing) {
     const images=[],nodes=elements(root),failures=[];let blocked=0,canvasCount=0,svgCount=0,backgroundCount=0,inlineSize=0,limited=false;
@@ -60,11 +60,11 @@ if (!globalThis.AnacoObSurfaces) {
       const tag=node.tagName.toLowerCase();
       if(tag==='canvas'){
         canvasCount++;
-        try{if(room()&&node.width&&node.height)add(raster(node,node,'Página del visor'));}catch{blocked++;}
+        try{if(room()&&node.width&&node.height)add(raster(node,node,tx('surfaces_pagina_del_visor')));}catch{blocked++;}
       }else if(tag==='svg'&&!node.parentElement?.closest('svg')){
         svgCount++;try{if(room())add(await svgImage(node));}catch(error){blocked++;failures.push({type:'svg',code:error.name,detail:['svg','timeout','oversize'].includes(error.message)?error.message:''});}
       }else if(tag==='img'&&/\.svg(?:[?#]|$)/i.test(node.currentSrc||node.src)){
-        try{if(room()&&node.complete&&node.naturalWidth)add(raster(node,node,node.alt||'Página del visor'));}catch{blocked++;}
+        try{if(room()&&node.complete&&node.naturalWidth)add(raster(node,node,node.alt||tx('surfaces_pagina_del_visor')));}catch{blocked++;}
       }else{
         const background=getComputedStyle(node).backgroundImage;
         for(const match of background.matchAll(/url\(["']?([^"')]+)["']?\)/g)){
@@ -100,7 +100,7 @@ if (!globalThis.AnacoObSurfaces) {
       const id=node.dataset.anacoObPage||(node.dataset.anacoObPage=crypto.randomUUID());
       const image=type==='img'?node:node.querySelector('img');
       const urls=[image?.currentSrc,image?.src,image?.dataset.src,...[...getComputedStyle(node).backgroundImage.matchAll(/url\(["']?([^"')]+)["']?\)/g)].map(m=>m[1])].filter(u=>/^https?:/.test(u||''));
-      return {id,type,index:i+1,label:'Página '+(i+1),urls:[...new Set(urls)]};
+      return {id,type,index:i+1,label:tx('surfaces_pagina')+(i+1),urls:[...new Set(urls)]};
     });
     return {pages,overflow:candidates.length>500};
   }
@@ -114,7 +114,7 @@ if (!globalThis.AnacoObSurfaces) {
   }
   async function read(id){
     const node=elements(document).find(e=>e.dataset.anacoObPage===id);
-    if(!node)throw new Error('La página cambió mientras se extraía el libro. Vuelve a detectar el lector.');
+    if(!node)throw new Error(tx('surfaces_la_pagina_cambio_mientras_se_extraia_el_'));
     start();node.scrollIntoView({behavior:'instant',block:'center',inline:'nearest'});
     await new Promise(r=>setTimeout(r,180));
     const items=[node,...node.querySelectorAll('canvas,img,svg')].filter(e=>visible(e)&&/^(canvas|img|svg)$/i.test(e.tagName));
@@ -123,10 +123,10 @@ if (!globalThis.AnacoObSurfaces) {
     const text=(node.innerText||'').trim();
     if(primary?.tagName.toLowerCase()==='img'){
       for(let n=0;n<60&&(!primary.complete||!primary.naturalWidth);n++)await new Promise(r=>setTimeout(r,100));
-      if(!primary.complete||!primary.naturalWidth)throw new Error('La imagen de esta página todavía no está cargada.');
+      if(!primary.complete||!primary.naturalWidth)throw new Error(tx('surfaces_la_imagen_de_esta_pagina_todavia_no_esta'));
       const url=primary.currentSrc||primary.src;
-      if(/^https?:/.test(url)&&!/\.(svg|avif)(?:[?#]|$)/i.test(url))return {text,image:{url,alt:'Página del libro',visual_page:true}};
-      return {text,image:raster(primary,primary,'Página del libro')};
+      if(/^https?:/.test(url)&&!/\.(svg|avif)(?:[?#]|$)/i.test(url))return {text,image:{url,alt:tx('surfaces_pagina_del_libro'),visual_page:true}};
+      return {text,image:raster(primary,primary,tx('surfaces_pagina_del_libro'))};
     }
     if(primary?.tagName.toLowerCase()==='canvas'){
       // Do not accept an unpainted canvas as a successfully read book page.
@@ -141,14 +141,14 @@ if (!globalThis.AnacoObSurfaces) {
         if(changed||knownLoaded||text.length>=120){ready=true;break;}
         await new Promise(r=>setTimeout(r,120));
       }
-      if(!ready)throw new Error('El visor todavía no ha dibujado esta página. No se ha aceptado una captura vacía.');
-      return {text,image:raster(primary,primary,'Página del libro')};
+      if(!ready)throw new Error(tx('surfaces_el_visor_todavia_no_ha_dibujado_esta_pag'));
+      return {text,image:raster(primary,primary,tx('surfaces_pagina_del_libro'))};
     }
     if(primary?.tagName.toLowerCase()==='svg')return {text,image:await svgImage(primary)};
     const url=[...getComputedStyle(node).backgroundImage.matchAll(/url\(["']?([^"')]+)["']?\)/g)][0]?.[1];
-    if(url)return {text,image:{url:new URL(url,location.href).href,alt:'Página del libro',visual_page:true}};
+    if(url)return {text,image:{url:new URL(url,location.href).href,alt:tx('surfaces_pagina_del_libro'),visual_page:true}};
     if(text)return {text,image:null};
-    throw new Error('Esta página no expone texto ni una imagen que se pueda leer.');
+    throw new Error(tx('surfaces_esta_pagina_no_expone_texto_ni_una_image'));
   }
   globalThis.AnacoObSurfaces={visible,elements,collect,inventory,start,end,read};
 }

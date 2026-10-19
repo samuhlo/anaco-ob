@@ -1,9 +1,10 @@
+const I18N = require('./i18n.cjs');
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const ctx = vm.createContext({URL});
-vm.runInContext(fs.readFileSync('extension/detection.js','utf8')+';globalThis.detect=AnacoObDetection;',ctx);
+vm.runInContext(I18N+fs.readFileSync('extension/detection.js','utf8')+';globalThis.detect=AnacoObDetection;',ctx);
 const detect=ctx.detect;
 const page=(url,frameId,other={})=>({url,frameId,kind:'article',title:'Lesson',text:'',images:[],warnings:[],frames:[],documents:[],videos:[],contentReady:false,...other});
 const tab={url:'https://course.example/modules/items/123',title:'Course'};

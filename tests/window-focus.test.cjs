@@ -1,9 +1,10 @@
+const I18N = require('./i18n.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
 function app(){
  const event=()=>({listeners:[],addListener(fn){this.listeners.push(fn);},emit(value){for(const fn of this.listeners)fn(value);}});
  const data={},created=[],opened=[];let focused={id:1,focused:true},active={id:11,url:'https://course.example/lesson'};
  const browser={runtime:{getURL:p=>'moz-extension://test/'+p,onMessage:event()},windows:{getAll:async()=>[{id:1}],get:async id=>({id}),getLastFocused:async()=>focused,onCreated:event(),onRemoved:event()},tabs:{onRemoved:event(),query:async()=>[active],create:async value=>{created.push(value);return {id:created.length+30,...value};},get:async()=>({url:'about:blank'}),update:async()=>{throw new Error('Unexpected focus change');}},sidebarAction:{open:()=>{opened.push(true);return Promise.resolve();}},storage:{local:{get:async keys=>Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(k=>[k,data[k]])),set:async values=>Object.assign(data,values)}},permissions:{contains:async()=>true},webNavigation:{onCompleted:event()},browserAction:{onClicked:event()},commands:{onCommand:event()},menus:{create(){},onClicked:event()}};
- const ctx=vm.createContext({browser,URL,setTimeout,clearTimeout,AbortSignal,crypto:require('node:crypto').webcrypto});vm.runInContext(fs.readFileSync('extension/detection.js','utf8')+fs.readFileSync('extension/background.js','utf8'),ctx);
+ const ctx=vm.createContext({browser,URL,setTimeout,clearTimeout,AbortSignal,crypto:require('node:crypto').webcrypto});vm.runInContext(I18N+fs.readFileSync('extension/detection.js','utf8')+fs.readFileSync('extension/background.js','utf8'),ctx);
  ctx.native=async()=>({status:'draft',draft:{},url:'https://course.example/lesson'});
  return {ctx,browser,data,created,opened,setFocused:value=>focused=value,setActive:value=>active=value};
 }
