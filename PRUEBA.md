@@ -1,4 +1,4 @@
-# Probar Anaco 0.11.0
+# Probar Anaco 1.0.0
 
 Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/audio. Prepara una propuesta editable y guarda Markdown y adjuntos en tu vault. Las relaciones, las imágenes recomendadas y sus descripciones se revisan antes de guardar.
 
@@ -10,6 +10,10 @@ Al instalar la extensión se abre **Bienvenida a Anaco** (también desde **Opcio
 - **No encuentro tu vault**, con enlace a Opciones.
 - **Versiones distintas** entre la extensión y el servicio: «pipx upgrade anaco-ob».
 - **La IA no está lista**: Codex no encontrado o proveedor sin modelo.
+
+## Idiomas: comprobar 1.0.0
+
+En **Opciones → Idioma** elige **English**: la página, el panel y los avisos pasan a inglés, también los mensajes del servicio local. **Automático** sigue el idioma del navegador. Aparte, **Opciones → Preparación de notas → Idioma de las notas** decide en qué idioma se escriben las notas nuevas y sus encabezados predeterminados; las notas que ya están en el vault no cambian.
 
 ## Proveedor compatible con OpenAI
 
