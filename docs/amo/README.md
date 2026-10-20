@@ -8,7 +8,7 @@ Textos y material para la ficha de Anaco en AMO. El paquete se genera con `npm r
 2. En <https://addons.mozilla.org/developers/> → **Submit a New Add-on** → **On this site**, sube `dist/anaco-ob-<versión>.zip`.
 3. Código fuente: responde **No**. El paquete no está minificado ni compilado: `vendor/purify.js` es la distribución oficial de DOMPurify sin modificar, y `i18n-catalog.js` es JSON legible generado desde `_locales`. Si el revisor lo pide, enlaza el repositorio y las notas de abajo.
 4. Rellena la ficha en español (idioma predeterminado) y añade la traducción al inglés con los textos de abajo.
-5. Sube las capturas de `docs/amo/` (1280×800). Se regeneran con `.venv/bin/python scripts/amo_shots.py`.
+5. Sube las capturas de `docs/amo/` (1280×800; también las usa el README del repositorio). Se regeneran con `.venv/bin/python scripts/amo_shots.py`.
 6. Pega las notas para el revisor.
 
 ## Subir una versión nueva
@@ -76,6 +76,7 @@ No servers of its own and no telemetry. Transcription runs on your computer.
 | `2-revision.png` | Revisa la nota, sus imágenes y sus relaciones antes de guardarla. | Review the note, its images and its links before saving it. |
 | `3-panel-perfil.png` | El panel lateral y el perfil del vault que guía dónde y cómo guardar. | The sidebar and the vault profile that guides where and how to save. |
 | `4-bienvenida.png` | La bienvenida explica por qué hace falta la pieza local y la instala con una sola línea. | The welcome page explains why the local piece is needed and installs it with a single line. |
+| `5-perfil.png` | Revisa la propuesta de perfil: dónde guardar, qué tipos y metadatos usar. | Review the profile proposal: where to save, which types and metadata to use. |
 
 ## Notes for the reviewer
 

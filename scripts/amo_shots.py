@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compose the addons.mozilla.org screenshots (1280×800) from the README captures.
+"""Compose the 1280×800 screenshots used by addons.mozilla.org and the README from the raw captures.
 
   .venv/bin/python scripts/amo_shots.py   # writes docs/amo/*.png with headless Zen
 """
@@ -19,6 +19,7 @@ SHOTS = {
     "3-panel-perfil": ["panel.png", "perfil.png"],
     # The welcome screenshots have empty space below: show only their top part.
     "4-bienvenida": ["bienvenida-por-que.png:560", "bienvenida.png:560"],
+    "5-perfil": ["perfil.png"],
 }
 PAGE = """<!doctype html><meta charset="utf-8"><style>
 html,body{{margin:0;width:1280px;height:800px;overflow:hidden}}
