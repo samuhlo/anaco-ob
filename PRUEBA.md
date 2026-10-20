@@ -1,4 +1,4 @@
-# Probar Anaco 1.0.0
+# Probar Anaco 1.0.1
 
 Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/audio. Prepara una propuesta editable y guarda Markdown y adjuntos en tu vault. Las relaciones, las imágenes recomendadas y sus descripciones se revisan antes de guardar.
 
