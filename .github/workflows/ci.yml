@@ -58,3 +58,21 @@ jobs:
       - run: anaco-ob doctor || true
       - run: python scripts/smoke_native_host.py
       - run: anaco-ob uninstall --purge
+
+  bootstrap:
+    # The one-line install shown on the welcome page, from this checkout, on each system.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    env:
+      ANACO_OB_SOURCE: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - if: runner.os != 'Windows'
+        run: sh scripts/install.sh
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/install.ps1
+      - run: python scripts/smoke_native_host.py
