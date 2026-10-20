@@ -28,10 +28,13 @@
   <code style="color:#737373;">// anaco: un trozo, una pieza que merece quedarse //</code>
 
   <br /><br />
-  <img src="docs/assets/revision.png" alt="Revisión de una nota capturada de Codrops: la nota a la izquierda y sus propiedades, destino y conexiones a la derecha" width="820" />
-
-  <br />
 </div>
+
+<p align="center">
+  <img src="docs/amo/2-revision.png" alt="Revisión de una nota capturada de Codrops: la nota a la izquierda y sus propiedades, destino y conexiones a la derecha" width="820" />
+  <br />
+  <sub><b>La revisión.</b> La nota a la izquierda; a la derecha, su procedencia, el destino en tu vault y las conexiones con tus notas. Nada se guarda hasta que lo confirmas.</sub>
+</p>
 
 ---
 
@@ -53,11 +56,11 @@ Anaco lee lo que estás viendo, prepara una propuesta de nota que respeta las re
 | **Perfil del vault** | Escanea tu vault y, con tus propias instrucciones, propone dónde guardar, qué tipos y nombres usar y cómo rellenar el frontmatter. Lo confirmas tú. |
 | **Servicio local** | Python sin dependencias externas: busca relaciones, llama a la IA, transcribe en local y escribe en el vault solo tras tu revisión. |
 
-<div align="center">
-  <img src="docs/assets/recursos.png" alt="Panel lateral con la lista de clips de vídeo de un artículo de Codrops" width="300" />
-  &nbsp;&nbsp;
-  <img src="docs/assets/resaltado.png" alt="Artículo con un clip rodeado en amarillo y la etiqueta Clip 1" width="480" />
-</div>
+<p align="center">
+  <img src="docs/amo/1-resaltado.png" alt="A la izquierda, el panel lateral con los clips de vídeo de un artículo de Codrops; a la derecha, el artículo con el clip señalado rodeado en amarillo" width="820" />
+  <br />
+  <sub><b>Recursos incrustados.</b> El panel lista los clips, demos y publicaciones del artículo; al pasar por uno, el artículo lo rodea en amarillo para que sepas cuál es.</sub>
+</p>
 
 ---
 
@@ -65,7 +68,7 @@ Anaco lee lo que estás viendo, prepara una propuesta de nota que respeta las re
 
 ```text
 pestaña → panel: detectar contenido y recursos → elegir imágenes, clips, demos y publicaciones
-        → preparar: IA (Codex) o captura manual → revisión: editar, conectar, dividir
+        → preparar: la IA que elijas o captura manual → revisión: editar, conectar, dividir
         → guardar en el vault según su perfil → volver al artículo
 ```
 
@@ -77,9 +80,11 @@ La barra de rayitas bajo el logo sigue el avance de la nota: detectada, prepará
 
 ## // 03_ PERFIL_DEL_VAULT
 
-<div align="center">
-  <img src="docs/assets/perfil.png" alt="Propuesta de perfil del vault: resumen de destinos, tipos, metadatos, adjuntos y documentos, con secciones plegables" width="620" />
-</div>
+<p align="center">
+  <img src="docs/amo/5-perfil.png" alt="Propuesta de perfil del vault: resumen de destinos, tipos, metadatos, adjuntos y documentos, con secciones plegables para ajustar cada regla" width="820" />
+  <br />
+  <sub><b>El perfil del vault.</b> Primero, un resumen de lo que hará Anaco con tu vault; debajo, cada regla en su desplegable para ajustarla antes de confirmar.</sub>
+</p>
 
 En **Opciones → Perfil del vault** pulsas **Escanear el vault**. Anaco lee carpetas, nombres de archivo y metadatos, nunca el contenido de tus notas. Te enseña qué instrucciones, skills, guías y plantillas ha encontrado para que elijas cuáles puede leer la IA. La propuesta empieza por un resumen de lo que hará; cada regla se ajusta en su desplegable, con la evidencia que la justifica.
 
@@ -116,8 +121,19 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 
 ## // 06_ INICIO_RÁPIDO
 
+Instala la extensión en Zen o Firefox. Hasta que esté publicada en addons.mozilla.org: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`. Al instalarla se abre la bienvenida, que explica por qué hace falta el servicio local, te da la línea para instalarlo en tu sistema, detecta sola cuándo responde y te deja elegir el vault y la IA. Si algo falta más adelante, el panel lleva de vuelta a ese paso.
+
+<p align="center">
+  <img src="docs/amo/4-bienvenida.png" alt="Dos pasos de la bienvenida: por qué Anaco necesita una pieza en tu ordenador, y la línea de instalación con su botón de copiar mientras espera al servicio" width="820" />
+  <br />
+  <sub><b>El primer uso.</b> La bienvenida explica por qué hace falta la pieza local y da la línea para instalarla; cuando el servicio responde, sigue sola.</sub>
+</p>
+
+Después, en **Opciones**, confirma el **Perfil del vault**. Si prefieres la terminal, estos son los mismos pasos:
+
 ```bash
 # 1. Instala y registra el servicio local; trae Python si no lo tienes
+#    (con pipx también vale: pipx install git+https://github.com/samuhlo/anaco-ob && anaco-ob install)
 curl -fsSL https://raw.githubusercontent.com/samuhlo/anaco-ob/main/scripts/install.sh | sh
 #    En Windows, desde PowerShell:
 #    powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/samuhlo/anaco-ob/main/scripts/install.ps1 | iex"
@@ -133,7 +149,7 @@ anaco-ob install-media
 codex login
 ```
 
-Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`, hasta que esté publicada en addons.mozilla.org. Al instalarla se abre un recorrido de bienvenida que explica por qué hace falta el servicio local, muestra la línea de instalación de tu sistema, detecta solo cuándo responde y te deja elegir el vault y la IA; si algo falta más adelante, el panel lleva de vuelta a ese paso. Después, en **Opciones**, confirma el **Perfil del vault**. Con `pipx` también funciona: `pipx install git+https://github.com/samuhlo/anaco-ob` y `anaco-ob install`. La guía completa, paso a paso, está en [PRUEBA.md](PRUEBA.md).
+La guía completa, paso a paso, está en [PRUEBA.md](PRUEBA.md).
 
 | COMANDO | PARA QUÉ |
 | :--- | :--- |
@@ -144,7 +160,8 @@ Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar
 | `npm test` | Pruebas unitarias de la extensión |
 | `python3 -m unittest discover -s tests` | Pruebas del servicio |
 | `python3 tests/e2e_zen.py --profile` | Recorrido real en Zen: perfil, captura y guardado |
-| `python3 tests/e2e_zen.py --readme-shots` | Regenerar las capturas de este README (usa la red) |
+| `python3 tests/e2e_zen.py --readme-shots` | Regenerar las capturas originales en `docs/assets/` (usa la red) |
+| `.venv/bin/python scripts/amo_shots.py` | Componer las capturas de 1280×800 de este README y de addons.mozilla.org en `docs/amo/` |
 
 ---
 
