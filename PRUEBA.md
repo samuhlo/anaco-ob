@@ -4,27 +4,27 @@ Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/a
 
 ## Bienvenida y diagnóstico
 
-Al instalar la extensión se abre **Bienvenida a Anaco** (también desde **Opciones → Abrir la guía de instalación**). Muestra los comandos para tu sistema, con botón de copiar, y **Comprobar ahora** revisa el servicio, la versión, el perfil y la IA. Si algo falta, el panel muestra un aviso con el motivo y un enlace a la solución:
+Al instalar la extensión se abre un recorrido de seis pasos (también desde **Opciones → Abrir la guía de instalación**):
 
-- **Falta el servicio local**, con enlace a la guía.
+1. **Bienvenida** y **Por qué**: qué hace Anaco y por qué necesita una pieza en tu ordenador.
+2. **Instalar**: tras aceptar, muestra cómo abrir la terminal en tu sistema y una sola línea con botón de copiar. Mientras se instala, la página dice «Esperando a la pieza local…» y avanza sola cuando responde. **Prefiero instalarlo a mano** muestra los pasos con `pipx`.
+3. **Tu vault**: los vaults encontrados, u **Otra carpeta** con su ruta.
+4. **IA**: tu cuenta de ChatGPT (Codex), otro servicio con tu clave, un modelo en tu ordenador o sin IA.
+5. **Todo listo**: comprueba el servicio, la versión, el perfil y la IA, y lleva a Opciones si falta confirmar el perfil.
+
+Si algo falta más adelante, el panel muestra un aviso con el motivo y un enlace a la solución:
+
+- **Falta el servicio local** o **versiones distintas**: vuelve al paso de instalación; la misma línea actualiza el servicio.
 - **No encuentro tu vault**, con enlace a Opciones.
-- **Versiones distintas** entre la extensión y el servicio: «pipx upgrade anaco-ob».
 - **La IA no está lista**: Codex no encontrado o proveedor sin modelo.
 
 ## Idiomas: comprobar 1.0.0
 
 En **Opciones → Idioma** elige **English**: la página, el panel y los avisos pasan a inglés, también los mensajes del servicio local. **Automático** sigue el idioma del navegador. Aparte, **Opciones → Preparación de notas → Idioma de las notas** decide en qué idioma se escriben las notas nuevas y sus encabezados predeterminados; las notas que ya están en el vault no cambian.
 
-## Proveedor compatible con OpenAI
+## Otro servicio de IA
 
-En **Opciones → Preparación de notas**, elige **IA compatible con OpenAI** e indica la URL base, el modelo y, si hace falta, la clave API:
-
-| SERVIDOR | URL BASE | CLAVE |
-| :--- | :--- | :--- |
-| **OpenAI** | `https://api.openai.com/v1` | La de tu cuenta |
-| **OpenRouter** | `https://openrouter.ai/api/v1` | La de tu cuenta |
-| **Ollama** | `http://localhost:11434/v1` | Vacía |
-| **LM Studio** | `http://localhost:1234/v1` | Vacía |
+En **Opciones → Preparación de notas**, elige **Otro servicio de IA** y después el **Servicio**: Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter, Ollama o LM Studio. Anaco rellena la URL base y un modelo sugerido, que puedes cambiar, y enlaza a la página donde se consigue la clave. Pega la clave API; Ollama y LM Studio funcionan en tu ordenador y no la necesitan. **Otro servidor compatible** deja escribir la URL a mano.
 
 Pulsa **Guardar opciones**. La clave se guarda en el servicio local y no se vuelve a mostrar. El panel ofrece el mismo proveedor en **Ajustes de esta captura**, y Codex sigue disponible. Para describir imágenes hace falta un modelo con visión; puedes indicarlo en **Modelo visual**. Si el servidor no admite salidas por esquema, Anaco reintenta pidiendo JSON simple.
 

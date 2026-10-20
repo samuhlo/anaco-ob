@@ -1,10 +1,75 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title data-i18n="welcome_bienvenida_anaco">Bienvenida · Anaco</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="quality.css"></head><body><main class="options welcome">
-<header class="brand-head"><img class="brand-mark" src="logo.svg" alt="Anaco"><h1><span data-i18n="welcome_bienvenida_a_anaco">Bienvenida a Anaco</span></h1></header>
-<p class="muted"><span data-i18n="welcome_anaco_convierte_lo_que_lees_en_el_navega">Anaco convierte lo que lees en el navegador en notas revisadas para tu vault de Obsidian. Para preparar y guardar notas usa un pequeño servicio en tu ordenador. Se instala una vez.</span></p>
-<section class="card"><div class="eyebrow"><span data-i18n="welcome_paso_1">Paso 1</span></div><h2><span data-i18n="welcome_instala_el_servicio_local">Instala el servicio local</span></h2><p id="platformNote" class="muted"></p><ol id="steps" class="welcome-steps"></ol>
-<p class="muted"><small><span data-i18n="welcome_no_tienes_python_descargalo_de_python_or">¿No tienes Python? Descárgalo de python.org (3.11 o superior). Más ayuda sobre pipx: pipx.pypa.io.</span></small></p></section>
-<section class="card"><div class="eyebrow"><span data-i18n="welcome_paso_2">Paso 2</span></div><h2><span data-i18n="welcome_comprueba_la_conexion">Comprueba la conexión</span></h2><button type="button" id="check" class="primary"><span data-i18n="welcome_comprobar_ahora">Comprobar ahora</span></button><ul id="checks" class="welcome-checks" aria-live="polite"></ul></section>
-<section class="card"><div class="eyebrow"><span data-i18n="welcome_paso_3">Paso 3</span></div><h2><span data-i18n="welcome_configura_tu_vault">Configura tu vault</span></h2><p><span data-i18n="welcome_en_opciones_elige_tu_vault_y_confirma_su">En Opciones elige tu vault y confirma su</span> <strong><span data-i18n="options_perfil_del_vault">Perfil del vault</span></strong><span data-i18n="welcome_anaco_aprende_donde_y_como_guardar_segun">: Anaco aprende dónde y cómo guardar según tus carpetas, metadatos e instrucciones. Elige también tu IA: Codex con tu cuenta de ChatGPT, un servidor compatible con OpenAI o un modelo local.</span></p><button type="button" id="openOptions"><span data-i18n="welcome_abrir_opciones">Abrir Opciones</span></button></section>
-<section class="card"><div class="eyebrow"><span data-i18n="welcome_opcional">Opcional</span></div><h2><span data-i18n="welcome_video_audio_y_pdf">Vídeo, audio y PDF</span></h2><p><span data-i18n="welcome_para_transcribir_en_tu_ordenador_ejecuta">Para transcribir en tu ordenador ejecuta</span> <code>anaco-ob install-media</code><span data-i18n="welcome_los_pdf_y_videos_usan_poppler_ffmpeg_y_y">. Los PDF y vídeos usan Poppler, FFmpeg y yt-dlp de tu sistema;</span> <code>anaco-ob doctor</code> <span data-i18n="welcome_te_dice_cuales_faltan">te dice cuáles faltan.</span></p></section>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title data-i18n="welcome_bienvenida_anaco">Bienvenida · Anaco</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="quality.css"></head><body><main class="onboard">
+<header class="onboard-head"><img class="brand-mark" src="logo.svg" alt="Anaco"><ol class="onboard-dots" id="dots" aria-label="Pasos" data-i18n-aria-label="welcome_pasos"></ol></header>
+
+<section class="onboard-step" data-step="intro">
+<div class="eyebrow"><span data-i18n="welcome_bienvenida">Bienvenida</span></div>
+<h1><span data-i18n="welcome_lo_que_lees">Lo que lees, convertido en notas de Obsidian.</span></h1>
+<p class="onboard-lead"><span data-i18n="welcome_intro">Anaco guarda artículos, vídeos, PDF y cursos como notas revisadas en tu vault. Prepararlo lleva unos minutos y solo se hace una vez.</span></p>
+<div class="row"><button type="button" class="primary" data-go="why"><span data-i18n="welcome_empezar">Empezar</span></button></div>
+</section>
+
+<section class="onboard-step" data-step="why" hidden>
+<div class="eyebrow"><span data-i18n="welcome_por_que">Por qué</span></div>
+<h1><span data-i18n="welcome_necesita_una_pieza">Anaco necesita una pieza pequeña en tu ordenador</span></h1>
+<div class="onboard-tiles">
+<article class="onboard-tile"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><h2><span data-i18n="welcome_el_navegador_no_puede">El navegador no puede guardar archivos</span></h2><p><span data-i18n="welcome_el_navegador_no_puede_texto">Por seguridad, Firefox y Zen no dejan que una extensión escriba en tus carpetas. Es una buena regla.</span></p></article>
+<article class="onboard-tile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7"/><path d="m15 17 2 2 4-4"/></svg><h2><span data-i18n="welcome_la_pieza_local_si">La pieza local sí puede</span></h2><p><span data-i18n="welcome_la_pieza_local_si_texto">Guarda las notas en tu vault, busca relaciones con lo que ya tienes y transcribe audio sin enviarlo fuera.</span></p></article>
+<article class="onboard-tile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/></svg><h2><span data-i18n="welcome_abierta_y_tuya">Abierta y solo tuya</span></h2><p><span data-i18n="welcome_abierta_y_tuya_texto">Es código abierto, no habla con servidores de Anaco y se quita con un comando.</span></p></article>
+</div>
+<div class="row"><button type="button" class="primary" data-go="install"><span data-i18n="welcome_instalarla">Instalarla</span></button><button type="button" class="link" data-go="install" data-already><span data-i18n="welcome_ya_la_tengo">Ya la tengo instalada</span></button></div>
+</section>
+
+<section class="onboard-step" data-step="install" hidden>
+<div class="eyebrow"><span data-i18n="welcome_instalar">Instalar</span></div>
+<h1><span data-i18n="welcome_instalar_la_pieza_local">Instalar la pieza local</span></h1>
+<div id="installAsk"><p class="onboard-lead"><span data-i18n="welcome_instalar_permiso">Con tu permiso, una sola línea en la terminal lo hace todo: trae Python si no lo tienes, instala Anaco y lo conecta con Firefox y Zen. No toca tus notas.</span></p>
+<div class="row"><button type="button" class="primary" id="acceptInstall"><span data-i18n="welcome_si_instalala">Sí, instálala</span></button></div></div>
+<ol class="onboard-guide" id="installGuide" hidden>
+<li><h2><span data-i18n="welcome_abre_la_terminal">Abre la terminal</span></h2><p id="terminalHint"></p></li>
+<li><h2><span data-i18n="welcome_copia_esta_linea">Copia esta línea y pégala</span></h2><div class="onboard-command"><code id="installCommand"></code><button type="button" class="primary" id="copyInstall"><span data-i18n="panel_copiar">Copiar</span></button></div><p class="muted"><small><a id="scriptLink" target="_blank" rel="noopener" data-i18n="welcome_ver_que_hace">Ver qué hace esta línea ↗</a></small></p></li>
+<li><h2><span data-i18n="welcome_pulsa_intro_y_espera">Pulsa Intro y espera</span></h2><p><span data-i18n="welcome_tarda_un_par_de_minutos">Tarda uno o dos minutos. Esta página se dará cuenta sola cuando termine.</span></p></li>
+</ol>
+<p class="onboard-status" id="serviceStatus" hidden></p>
+<div class="row" id="installNext" hidden><button type="button" class="primary" data-go="vault"><span data-i18n="welcome_seguir">Seguir</span></button></div>
+<details class="onboard-manual"><summary><span data-i18n="welcome_prefiero_a_mano">Prefiero instalarlo a mano</span></summary><p id="platformNote" class="muted"></p><ol id="steps" class="welcome-steps"></ol></details>
+</section>
+
+<section class="onboard-step" data-step="vault" hidden>
+<div class="eyebrow"><span data-i18n="welcome_tu_vault">Tu vault</span></div>
+<h1><span data-i18n="welcome_donde_esta_tu_vault">¿Dónde está tu vault de Obsidian?</span></h1>
+<p class="onboard-lead"><span data-i18n="welcome_vault_explicacion">Tu vault es la carpeta donde Obsidian guarda tus notas. Anaco solo escribirá ahí las notas que tú confirmes.</span></p>
+<p class="muted" id="vaultSearch" role="status"></p>
+<div class="onboard-choices" id="vaultChoices" role="radiogroup"></div>
+<label class="onboard-choice" id="vaultOther"><input type="radio" name="vault" value=""><span><strong><span data-i18n="welcome_otra_carpeta">Otra carpeta</span></strong><input id="vaultPath" placeholder="~/Obsidian/MiVault" data-i18n-placeholder="options_obsidian_mivault" aria-label="Ruta del vault" data-i18n-aria-label="options_ruta_del_vault"></span></label>
+<p class="notice error" id="vaultError" hidden></p>
+<div class="row"><button type="button" class="primary" id="saveVault"><span data-i18n="welcome_usar_este_vault">Usar este vault</span></button></div>
+</section>
+
+<section class="onboard-step" data-step="ai" hidden>
+<div class="eyebrow"><span data-i18n="welcome_ia">IA</span></div>
+<h1><span data-i18n="welcome_quien_te_ayuda">¿Quién te ayuda a escribir las notas?</span></h1>
+<p class="onboard-lead"><span data-i18n="welcome_ia_explicacion">Una IA lee lo que capturas y prepara la nota; tú siempre la revisas antes de guardarla. Puedes cambiarlo cuando quieras en Opciones.</span></p>
+<div class="onboard-choices" role="radiogroup">
+<label class="onboard-choice"><input type="radio" name="ai" value="codex"><span><strong><span data-i18n="welcome_tu_cuenta_de_chatgpt">Tu cuenta de ChatGPT</span></strong><small><span data-i18n="welcome_tu_cuenta_de_chatgpt_texto">Usa Codex con tu suscripción, sin claves.</span></small></span></label>
+<div class="onboard-detail" data-for="codex" hidden><p><span data-i18n="welcome_codex_instalar">Si aún no tienes Codex, instálalo y entra con tu cuenta desde la terminal:</span></p><pre>npm install -g @openai/codex
+codex login</pre></div>
+<label class="onboard-choice"><input type="radio" name="ai" value="service"><span><strong><span data-i18n="welcome_otro_servicio">Otro servicio</span></strong><small><span data-i18n="welcome_otro_servicio_texto">Claude, Gemini, OpenAI, MiniMax, Qwen u OpenRouter, con tu clave.</span></small></span></label>
+<div class="onboard-detail" data-for="service" hidden><label for="aiService"><span data-i18n="options_servicio">Servicio</span></label><select id="aiService"></select><label for="aiKey"><span data-i18n="options_clave_api">Clave API</span></label><input id="aiKey" type="password" autocomplete="off"><p class="muted"><small><a id="aiKeyLink" target="_blank" rel="noopener"></a> <span data-i18n="options_se_guarda_solo_en_el_servicio_local_de_t">Se guarda solo en el servicio local de tu ordenador.</span></small></p></div>
+<label class="onboard-choice"><input type="radio" name="ai" value="local"><span><strong><span data-i18n="welcome_en_tu_ordenador">En tu ordenador</span></strong><small><span data-i18n="welcome_en_tu_ordenador_texto">Ollama o LM Studio. Nada sale de tu ordenador.</span></small></span></label>
+<div class="onboard-detail" data-for="local" hidden><label for="aiLocal"><span data-i18n="options_servicio">Servicio</span></label><select id="aiLocal"></select><label for="aiLocalModel"><span data-i18n="options_modelo">Modelo</span></label><input id="aiLocalModel"></div>
+<label class="onboard-choice"><input type="radio" name="ai" value="manual"><span><strong><span data-i18n="welcome_sin_ia">Sin IA</span></strong><small><span data-i18n="welcome_sin_ia_texto">Tú escribes la nota; Anaco guarda la página y sus recursos.</span></small></span></label>
+</div>
+<p class="notice error" id="aiError" hidden></p>
+<div class="row"><button type="button" class="primary" id="saveAi"><span data-i18n="welcome_guardar_y_seguir">Guardar y seguir</span></button><button type="button" class="link" data-go="vault"><span data-i18n="welcome_atras">Atrás</span></button></div>
+</section>
+
+<section class="onboard-step" data-step="done" hidden>
+<div class="eyebrow"><span data-i18n="welcome_listo">Listo</span></div>
+<h1><span data-i18n="welcome_todo_listo">Todo listo</span></h1>
+<ul id="checks" class="welcome-checks" aria-live="polite"></ul>
+<article class="card onboard-next" id="profileNext"><h2><span data-i18n="welcome_ensena_a_anaco">Enseña a Anaco cómo organizas tu vault</span></h2><p><span data-i18n="welcome_ensena_a_anaco_texto">En Opciones, escanea tu vault y confirma su perfil: dónde guardar, cómo nombrar los archivos y qué metadatos usar.</span></p><button type="button" class="primary" id="openOptions"><span data-i18n="welcome_abrir_opciones">Abrir Opciones</span></button></article>
+<p><span data-i18n="welcome_despues_abre_el_panel">Después, abre el panel de Anaco con su icono en cualquier artículo.</span></p>
+<details class="onboard-manual"><summary><span data-i18n="welcome_video_audio_y_pdf">Vídeo, audio y PDF</span></summary><p><span data-i18n="welcome_transcribir_texto">Para transcribir en tu ordenador, ejecuta una vez en la terminal:</span></p><pre>anaco-ob install-media</pre><p class="muted"><small><span data-i18n="welcome_herramientas_sistema">Los PDF y vídeos usan Poppler, FFmpeg y yt-dlp de tu sistema; «anaco-ob doctor» te dice cuáles faltan.</span></small></p></details>
 <p class="muted"><small><span data-i18n="welcome_privacidad_anaco_no_tiene_servidores_ni_">Privacidad: Anaco no tiene servidores ni telemetría. Lo que capturas solo sale de tu ordenador hacia la IA que elijas. Detalle en PRIVACY.md del repositorio.</span></small></p>
-</main><script src="i18n-catalog.js"></script><script src="i18n.js"></script><script src="diagnosis.js"></script><script src="welcome.js"></script></body></html>
+</section>
+</main><script src="i18n-catalog.js"></script><script src="i18n.js"></script><script src="diagnosis.js"></script><script src="providers.js"></script><script src="welcome.js"></script></body></html>

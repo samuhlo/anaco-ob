@@ -95,7 +95,7 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 - **Imágenes con criterio**: aprovecha los pies del HTML y solo envía a análisis visual las imágenes que lo necesitan.
 - **Relaciones verificables**: cada conexión con una nota existente se apoya en fragmentos literales de ambas notas, y la aceptas o la descartas tú.
 - **Una o varias notas**: una nota con apartados, varias enlazadas por temas o que decida la IA, con división e integración revisables.
-- **Tu IA**: Codex con tu suscripción de ChatGPT, una API compatible con OpenAI o un modelo local con Ollama o LM Studio, donde nada sale de tu ordenador.
+- **Tu IA**: Codex con tu suscripción de ChatGPT; Claude, Gemini, OpenAI, MiniMax, Qwen u OpenRouter con tu clave, eligiendo el servicio por su nombre; o un modelo local con Ollama o LM Studio, donde nada sale de tu ordenador.
 - **Español e inglés**: la interfaz y los mensajes del servicio siguen al navegador o al idioma que elijas en Opciones, y las notas se escriben en el idioma que elijas para ellas. El español es el principal.
 - **Privacidad**: sin servidores propios ni telemetría. El vault no se envía completo; la IA recibe la captura y fragmentos de las notas candidatas. Detalle en [PRIVACY.md](PRIVACY.md).
 
@@ -108,7 +108,7 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 | **Extensión** | WebExtension Manifest V2 para Zen y Firefox (140+), JavaScript sin framework |
 | **Vista previa** | Marked y DOMPurify empaquetados en `extension/vendor/` |
 | **Servicio** | Python 3 estándar vía Native Messaging (`org.samuh.anaco_ob`) |
-| **IA** | `codex exec` con tu sesión de ChatGPT, o cualquier servidor compatible con OpenAI (OpenAI, OpenRouter, Ollama, LM Studio); siempre con salida estructurada |
+| **IA** | `codex exec` con tu sesión de ChatGPT, o cualquier servicio compatible con OpenAI (Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter, Ollama, LM Studio); siempre con salida estructurada |
 | **Multimedia** | Poppler, FFmpeg, `yt-dlp` y Faster Whisper en `.media-venv/` |
 | **Pruebas** | `node:test`, `unittest` y Selenium sobre Zen real |
 
@@ -117,22 +117,23 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 ## // 06_ INICIO_RÁPIDO
 
 ```bash
-# 1. Instala el servicio local (Linux, macOS o Windows, Python 3.11+)
-pipx install git+https://github.com/samuhlo/anaco-ob
+# 1. Instala y registra el servicio local; trae Python si no lo tienes
+curl -fsSL https://raw.githubusercontent.com/samuhlo/anaco-ob/main/scripts/install.sh | sh
+#    En Windows, desde PowerShell:
+#    powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/samuhlo/anaco-ob/main/scripts/install.ps1 | iex"
 
-# 2. Regístralo para Firefox y Zen, y comprueba qué falta
-anaco-ob install --vault ~/ruta/a/tu/vault
+# 2. Comprueba qué falta
 anaco-ob doctor
 
 # 3. Opcional: transcripción local con Whisper (PDF y vídeo usan Poppler, FFmpeg y yt-dlp del sistema)
 anaco-ob install-media
 
-# 4. Opcional: IA con tu cuenta de ChatGPT; también puedes elegir en Opciones un servidor
-#    compatible con OpenAI (API propia o modelo local) o la captura manual
+# 4. Opcional: IA con tu cuenta de ChatGPT; también puedes elegir Claude, Gemini, Qwen…,
+#    un modelo local o la captura manual
 codex login
 ```
 
-Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`, hasta que esté publicada en addons.mozilla.org. Al instalarla se abre una página de bienvenida con estos comandos para tu sistema y una comprobación de cada pieza; si algo falta, el panel lo explica y enlaza a la solución. Abre **Opciones**, elige tu vault y confirma su **Perfil del vault**. La guía completa, paso a paso, está en [PRUEBA.md](PRUEBA.md).
+Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`, hasta que esté publicada en addons.mozilla.org. Al instalarla se abre un recorrido de bienvenida que explica por qué hace falta el servicio local, muestra la línea de instalación de tu sistema, detecta solo cuándo responde y te deja elegir el vault y la IA; si algo falta más adelante, el panel lleva de vuelta a ese paso. Después, en **Opciones**, confirma el **Perfil del vault**. Con `pipx` también funciona: `pipx install git+https://github.com/samuhlo/anaco-ob` y `anaco-ob install`. La guía completa, paso a paso, está en [PRUEBA.md](PRUEBA.md).
 
 | COMANDO | PARA QUÉ |
 | :--- | :--- |

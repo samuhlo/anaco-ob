@@ -1,7 +1,9 @@
-"""OpenAI-compatible provider: OpenAI, OpenRouter, Ollama, LM Studio and similar.
+"""OpenAI-compatible provider: OpenAI, Claude, Gemini, MiniMax, Qwen, OpenRouter,
+Ollama, LM Studio and similar.
 
 One request per call to {api_base}/chat/completions, asking for JSON that follows
-the given schema. Servers without schema support get plain JSON mode instead.
+the given schema. The schema also travels in the prompt, because some endpoints
+(Claude's) ignore response_format; servers that reject it get plain JSON mode.
 """
 import json
 import re
@@ -39,30 +41,34 @@ def message(detail):
 
 
 def parse(content):
-    """The answer text as JSON, tolerating a fenced block from plain JSON mode."""
+    """The answer text as JSON, tolerating a fenced block or a sentence around the object."""
     text = (content or "").strip()
     fenced = re.search(r"```(?:json)?\s*(.*?)```", text, re.S)
+    if fenced:
+        text = fenced.group(1)
+    elif not text.startswith("{") and "{" in text:
+        text = text[text.index("{"):text.rindex("}") + 1]
     try:
-        return json.loads(fenced.group(1) if fenced else text)
+        return json.loads(text)
     except ValueError as exc:
         raise UserError("La IA no devolvió una propuesta válida; la captura sigue pendiente.") from exc
 
 
 def openai_json(cfg, prompt, spec, images=None):
     model = (cfg.get("api_vision_model") or cfg["api_model"]) if images else cfg["api_model"]
-    parts = [{"type": "text", "text": prompt}]
+    parts = [{"type": "text", "text": prompt + "\n\nDevuelve un único objeto JSON que cumpla este esquema:\n" + json.dumps(spec, ensure_ascii=False)}]
     for image in images or []:
         raw, ext = image_bytes(image)
         import base64
         parts.append({"type": "image_url", "image_url": {"url": f"data:{MIME[ext]};base64,{base64.b64encode(raw).decode()}"}})
     messages = [{"role": "system", "content": "Respondes solo con un objeto JSON válido que cumple el esquema pedido."}, {"role": "user", "content": parts}]
-    body = {"model": model, "messages": messages, "temperature": 0.2,
+    # No temperature: recent Claude and reasoning models reject anything but their default.
+    body = {"model": model, "messages": messages,
             "response_format": {"type": "json_schema", "json_schema": {"name": "anaco", "schema": spec, "strict": True}}}
     status, detail = request(cfg, body)
     if status == 400 and re.search(r"response_format|json_schema|schema", message(detail), re.I):
-        # GUARD -> Some local servers reject schemas: send the schema in the prompt instead.
-        plain = [{"type": "text", "text": prompt + "\n\nDevuelve un único objeto JSON que cumpla este esquema:\n" + json.dumps(spec, ensure_ascii=False)}] + parts[1:]
-        body = {**body, "messages": [messages[0], {"role": "user", "content": plain}], "response_format": {"type": "json_object"}}
+        # GUARD -> Some local servers reject schemas: the prompt already carries it, ask for plain JSON.
+        body = {**body, "response_format": {"type": "json_object"}}
         status, detail = request(cfg, body)
     if status in (401, 403):
         raise UserError("El servidor de IA rechaza la clave API. Revísala en Opciones. La captura sigue pendiente.")

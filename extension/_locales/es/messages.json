@@ -312,7 +312,7 @@
     "message": "Instala pipx (necesitas Python 3.11 o superior)"
   },
   "diag_la_extension_es_la_1_y_el_servicio_la_2_": {
-    "message": "La extensión es la $1 y el servicio la $2. Actualiza el servicio con «pipx upgrade anaco-ob» y vuelve a ejecutar «anaco-ob install»."
+    "message": "La extensión es la $1 y el servicio la $2. Para actualizar el servicio, vuelve a ejecutar la línea de instalación de la bienvenida."
   },
   "diag_la_ia_no_esta_lista": {
     "message": "La IA no está lista"
@@ -413,20 +413,17 @@
   "options_comprobar_conexion": {
     "message": "Comprobar conexión"
   },
-  "options_con_un_modelo_local_nada_sale_de_tu_orde": {
-    "message": "). Con un modelo local nada sale de tu ordenador."
-  },
   "options_configura_tu_vault_y_como_preparar_las_n": {
     "message": "Configura tu vault y cómo preparar las notas. El guardado de esta versión siempre pasa por tu revisión."
   },
   "options_confirmar_perfil": {
     "message": "Confirmar perfil"
   },
+  "options_consigue_tu_clave_de_1": {
+    "message": "Consigue tu clave de $1 ↗"
+  },
   "options_consulta_el_registro_local_de_obsidian_y": {
     "message": "Consulta el registro local de Obsidian y carpetas habituales."
-  },
-  "options_cualquier_servidor_con_la_api_de_openai_": {
-    "message": "Cualquier servidor con la API de OpenAI: OpenAI, OpenRouter o un modelo local con Ollama ("
   },
   "options_detectar_automaticamente": {
     "message": "Detectar automáticamente"
@@ -443,8 +440,14 @@
   "options_editar_el_json_del_perfil": {
     "message": "Editar el JSON del perfil"
   },
+  "options_elige_el_servicio_y_pega_tu_clave": {
+    "message": "Elige el servicio y pega tu clave: Anaco rellena la dirección y un modelo sugerido, que puedes cambiar."
+  },
   "options_en_automatico_se_reutilizan_los_pies_des": {
     "message": "En automático se reutilizan los pies, descripciones accesibles y nombres de archivo claros. Las imágenes con descripción suficiente no se envían a visión. Los nombres se indican como pistas, no como observaciones verificadas. Las páginas de PDF y fotogramas pueden necesitar visión para comprender el contenido completo. Si ninguna imagen necesita análisis, se mantiene el modelo de texto."
+  },
+  "options_en_tu_ordenador_sin_clave": {
+    "message": "Funciona en tu ordenador: no necesita clave y nada sale de él."
   },
   "options_escanear_el_vault": {
     "message": "Escanear el vault"
@@ -468,7 +471,7 @@
     "message": "https://api.openai.com/v1"
   },
   "options_ia_compatible_con_openai_api_propia_o_mo": {
-    "message": "IA compatible con OpenAI · API propia o modelo local"
+    "message": "Otro servicio de IA · Claude, Gemini, Qwen… o un modelo local"
   },
   "options_ia_con_codex_sesion_de_chatgpt_existente": {
     "message": "IA con Codex · sesión de ChatGPT existente"
@@ -539,9 +542,6 @@
   "options_no_se_pudo_completar_la_busqueda_1": {
     "message": "No se pudo completar la búsqueda: $1. Puedes introducir la ruta manualmente."
   },
-  "options_o_lm_studio": {
-    "message": ") o LM Studio ("
-  },
   "options_obsidian_mivault": {
     "message": "~/Obsidian/MiVault"
   },
@@ -559,6 +559,9 @@
   },
   "options_organizacion_predeterminada_de_las_notas": {
     "message": "Organización predeterminada de las notas"
+  },
+  "options_otro_servidor_compatible": {
+    "message": "Otro servidor compatible"
   },
   "options_paginas_candidatas_para_analisis_visual_": {
     "message": "Páginas candidatas para análisis visual (1–8)"
@@ -601,6 +604,9 @@
   },
   "options_selecciona_un_vault_detectado_o_introduc": {
     "message": "Selecciona un vault detectado o introduce su ruta manualmente."
+  },
+  "options_servicio": {
+    "message": "Servicio"
   },
   "options_servicio_conectado_localiza_tu_vault_par": {
     "message": "Servicio conectado. Localiza tu vault para empezar."
@@ -879,7 +885,7 @@
     "message": "Guardar y volver"
   },
   "panel_ia_servidor_compatible_con_openai": {
-    "message": "IA · servidor compatible con OpenAI"
+    "message": "IA · otro servicio o modelo local"
   },
   "panel_ia_tu_sesion_de_codex_chatgpt": {
     "message": "IA · tu sesión de Codex / ChatGPT"
@@ -1793,56 +1799,122 @@
   "surfaces_pagina_del_visor": {
     "message": "Página del visor"
   },
+  "welcome_abierta_y_tuya": {
+    "message": "Abierta y solo tuya"
+  },
+  "welcome_abierta_y_tuya_texto": {
+    "message": "Es código abierto, no habla con servidores de Anaco y se quita con un comando."
+  },
+  "welcome_abre_la_terminal": {
+    "message": "Abre la terminal"
+  },
   "welcome_abrir_opciones": {
     "message": "Abrir Opciones"
   },
-  "welcome_anaco_aprende_donde_y_como_guardar_segun": {
-    "message": ": Anaco aprende dónde y cómo guardar según tus carpetas, metadatos e instrucciones. Elige también tu IA: Codex con tu cuenta de ChatGPT, un servidor compatible con OpenAI o un modelo local."
+  "welcome_atras": {
+    "message": "Atrás"
   },
-  "welcome_anaco_convierte_lo_que_lees_en_el_navega": {
-    "message": "Anaco convierte lo que lees en el navegador en notas revisadas para tu vault de Obsidian. Para preparar y guardar notas usa un pequeño servicio en tu ordenador. Se instala una vez."
-  },
-  "welcome_bienvenida_a_anaco": {
-    "message": "Bienvenida a Anaco"
+  "welcome_bienvenida": {
+    "message": "Bienvenida"
   },
   "welcome_bienvenida_anaco": {
     "message": "Bienvenida · Anaco"
   },
-  "welcome_comprobar_ahora": {
-    "message": "Comprobar ahora"
+  "welcome_codex_instalar": {
+    "message": "Si aún no tienes Codex, instálalo y entra con tu cuenta desde la terminal:"
   },
-  "welcome_comprueba_la_conexion": {
-    "message": "Comprueba la conexión"
+  "welcome_copia_esta_linea": {
+    "message": "Copia esta línea y pégala"
   },
-  "welcome_configura_tu_vault": {
-    "message": "Configura tu vault"
+  "welcome_despues_abre_el_panel": {
+    "message": "Después, abre el panel de Anaco con su icono en cualquier artículo."
   },
-  "welcome_en_opciones_elige_tu_vault_y_confirma_su": {
-    "message": "En Opciones elige tu vault y confirma su"
+  "welcome_donde_esta_tu_vault": {
+    "message": "¿Dónde está tu vault de Obsidian?"
   },
-  "welcome_instala_el_servicio_local": {
-    "message": "Instala el servicio local"
+  "welcome_el_navegador_no_puede": {
+    "message": "El navegador no puede guardar archivos"
   },
-  "welcome_los_pdf_y_videos_usan_poppler_ffmpeg_y_y": {
-    "message": ". Los PDF y vídeos usan Poppler, FFmpeg y yt-dlp de tu sistema;"
+  "welcome_el_navegador_no_puede_texto": {
+    "message": "Por seguridad, Firefox y Zen no dejan que una extensión escriba en tus carpetas. Es una buena regla."
   },
-  "welcome_no_tienes_python_descargalo_de_python_or": {
-    "message": "¿No tienes Python? Descárgalo de python.org (3.11 o superior). Más ayuda sobre pipx: pipx.pypa.io."
+  "welcome_elige_una_opcion": {
+    "message": "Elige una opción para seguir."
   },
-  "welcome_opcional": {
-    "message": "Opcional"
+  "welcome_empezar": {
+    "message": "Empezar"
   },
-  "welcome_para_transcribir_en_tu_ordenador_ejecuta": {
-    "message": "Para transcribir en tu ordenador ejecuta"
+  "welcome_en_tu_ordenador": {
+    "message": "En tu ordenador"
   },
-  "welcome_paso_1": {
-    "message": "Paso 1"
+  "welcome_en_tu_ordenador_texto": {
+    "message": "Ollama o LM Studio. Nada sale de tu ordenador."
   },
-  "welcome_paso_2": {
-    "message": "Paso 2"
+  "welcome_ensena_a_anaco": {
+    "message": "Enseña a Anaco cómo organizas tu vault"
   },
-  "welcome_paso_3": {
-    "message": "Paso 3"
+  "welcome_ensena_a_anaco_texto": {
+    "message": "En Opciones, escanea tu vault y confirma su perfil: dónde guardar, cómo nombrar los archivos y qué metadatos usar."
+  },
+  "welcome_esperando_la_pieza": {
+    "message": "Esperando a la pieza local…"
+  },
+  "welcome_guardar_y_seguir": {
+    "message": "Guardar y seguir"
+  },
+  "welcome_herramientas_sistema": {
+    "message": "Los PDF y vídeos usan Poppler, FFmpeg y yt-dlp de tu sistema; «anaco-ob doctor» te dice cuáles faltan."
+  },
+  "welcome_ia": {
+    "message": "IA"
+  },
+  "welcome_ia_explicacion": {
+    "message": "Una IA lee lo que capturas y prepara la nota; tú siempre la revisas antes de guardarla. Puedes cambiarlo cuando quieras en Opciones."
+  },
+  "welcome_instalar": {
+    "message": "Instalar"
+  },
+  "welcome_instalar_la_pieza_local": {
+    "message": "Instalar la pieza local"
+  },
+  "welcome_instalar_permiso": {
+    "message": "Con tu permiso, una sola línea en la terminal lo hace todo: trae Python si no lo tienes, instala Anaco y lo conecta con Firefox y Zen. No toca tus notas."
+  },
+  "welcome_instalarla": {
+    "message": "Instalarla"
+  },
+  "welcome_intro": {
+    "message": "Anaco guarda artículos, vídeos, PDF y cursos como notas revisadas en tu vault. Prepararlo lleva unos minutos y solo se hace una vez."
+  },
+  "welcome_la_pieza_local_si": {
+    "message": "La pieza local sí puede"
+  },
+  "welcome_la_pieza_local_si_texto": {
+    "message": "Guarda las notas en tu vault, busca relaciones con lo que ya tienes y transcribe audio sin enviarlo fuera."
+  },
+  "welcome_listo": {
+    "message": "Listo"
+  },
+  "welcome_lo_que_lees": {
+    "message": "Lo que lees, convertido en notas de Obsidian."
+  },
+  "welcome_necesita_una_pieza": {
+    "message": "Anaco necesita una pieza pequeña en tu ordenador"
+  },
+  "welcome_no_he_encontrado_vaults": {
+    "message": "No he encontrado ningún vault. Escribe su ruta debajo."
+  },
+  "welcome_otra_carpeta": {
+    "message": "Otra carpeta"
+  },
+  "welcome_otro_servicio": {
+    "message": "Otro servicio"
+  },
+  "welcome_otro_servicio_texto": {
+    "message": "Claude, Gemini, OpenAI, MiniMax, Qwen u OpenRouter, con tu clave."
+  },
+  "welcome_pasos": {
+    "message": "Pasos"
   },
   "welcome_pasos_para_1_copia_cada_comando_en_una_t": {
     "message": "Pasos para $1. Copia cada comando en una terminal$2."
@@ -1850,8 +1922,26 @@
   "welcome_perfil_del_vault_confirmado": {
     "message": "Perfil del vault confirmado"
   },
+  "welcome_pieza_conectada": {
+    "message": "La pieza local está instalada y responde."
+  },
+  "welcome_por_que": {
+    "message": "Por qué"
+  },
+  "welcome_prefiero_a_mano": {
+    "message": "Prefiero instalarlo a mano"
+  },
   "welcome_privacidad_anaco_no_tiene_servidores_ni_": {
     "message": "Privacidad: Anaco no tiene servidores ni telemetría. Lo que capturas solo sale de tu ordenador hacia la IA que elijas. Detalle en PRIVACY.md del repositorio."
+  },
+  "welcome_pulsa_intro_y_espera": {
+    "message": "Pulsa Intro y espera"
+  },
+  "welcome_quien_te_ayuda": {
+    "message": "¿Quién te ayuda a escribir las notas?"
+  },
+  "welcome_seguir": {
+    "message": "Seguir"
   },
   "welcome_seleccionalo_y_copia": {
     "message": "Selecciónalo y copia"
@@ -1859,16 +1949,61 @@
   "welcome_servicio_local_conectado": {
     "message": "Servicio local conectado"
   },
-  "welcome_te_dice_cuales_faltan": {
-    "message": "te dice cuáles faltan."
+  "welcome_si_instalala": {
+    "message": "Sí, instálala"
+  },
+  "welcome_sin_ia": {
+    "message": "Sin IA"
+  },
+  "welcome_sin_ia_texto": {
+    "message": "Tú escribes la nota; Anaco guarda la página y sus recursos."
+  },
+  "welcome_tarda_un_par_de_minutos": {
+    "message": "Tarda uno o dos minutos. Esta página se dará cuenta sola cuando termine."
+  },
+  "welcome_terminal_linux": {
+    "message": "Pulsa Ctrl + Alt + T o busca «Terminal» entre tus aplicaciones."
+  },
+  "welcome_terminal_mac": {
+    "message": "Pulsa ⌘ + Espacio, escribe «Terminal» y pulsa Intro."
+  },
+  "welcome_terminal_windows": {
+    "message": "Pulsa la tecla Windows, escribe «PowerShell» y pulsa Intro."
+  },
+  "welcome_todo_listo": {
+    "message": "Todo listo"
   },
   "welcome_todo_listo_abre_el_panel_de_anaco_en_cua": {
     "message": "Todo listo. Abre el panel de Anaco en cualquier artículo."
   },
+  "welcome_transcribir_texto": {
+    "message": "Para transcribir en tu ordenador, ejecuta una vez en la terminal:"
+  },
+  "welcome_tu_cuenta_de_chatgpt": {
+    "message": "Tu cuenta de ChatGPT"
+  },
+  "welcome_tu_cuenta_de_chatgpt_texto": {
+    "message": "Usa Codex con tu suscripción, sin claves."
+  },
+  "welcome_tu_vault": {
+    "message": "Tu vault"
+  },
   "welcome_tu_vault_aun_no_tiene_perfil_confirmalo_": {
     "message": "Tu vault aún no tiene perfil: confírmalo en Opciones."
   },
+  "welcome_usar_este_vault": {
+    "message": "Usar este vault"
+  },
+  "welcome_vault_explicacion": {
+    "message": "Tu vault es la carpeta donde Obsidian guarda tus notas. Anaco solo escribirá ahí las notas que tú confirmes."
+  },
+  "welcome_ver_que_hace": {
+    "message": "Ver qué hace esta línea ↗"
+  },
   "welcome_video_audio_y_pdf": {
     "message": "Vídeo, audio y PDF"
+  },
+  "welcome_ya_la_tengo": {
+    "message": "Ya la tengo instalada"
   }
 }
