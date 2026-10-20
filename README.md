@@ -7,7 +7,7 @@
 <br /><br />
 
   <img src="https://img.shields.io/badge/STATUS-ACTIVE-FFCA40?style=for-the-badge&labelColor=000000" alt="Status" />
-  <img src="https://img.shields.io/badge/VERSIÓN-1.0.0-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
+  <img src="https://img.shields.io/badge/VERSIÓN-1.0.1-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
   <img src="https://img.shields.io/badge/LICENCIA-MIT-FFCA40?style=for-the-badge&labelColor=000000" alt="Licencia MIT" />
   <br/>
   <img src="https://img.shields.io/badge/Zen_·_Firefox-0C0011?style=for-the-badge&logo=firefoxbrowser&logoColor=FFCA40&labelColor=000000" alt="Zen y Firefox" />
@@ -163,7 +163,7 @@ docs/          # Historial, validación, notas técnicas y capturas
 
 ## // 08_ TESTS · DOCS · ESTADO · LICENCIA
 
-- **Estado:** 1.0.0, lista para addons.mozilla.org. Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
+- **Estado:** 1.0.1, en revisión en addons.mozilla.org. Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
 - **Docs:** [guía de prueba](PRUEBA.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md), [contrato editorial de la IA](skills/anaco-ob/SKILL.md) y [publicación en AMO](docs/amo/README.md).
 - **Licencia:** [MIT](LICENSE).
 

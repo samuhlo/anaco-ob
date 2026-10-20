@@ -11,6 +11,19 @@ Textos y material para la ficha de Anaco en AMO. El paquete se genera con `npm r
 5. Sube las capturas de `docs/amo/` (1280×800). Se regeneran con `.venv/bin/python scripts/amo_shots.py`.
 6. Pega las notas para el revisor.
 
+## Subir una versión nueva
+
+Una versión ya enviada no se puede reemplazar ni reutilizar su número. Para la siguiente:
+
+1. Sube la versión en `extension/manifest.json`, `package.json`, `pyproject.toml` y `VERSION` en `native/core.py` (`tests/test_release.py` exige que coincidan) y añade su entrada en `docs/HISTORIAL.md`.
+2. `npm run build` y, en la página del complemento en AMO, **Upload New Version** con el nuevo zip.
+3. En **Version notes**, pega las notas de la versión de abajo.
+
+**1.0.1 · notas de la versión**
+
+- ES: Primer uso guiado: explica por qué hace falta la pieza local, la instala con una sola línea en la terminal y detecta sola cuándo responde. Elige la IA por su nombre: ChatGPT (Codex), Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter, Ollama o LM Studio.
+- EN: Guided first run: it explains why the local piece is needed, installs it with a single line in the terminal and notices by itself when it answers. Choose the AI by name: ChatGPT (Codex), Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter, Ollama or LM Studio.
+
 ## Ficha · español
 
 - **Nombre:** Anaco
@@ -62,6 +75,7 @@ No servers of its own and no telemetry. Transcription runs on your computer.
 | `1-resaltado.png` | Elige los recursos incrustados; al pasar por uno se resalta en el artículo. | Choose embedded resources; hovering one highlights it in the article. |
 | `2-revision.png` | Revisa la nota, sus imágenes y sus relaciones antes de guardarla. | Review the note, its images and its links before saving it. |
 | `3-panel-perfil.png` | El panel lateral y el perfil del vault que guía dónde y cómo guardar. | The sidebar and the vault profile that guides where and how to save. |
+| `4-bienvenida.png` | La bienvenida explica por qué hace falta la pieza local y la instala con una sola línea. | The welcome page explains why the local piece is needed and installs it with a single line. |
 
 ## Notes for the reviewer
 
