@@ -237,7 +237,7 @@ function showHealth(problem){
   $('healthTitle').textContent=problem.title+'.';$('healthText').textContent=problem.text;
   $('healthAction').textContent=problem.action==='options'?tx('panel_abrir_opciones'):tx('panel_como_instalarlo');healthAction=problem.action;
 }
-$('healthAction').onclick=run(async()=>healthAction==='options'?browser.runtime.sendMessage({type:'openOptions',windowId:panelWindowId}):browser.tabs.create({url:browser.runtime.getURL('welcome.html')}));
+$('healthAction').onclick=run(async()=>healthAction==='options'?browser.runtime.sendMessage({type:'openOptions',windowId:panelWindowId}):browser.tabs.create({url:browser.runtime.getURL('welcome.html#install')}));
 function reviewMenu(){
   const previous=activeReview;
   const sessions=Object.values(state.reviewSessions||{}).filter(r=>r.windowId===panelWindowId).sort((a,b)=>b.updatedAt-a.updatedAt);

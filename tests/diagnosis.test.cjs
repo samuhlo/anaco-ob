@@ -20,7 +20,7 @@ test('a healthy status has no problems; version and AI issues carry their fix',(
   assert.deepEqual([...diagnosis.status(ok,'1.0.0')],[]);
   const problems=diagnosis.status({version:'0.11.0',ai:{provider:'codex',ready:false,message:'No encuentro Codex.'}},'1.0.0');
   assert.deepEqual([...problems.map(p=>p.kind)],['version','ai']);
-  assert.match(problems[0].text,/pipx upgrade anaco-ob/);
+  assert.match(problems[0].text,/línea de instalación/);assert.equal(problems[0].action,'welcome');
   assert.equal(problems[1].action,'options');
 });
 
@@ -31,4 +31,14 @@ test('install steps follow the operating system',()=>{
   const windows=diagnosis.installSteps('win').map(s=>s.command).join('\n');
   assert.match(windows,/py -m pip install --user pipx/);
   assert.match(diagnosis.installSteps('mac').map(s=>s.command).join('\n'),/brew install pipx/);
+});
+
+test('the one-line install fits each system and points to a script that exists',()=>{
+  const fs=require('node:fs');
+  const unix=diagnosis.oneLine('linux');
+  assert.equal(unix.command,'curl -fsSL https://raw.githubusercontent.com/samuhlo/anaco-ob/main/scripts/install.sh | sh');
+  assert.equal(diagnosis.oneLine('mac').command,unix.command);
+  const windows=diagnosis.oneLine('win');
+  assert.match(windows.command,/^powershell -ExecutionPolicy ByPass -c "irm https:\/\/raw\.githubusercontent\.com\/samuhlo\/anaco-ob\/main\/scripts\/install\.ps1 \| iex"$/);
+  for(const value of [unix,windows])assert.ok(fs.existsSync(value.script.replace('https://github.com/samuhlo/anaco-ob/blob/main/','')),value.script);
 });

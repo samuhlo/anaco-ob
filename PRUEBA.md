@@ -4,11 +4,18 @@ Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/a
 
 ## Bienvenida y diagnóstico
 
-Al instalar la extensión se abre **Bienvenida a Anaco** (también desde **Opciones → Abrir la guía de instalación**). Muestra los comandos para tu sistema, con botón de copiar, y **Comprobar ahora** revisa el servicio, la versión, el perfil y la IA. Si algo falta, el panel muestra un aviso con el motivo y un enlace a la solución:
+Al instalar la extensión se abre un recorrido de seis pasos (también desde **Opciones → Abrir la guía de instalación**):
 
-- **Falta el servicio local**, con enlace a la guía.
+1. **Bienvenida** y **Por qué**: qué hace Anaco y por qué necesita una pieza en tu ordenador.
+2. **Instalar**: tras aceptar, muestra cómo abrir la terminal en tu sistema y una sola línea con botón de copiar. Mientras se instala, la página dice «Esperando a la pieza local…» y avanza sola cuando responde. **Prefiero instalarlo a mano** muestra los pasos con `pipx`.
+3. **Tu vault**: los vaults encontrados, u **Otra carpeta** con su ruta.
+4. **IA**: tu cuenta de ChatGPT (Codex), otro servicio con tu clave, un modelo en tu ordenador o sin IA.
+5. **Todo listo**: comprueba el servicio, la versión, el perfil y la IA, y lleva a Opciones si falta confirmar el perfil.
+
+Si algo falta más adelante, el panel muestra un aviso con el motivo y un enlace a la solución:
+
+- **Falta el servicio local** o **versiones distintas**: vuelve al paso de instalación; la misma línea actualiza el servicio.
 - **No encuentro tu vault**, con enlace a Opciones.
-- **Versiones distintas** entre la extensión y el servicio: «pipx upgrade anaco-ob».
 - **La IA no está lista**: Codex no encontrado o proveedor sin modelo.
 
 ## Idiomas: comprobar 1.0.0

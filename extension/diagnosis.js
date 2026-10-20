@@ -20,6 +20,12 @@ globalThis.AnacoObDiagnosis=(()=>{
       out.push({kind:'ai',title:tx('diag_la_ia_no_esta_lista'),text:reply.ai.message||tx('diag_revisa_el_proveedor_de_ia_en_opciones'),action:'options'});
     return out;
   }
+  // The one line the welcome page offers: it installs uv, Python if missing, and the service.
+  function oneLine(os){
+    const raw='https://raw.githubusercontent.com/samuhlo/anaco-ob/main/scripts/',page='https://github.com/samuhlo/anaco-ob/blob/main/scripts/';
+    return os==='win'?{command:`powershell -ExecutionPolicy ByPass -c "irm ${raw}install.ps1 | iex"`,script:page+'install.ps1'}
+      :{command:`curl -fsSL ${raw}install.sh | sh`,script:page+'install.sh'};
+  }
   // Commands for runtime.getPlatformInfo().os: linux, mac or win.
   function installSteps(os){
     const pipx=os==='win'?[{text:tx('diag_instala_pipx_necesitas_python_3_11_o_sup'),command:'py -m pip install --user pipx\npy -m pipx ensurepath'}]
@@ -30,5 +36,5 @@ globalThis.AnacoObDiagnosis=(()=>{
       {text:tx('diag_registralo_para_firefox_y_zen_con_la_rut'),command:`anaco-ob install --vault "${tx('diag_ruta_de_tu_vault')}"`},
       {text:tx('diag_comprueba_que_falta'),command:'anaco-ob doctor'}];
   }
-  return {connection,status,installSteps};
+  return {connection,status,oneLine,installSteps};
 })();

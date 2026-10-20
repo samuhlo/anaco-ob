@@ -17,6 +17,9 @@ if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
 Step '2/3 · Instalando Anaco · Installing Anaco…'
 uv tool install --force --python 3.12 "anaco-ob @ $Source"; Check 'uv tool install'
 
+# So that «anaco-ob» also works in new terminals.
+uv tool update-shell *> $null
+
 Step '3/3 · Registrándolo en Firefox y Zen · Registering it in Firefox and Zen…'
 $Bin = (uv tool dir --bin); Check 'uv tool dir'
 & (Join-Path $Bin 'anaco-ob.exe') install; Check 'anaco-ob install'

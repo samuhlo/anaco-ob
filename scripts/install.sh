@@ -16,6 +16,9 @@ fi
 step "2/3 · Instalando Anaco · Installing Anaco…"
 uv tool install --force --python 3.12 "anaco-ob @ $SOURCE"
 
+# So that «anaco-ob» also works in new terminals.
+uv tool update-shell >/dev/null 2>&1 || true
+
 step "3/3 · Registrándolo en Firefox y Zen · Registering it in Firefox and Zen…"
 "$(uv tool dir --bin)/anaco-ob" install
 

@@ -27,7 +27,9 @@ El paquete `anaco-ob` (`pyproject.toml`) incluye los módulos de `native/` y el 
 | **macOS** | `~/Library/Application Support/anaco-ob` | `~/Library/Application Support/Mozilla/NativeMessagingHosts/` y `…/zen/NativeMessagingHosts/` |
 | **Windows** | `%APPDATA%\anaco-ob` | `HKCU\Software\Mozilla\NativeMessagingHosts\org.samuh.anaco_ob` y lanzador `.bat` |
 
-La CI instala el paquete con `pipx` en los tres sistemas y comprueba el servicio con un mensaje real de Native Messaging (`scripts/smoke_native_host.py`).
+La bienvenida ofrece una sola línea: `scripts/install.sh` (Linux y macOS) o `scripts/install.ps1` (Windows). Instalan `uv` si falta, que trae su propio Python, después el paquete desde el zip del repositorio (sin git) con `uv tool install --python 3.12`, lo añaden al PATH y ejecutan `anaco-ob install`. `ANACO_OB_SOURCE` cambia el origen del paquete. La extensión no puede ejecutar programas: la página espera consultando `settings` cada 3 s, que responde aunque falte el vault.
+
+La CI instala el paquete con `pipx` y con la línea única en los tres sistemas, y comprueba el servicio con un mensaje real de Native Messaging (`scripts/smoke_native_host.py`).
 
 ## Proveedores de IA
 

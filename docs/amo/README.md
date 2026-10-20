@@ -33,7 +33,7 @@ Anaco convierte lo que lees en el navegador en notas para Obsidian que revisas a
 - Prepara las notas con Codex y tu cuenta de ChatGPT, con Claude, Gemini, OpenAI, MiniMax, Qwen u OpenRouter con tu clave, con un modelo local (Ollama, LM Studio) o sin IA.
 - Interfaz y notas en español o inglés.
 
-Necesita un pequeño servicio local, de código abierto, que se instala una vez con `pipx install git+https://github.com/samuhlo/anaco-ob` y `anaco-ob install`. La página de bienvenida muestra los comandos para tu sistema.
+Necesita un pequeño servicio local, de código abierto. La página de bienvenida explica por qué y lo instala con una sola línea en la terminal, que trae Python si no lo tienes.
 
 Sin servidores propios ni telemetría. La transcripción se hace en tu ordenador.
 
@@ -51,7 +51,7 @@ Anaco turns what you read in the browser into Obsidian notes that you review bef
 - Prepares notes with Codex and your ChatGPT account, with Claude, Gemini, OpenAI, MiniMax, Qwen or OpenRouter using your key, with a local model (Ollama, LM Studio) or without AI.
 - Interface and notes in Spanish or English.
 
-It needs a small open-source local service, installed once with `pipx install git+https://github.com/samuhlo/anaco-ob` and `anaco-ob install`. The welcome page shows the commands for your system.
+It needs a small open-source local service. The welcome page explains why and installs it with a single line in the terminal, which brings Python if you don’t have it.
 
 No servers of its own and no telemetry. Transcription runs on your computer.
 
@@ -67,7 +67,7 @@ No servers of its own and no telemetry. Transcription runs on your computer.
 
 Paste this in **Notes to Reviewer**:
 
-> Anaco works together with a local companion service through Native Messaging (`nativeMessaging`, host `org.samuh.anaco_ob`). The service is open source (MIT) in the same repository: https://github.com/samuhlo/anaco-ob (`native/`, installed with `pipx install git+https://github.com/samuhlo/anaco-ob` and `anaco-ob install`). Without it, the panel and the welcome page explain how to install it.
+> Anaco works together with a local companion service through Native Messaging (`nativeMessaging`, host `org.samuh.anaco_ob`). The service is open source (MIT) in the same repository: https://github.com/samuhlo/anaco-ob (`native/`). The welcome page explains why it is needed and offers one line to install it (`scripts/install.sh`, `scripts/install.ps1`: uv, then the package from the repository archive, then `anaco-ob install`); the extension itself never runs or downloads programs. `pipx install git+https://github.com/samuhlo/anaco-ob` and `anaco-ob install` also work.
 >
 > To test without any AI account: install the service, run `anaco-ob install --vault <an empty folder>`, open the sidebar on any article, choose "Captura manual · sin IA" / "Manual capture · no AI", prepare and save. The interface language can be switched to English in Options → Language.
 >

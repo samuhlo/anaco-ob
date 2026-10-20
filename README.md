@@ -117,22 +117,23 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 ## // 06_ INICIO_RÁPIDO
 
 ```bash
-# 1. Instala el servicio local (Linux, macOS o Windows, Python 3.11+)
-pipx install git+https://github.com/samuhlo/anaco-ob
+# 1. Instala y registra el servicio local; trae Python si no lo tienes
+curl -fsSL https://raw.githubusercontent.com/samuhlo/anaco-ob/main/scripts/install.sh | sh
+#    En Windows, desde PowerShell:
+#    powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/samuhlo/anaco-ob/main/scripts/install.ps1 | iex"
 
-# 2. Regístralo para Firefox y Zen, y comprueba qué falta
-anaco-ob install --vault ~/ruta/a/tu/vault
+# 2. Comprueba qué falta
 anaco-ob doctor
 
 # 3. Opcional: transcripción local con Whisper (PDF y vídeo usan Poppler, FFmpeg y yt-dlp del sistema)
 anaco-ob install-media
 
-# 4. Opcional: IA con tu cuenta de ChatGPT; también puedes elegir en Opciones un servidor
-#    compatible con OpenAI (API propia o modelo local) o la captura manual
+# 4. Opcional: IA con tu cuenta de ChatGPT; también puedes elegir Claude, Gemini, Qwen…,
+#    un modelo local o la captura manual
 codex login
 ```
 
-Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`, hasta que esté publicada en addons.mozilla.org. Al instalarla se abre una página de bienvenida con estos comandos para tu sistema y una comprobación de cada pieza; si algo falta, el panel lo explica y enlaza a la solución. Abre **Opciones**, elige tu vault y confirma su **Perfil del vault**. La guía completa, paso a paso, está en [PRUEBA.md](PRUEBA.md).
+Después, en Zen o Firefox: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`, hasta que esté publicada en addons.mozilla.org. Al instalarla se abre un recorrido de bienvenida que explica por qué hace falta el servicio local, muestra la línea de instalación de tu sistema, detecta solo cuándo responde y te deja elegir el vault y la IA; si algo falta más adelante, el panel lleva de vuelta a ese paso. Después, en **Opciones**, confirma el **Perfil del vault**. Con `pipx` también funciona: `pipx install git+https://github.com/samuhlo/anaco-ob` y `anaco-ob install`. La guía completa, paso a paso, está en [PRUEBA.md](PRUEBA.md).
 
 | COMANDO | PARA QUÉ |
 | :--- | :--- |

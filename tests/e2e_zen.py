@@ -720,21 +720,58 @@ def main():
             report={'passed':True,'options_in_english':True,'panel_follows':True,'service_follows':True,'note_language_saved':True,'back_to_spanish':True}
             (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
         if args.welcome:
-            panel_url=driver.current_url;driver.get(panel.replace('panel.html','welcome.html'))
-            wait.until(lambda d:'Linux' in d.find_element(By.ID,'platformNote').text)
-            commands='\n'.join(e.text for e in driver.find_elements(By.CSS_SELECTOR,'#steps pre'))
-            assert 'pipx install git+https://github.com/samuhlo/anaco-ob' in commands and 'anaco-ob install --vault' in commands,commands
-            driver.find_element(By.ID,'check').click()
+            panel_url=driver.current_url;driver.set_window_size(1100,900)
+            def step(name):
+                wait.until(lambda d:not d.find_element(By.CSS_SELECTOR,f'section[data-step="{name}"]').get_attribute('hidden'))
+                time.sleep(.5);driver.save_screenshot(str(out/f'welcome-{name}.png'))
+            driver.get(panel.replace('panel.html','welcome.html'));step('intro')
+            driver.find_element(By.CSS_SELECTOR,'section[data-step="intro"] [data-go="why"]').click();step('why')
+            # Pretend the local service is not installed yet: «settings» fails until the flag flips.
+            driver.execute_script("""const send=browser.runtime.sendMessage.bind(browser.runtime);window.serviceUp=false;
+              browser.runtime.sendMessage=message=>message?.message?.action==='settings'&&!window.serviceUp?Promise.reject(new Error('No such native application org.samuh.anaco_ob')):send(message);""")
+            driver.find_element(By.CSS_SELECTOR,'section[data-step="why"] button.primary').click();step('install')
+            assert driver.find_element(By.ID,'installAsk').is_displayed() and not driver.find_element(By.ID,'installGuide').is_displayed()
+            driver.find_element(By.ID,'acceptInstall').click()
+            command=driver.find_element(By.ID,'installCommand').text
+            assert command=='curl -fsSL https://raw.githubusercontent.com/samuhlo/anaco-ob/main/scripts/install.sh | sh',command
+            assert 'Esperando' in driver.find_element(By.ID,'serviceStatus').text and not driver.find_element(By.ID,'installNext').is_displayed()
+            assert 'pipx install' in driver.execute_script("return document.getElementById('steps').textContent")
+            driver.save_screenshot(str(out/'welcome-install-waiting.png'))
+            # The service appears: the page notices by itself and moves on to the vault.
+            driver.execute_script('window.serviceUp=true')
+            WebDriverWait(driver,15).until(lambda d:'responde' in d.find_element(By.ID,'serviceStatus').text)
+            step('vault')
+            # The configured vault is offered already; type it again as a user would.
+            box=driver.find_element(By.ID,'vaultPath');box.click();box.clear();box.send_keys(str(vault))
+            driver.find_element(By.ID,'saveVault').click();step('ai')
+            assert message({'type':'native','message':{'action':'settings'}})['config']['vault']==str(vault)
+            driver.find_element(By.CSS_SELECTOR,'input[name="ai"][value="service"]').click()
+            Select(driver.find_element(By.ID,'aiService')).select_by_value('gemini')
+            assert 'aistudio.google.com' in driver.find_element(By.ID,'aiKeyLink').get_attribute('href')
+            driver.find_element(By.ID,'aiKey').send_keys('sk-e2e')
+            driver.save_screenshot(str(out/'welcome-ai-service.png'))
+            driver.find_element(By.ID,'saveAi').click();step('done')
+            stored=message({'type':'native','message':{'action':'settings'}})['config']
+            assert stored['provider']=='openai' and stored['api_base']=='https://generativelanguage.googleapis.com/v1beta/openai' and stored['api_model']=='gemini-3.8-flash' and stored['api_key_set'],stored
             wait.until(lambda d:'Todo listo' in d.find_element(By.ID,'checks').text)
             checks=driver.find_element(By.ID,'checks').text;assert 'Servicio local conectado' in checks and 'Perfil del vault confirmado' in checks,checks
+            # With the profile confirmed there is nothing left to teach in Options.
+            assert not driver.find_element(By.ID,'profileNext').is_displayed()
             driver.save_screenshot(str(out/'welcome.png'))
+            # The same page in English.
+            driver.execute_script('localStorage.setItem("anaco-ob:lang","en")');driver.get(panel.replace('panel.html','welcome.html#why'));driver.refresh();time.sleep(1)
+            assert 'needs a small piece' in driver.find_element(By.CSS_SELECTOR,'section[data-step="why"] h1').text
+            driver.save_screenshot(str(out/'welcome-why-en.png'))
+            driver.execute_script('localStorage.setItem("anaco-ob:lang","es")')
+            # Coming back with a missing service, the panel links straight to the install step.
+            assert "welcome.html#install" in open(ROOT/'extension/panel.js').read()
             # The chosen AI cannot run: the panel says so and points to Options.
             config_path=run_dir/'state/config.json';values=json.loads(config_path.read_text());values.update(provider='codex',codex='/no/existe/codex');config_path.write_text(json.dumps(values))
             driver.get(panel_url)
             wait.until(lambda d:d.find_element(By.ID,'healthNotice').is_displayed())
             assert 'La IA no está lista' in driver.find_element(By.ID,'healthTitle').text and 'Opciones' in driver.find_element(By.ID,'healthAction').text
             driver.save_screenshot(str(out/'panel-health.png'))
-            report={'passed':True,'install_steps':True,'live_checks':True,'ai_not_ready_notice':True}
+            report={'passed':True,'guided_steps':True,'one_line_install':True,'notices_the_service':True,'vault_saved':True,'ai_service_saved':True,'live_checks':True,'ai_not_ready_notice':True}
             (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
         if args.openai:
             sys.path.insert(0,str(ROOT/'tests'))
