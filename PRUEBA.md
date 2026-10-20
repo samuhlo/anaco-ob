@@ -15,16 +15,9 @@ Al instalar la extensión se abre **Bienvenida a Anaco** (también desde **Opcio
 
 En **Opciones → Idioma** elige **English**: la página, el panel y los avisos pasan a inglés, también los mensajes del servicio local. **Automático** sigue el idioma del navegador. Aparte, **Opciones → Preparación de notas → Idioma de las notas** decide en qué idioma se escriben las notas nuevas y sus encabezados predeterminados; las notas que ya están en el vault no cambian.
 
-## Proveedor compatible con OpenAI
+## Otro servicio de IA
 
-En **Opciones → Preparación de notas**, elige **IA compatible con OpenAI** e indica la URL base, el modelo y, si hace falta, la clave API:
-
-| SERVIDOR | URL BASE | CLAVE |
-| :--- | :--- | :--- |
-| **OpenAI** | `https://api.openai.com/v1` | La de tu cuenta |
-| **OpenRouter** | `https://openrouter.ai/api/v1` | La de tu cuenta |
-| **Ollama** | `http://localhost:11434/v1` | Vacía |
-| **LM Studio** | `http://localhost:1234/v1` | Vacía |
+En **Opciones → Preparación de notas**, elige **Otro servicio de IA** y después el **Servicio**: Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter, Ollama o LM Studio. Anaco rellena la URL base y un modelo sugerido, que puedes cambiar, y enlaza a la página donde se consigue la clave. Pega la clave API; Ollama y LM Studio funcionan en tu ordenador y no la necesitan. **Otro servidor compatible** deja escribir la URL a mano.
 
 Pulsa **Guardar opciones**. La clave se guarda en el servicio local y no se vuelve a mostrar. El panel ofrece el mismo proveedor en **Ajustes de esta captura**, y Codex sigue disponible. Para describir imágenes hace falta un modelo con visión; puedes indicarlo en **Modelo visual**. Si el servidor no admite salidas por esquema, Anaco reintenta pidiendo JSON simple.
 

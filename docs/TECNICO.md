@@ -31,7 +31,7 @@ La CI instala el paquete con `pipx` en los tres sistemas y comprueba el servicio
 
 ## Proveedores de IA
 
-Todas las llamadas al modelo pasan por `App.ai_json`. Con Codex (predeterminado) se ejecuta `codex exec` como siempre. Con el proveedor compatible con OpenAI, `native/ai.py` envía `POST {api_base}/chat/completions` con `response_format: json_schema` estricto. Si el servidor rechaza el esquema, reintenta con `json_object` y el esquema en el texto. Las imágenes viajan como URL `data:` al modelo visual, o al modelo principal si no hay visual. La clave API vive en `config.json` (permisos 0600) y las respuestas a la extensión solo indican `api_key_set`.
+Todas las llamadas al modelo pasan por `App.ai_json`. Con Codex (predeterminado) se ejecuta `codex exec` como siempre. Con el proveedor compatible con OpenAI, `native/ai.py` envía `POST {api_base}/chat/completions` con `response_format: json_schema` estricto y, además, el esquema en el texto: la capa compatible de Claude ignora `response_format`. Si el servidor rechaza el esquema, reintenta con `json_object`. No envía `temperature`, porque los modelos recientes de Claude y los de razonamiento solo aceptan la suya. `extension/providers.js` guarda la dirección y un modelo sugerido de cada servicio (Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter, Ollama, LM Studio); el servicio local solo recibe `api_base`, `api_model` y la clave. Las imágenes viajan como URL `data:` al modelo visual, o al modelo principal si no hay visual. La clave API vive en `config.json` (permisos 0600) y las respuestas a la extensión solo indican `api_key_set`.
 
 ## Idiomas de la interfaz
 

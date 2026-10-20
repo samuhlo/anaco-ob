@@ -745,6 +745,13 @@ def main():
             assert not driver.find_element(By.ID,'openai-settings').is_displayed()
             Select(driver.find_element(By.ID,'provider')).select_by_value('openai')
             assert driver.find_element(By.ID,'openai-settings').is_displayed()
+            # Choosing a service by name fills its address and a model, and points to its keys.
+            Select(driver.find_element(By.ID,'api_service')).select_by_value('gemini')
+            assert driver.find_element(By.ID,'api_base').get_attribute('value')=='https://generativelanguage.googleapis.com/v1beta/openai'
+            assert driver.find_element(By.ID,'api_model').get_attribute('value')=='gemini-3.8-flash'
+            assert 'aistudio.google.com' in driver.find_element(By.ID,'api_key_link').get_attribute('href')
+            Select(driver.find_element(By.ID,'api_service')).select_by_value('ollama')
+            assert driver.find_element(By.ID,'api_local_note').is_displayed() and not driver.find_element(By.ID,'api_key_link').is_displayed()
             for key,value in (('api_base',f'http://127.0.0.1:{ai_server.server_port}/v1'),('api_model','llama3.1:8b'),('api_key','sk-e2e')):
                 box=driver.find_element(By.ID,key);box.clear();box.send_keys(value)
             driver.find_element(By.CSS_SELECTOR,'#settings [type="submit"]').click()
@@ -753,6 +760,7 @@ def main():
             assert stored['provider']=='openai' and stored['api_key_set'] and 'api_key' not in stored,stored
             assert driver.find_element(By.ID,'api_key').get_attribute('value')=='' and 'guardada' in driver.find_element(By.ID,'api_key').get_attribute('placeholder')
             assert not driver.find_element(By.ID,'model').is_displayed()
+            assert Select(driver.find_element(By.ID,'api_service')).first_selected_option.get_attribute('value')=='custom'
             driver.execute_script('document.getElementById("provider").scrollIntoView({block:"start"});window.scrollBy(0,-90)');time.sleep(.5)
             driver.save_screenshot(str(out/'options.png'))
             driver.get(panel_url)

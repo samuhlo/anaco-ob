@@ -413,20 +413,17 @@
   "options_comprobar_conexion": {
     "message": "Comprobar conexión"
   },
-  "options_con_un_modelo_local_nada_sale_de_tu_orde": {
-    "message": "). Con un modelo local nada sale de tu ordenador."
-  },
   "options_configura_tu_vault_y_como_preparar_las_n": {
     "message": "Configura tu vault y cómo preparar las notas. El guardado de esta versión siempre pasa por tu revisión."
   },
   "options_confirmar_perfil": {
     "message": "Confirmar perfil"
   },
+  "options_consigue_tu_clave_de_1": {
+    "message": "Consigue tu clave de $1 ↗"
+  },
   "options_consulta_el_registro_local_de_obsidian_y": {
     "message": "Consulta el registro local de Obsidian y carpetas habituales."
-  },
-  "options_cualquier_servidor_con_la_api_de_openai_": {
-    "message": "Cualquier servidor con la API de OpenAI: OpenAI, OpenRouter o un modelo local con Ollama ("
   },
   "options_detectar_automaticamente": {
     "message": "Detectar automáticamente"
@@ -443,8 +440,14 @@
   "options_editar_el_json_del_perfil": {
     "message": "Editar el JSON del perfil"
   },
+  "options_elige_el_servicio_y_pega_tu_clave": {
+    "message": "Elige el servicio y pega tu clave: Anaco rellena la dirección y un modelo sugerido, que puedes cambiar."
+  },
   "options_en_automatico_se_reutilizan_los_pies_des": {
     "message": "En automático se reutilizan los pies, descripciones accesibles y nombres de archivo claros. Las imágenes con descripción suficiente no se envían a visión. Los nombres se indican como pistas, no como observaciones verificadas. Las páginas de PDF y fotogramas pueden necesitar visión para comprender el contenido completo. Si ninguna imagen necesita análisis, se mantiene el modelo de texto."
+  },
+  "options_en_tu_ordenador_sin_clave": {
+    "message": "Funciona en tu ordenador: no necesita clave y nada sale de él."
   },
   "options_escanear_el_vault": {
     "message": "Escanear el vault"
@@ -468,7 +471,7 @@
     "message": "https://api.openai.com/v1"
   },
   "options_ia_compatible_con_openai_api_propia_o_mo": {
-    "message": "IA compatible con OpenAI · API propia o modelo local"
+    "message": "Otro servicio de IA · Claude, Gemini, Qwen… o un modelo local"
   },
   "options_ia_con_codex_sesion_de_chatgpt_existente": {
     "message": "IA con Codex · sesión de ChatGPT existente"
@@ -539,9 +542,6 @@
   "options_no_se_pudo_completar_la_busqueda_1": {
     "message": "No se pudo completar la búsqueda: $1. Puedes introducir la ruta manualmente."
   },
-  "options_o_lm_studio": {
-    "message": ") o LM Studio ("
-  },
   "options_obsidian_mivault": {
     "message": "~/Obsidian/MiVault"
   },
@@ -559,6 +559,9 @@
   },
   "options_organizacion_predeterminada_de_las_notas": {
     "message": "Organización predeterminada de las notas"
+  },
+  "options_otro_servidor_compatible": {
+    "message": "Otro servidor compatible"
   },
   "options_paginas_candidatas_para_analisis_visual_": {
     "message": "Páginas candidatas para análisis visual (1–8)"
@@ -601,6 +604,9 @@
   },
   "options_selecciona_un_vault_detectado_o_introduc": {
     "message": "Selecciona un vault detectado o introduce su ruta manualmente."
+  },
+  "options_servicio": {
+    "message": "Servicio"
   },
   "options_servicio_conectado_localiza_tu_vault_par": {
     "message": "Servicio conectado. Localiza tu vault para empezar."
@@ -879,7 +885,7 @@
     "message": "Guardar y volver"
   },
   "panel_ia_servidor_compatible_con_openai": {
-    "message": "IA · servidor compatible con OpenAI"
+    "message": "IA · otro servicio o modelo local"
   },
   "panel_ia_tu_sesion_de_codex_chatgpt": {
     "message": "IA · tu sesión de Codex / ChatGPT"

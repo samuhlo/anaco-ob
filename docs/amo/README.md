@@ -30,7 +30,7 @@ Anaco convierte lo que lees en el navegador en notas para Obsidian que revisas a
 - Conserva publicaciones de X, demos de CodePen sin conexión y clips de vídeo, colocados en su sitio dentro de la nota.
 - Aprende la estructura de tu vault (destinos, tipos, nombres de archivo y metadatos) y guarda según tus reglas.
 - Propone relaciones con tus notas apoyadas en fragmentos literales de ambas; tú decides cuáles aceptar.
-- Prepara las notas con Codex y tu cuenta de ChatGPT, con cualquier servidor compatible con OpenAI (incluidos modelos locales con Ollama o LM Studio) o sin IA.
+- Prepara las notas con Codex y tu cuenta de ChatGPT, con Claude, Gemini, OpenAI, MiniMax, Qwen u OpenRouter con tu clave, con un modelo local (Ollama, LM Studio) o sin IA.
 - Interfaz y notas en español o inglés.
 
 Necesita un pequeño servicio local, de código abierto, que se instala una vez con `pipx install git+https://github.com/samuhlo/anaco-ob` y `anaco-ob install`. La página de bienvenida muestra los comandos para tu sistema.
@@ -48,7 +48,7 @@ Anaco turns what you read in the browser into Obsidian notes that you review bef
 - Keeps posts from X, CodePen demos that work offline and video clips, placed where they belong in the note.
 - Learns your vault's structure (destinations, types, file names and metadata) and saves following your rules.
 - Proposes links to your notes backed by literal excerpts from both; you decide which to accept.
-- Prepares notes with Codex and your ChatGPT account, with any OpenAI-compatible server (including local models with Ollama or LM Studio) or without AI.
+- Prepares notes with Codex and your ChatGPT account, with Claude, Gemini, OpenAI, MiniMax, Qwen or OpenRouter using your key, with a local model (Ollama, LM Studio) or without AI.
 - Interface and notes in Spanish or English.
 
 It needs a small open-source local service, installed once with `pipx install git+https://github.com/samuhlo/anaco-ob` and `anaco-ob install`. The welcome page shows the commands for your system.

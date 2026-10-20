@@ -111,7 +111,28 @@ $("vault_mode").onchange = () => {
     detectVaults();
   } else applyMode();
 };
+// [UI] Choosing a service by name fills its address and a suggested model.
+function serviceHint() {
+  const service = AnacoObProviders.find($("api_service").value);
+  $("api_key_link").hidden = !service?.keys;
+  $("api_local_note").hidden = !service?.local;
+  if (service?.keys) { $("api_key_link").href = service.keys; $("api_key_link").textContent = tx('options_consigue_tu_clave_de_1', [service.name]); }
+}
+$("api_service").addEventListener("change", () => {
+  const service = AnacoObProviders.find($("api_service").value);
+  if (service) {
+    $("api_base").value = service.base;
+    $("api_model").value = service.model;
+    $("api_vision_model").value = "";
+    // Programmatic values fire no events: let the draft see them.
+    $("api_base").dispatchEvent(new Event("input", {bubbles: true}));
+  }
+  serviceHint();
+});
+$("api_base").addEventListener("input", event => { if (event.isTrusted) { $("api_service").value = AnacoObProviders.match($("api_base").value); serviceHint(); } });
 function applyProvider() {
+  $("api_service").value = AnacoObProviders.match($("api_base").value);
+  serviceHint();
   $("openai-settings").hidden = $("provider").value !== "openai";
   // Codex models only matter with Codex; the other provider has its own fields.
   for (const block of document.querySelectorAll(".codex-only")) block.hidden = $("provider").value !== "codex";

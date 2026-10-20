@@ -13,7 +13,7 @@ import test_core as core_tests
 
 class FakeOpenAI(http.server.BaseHTTPRequestHandler):
     """A /v1/chat/completions server that records requests and answers with JSON."""
-    requests, reject_schema, status = [], False, 200
+    requests, reject_schema, status, ignore_schema = [], False, 200, False
 
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
@@ -30,6 +30,12 @@ class FakeOpenAI(http.server.BaseHTTPRequestHandler):
         content = json.dumps(answer, ensure_ascii=False)
         if body.get("response_format", {}).get("type") == "json_object":
             content = "```json\n" + content + "\n```"
+        if type(self).ignore_schema:
+            # Like Claude's compatibility layer: response_format is ignored and the model may add prose.
+            if "temperature" in body and body["temperature"] < 1:
+                self.reply(400, {"error": {"message": "temperature: only 1 is supported"}})
+                return
+            content = "Aquí tienes la propuesta:\n" + content
         self.reply(200, {"choices": [{"message": {"role": "assistant", "content": content}}]})
 
     def reply(self, status, value):
@@ -51,7 +57,7 @@ class OpenAIProviderTest(unittest.TestCase):
 
     def setUp(self):
         self.setUp_core()
-        FakeOpenAI.requests, FakeOpenAI.reject_schema, FakeOpenAI.status = [], False, 200
+        FakeOpenAI.requests, FakeOpenAI.reject_schema, FakeOpenAI.status, FakeOpenAI.ignore_schema = [], False, 200, False
         self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), FakeOpenAI)
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
         self.app.set_config({"provider": "openai", "api_base": f"http://127.0.0.1:{self.server.server_port}/v1",
@@ -81,6 +87,14 @@ class OpenAIProviderTest(unittest.TestCase):
         self.assertEqual(self.app.draft(c["id"], provider="openai")["draft"]["title"], "Recuperación activa")
         self.assertEqual([r["body"]["response_format"]["type"] for r in FakeOpenAI.requests], ["json_schema", "json_object"])
         self.assertIn('"required"', FakeOpenAI.requests[1]["body"]["messages"][-1]["content"][0]["text"])
+
+    def test_servers_that_ignore_schemas_still_get_it_in_the_prompt(self):
+        # Claude, Gemini, MiniMax or Qwen through their OpenAI-compatible endpoints.
+        FakeOpenAI.ignore_schema = True
+        c = self.capture()
+        self.assertEqual(self.app.draft(c["id"], provider="openai")["draft"]["title"], "Recuperación activa")
+        self.assertEqual(len(FakeOpenAI.requests), 1)
+        self.assertIn('"required"', FakeOpenAI.requests[0]["body"]["messages"][-1]["content"][0]["text"])
 
     def test_images_use_the_vision_model_as_data_urls(self):
         from ai import openai_json
