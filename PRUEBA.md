@@ -1,4 +1,4 @@
-# Probar Anaco 1.0.1
+# Probar Anaco 1.1.0
 
 Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/audio. Prepara una propuesta editable y guarda Markdown y adjuntos en tu vault. Las relaciones, las imágenes recomendadas y sus descripciones se revisan antes de guardar.
 
@@ -42,7 +42,7 @@ La barra de rayitas bajo el logo se llena y se vacía al abrir el panel y despu�
 6. Captura una página y guárdala: la nota sigue las reglas del perfil y la estructura de tus plantillas. Tus notas existentes no se modifican.
 7. Mueve o edita una guía del perfil: el panel avisará con **Revisar perfil**. Si un destino deja de existir, guardar en él muestra un error claro.
 
-## Podcasts y entrevistas
+## Podcasts y entrevistas: comprobar 1.1.0
 
 1. En Opciones, comprueba que **Duración máxima de vídeo/audio** permite la duración del podcast (hasta 240 minutos).
 2. Abre un podcast o una entrevista de YouTube y deja el **Modo de captura** en Automático. Extrae los subtítulos y prepara la nota con IA. Una conversación de más de una hora tarda más: el progreso muestra «Leyendo el tramo… (n/total)» y después la síntesis.

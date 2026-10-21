@@ -898,7 +898,7 @@ Al validar se corrigió un fallo previo a esta versión. Al editar la nota, la r
 
 No se ha comprobado dentro de Obsidian ni con las sesiones privadas de AWS y Xunta.
 
-## Sin publicar — Podcasts y entrevistas
+## Versión 1.1.0 — Podcasts y entrevistas
 
 Pruebas automáticas: `tests/test_conversation.py` (tramos, citas palabra a palabra, conversación automática, forzada y desactivada, sitio de las citas), `tests/test_media.py` (capítulos, tiempos y rangos enlazados, evidencia con tiempos) y `tests/test_linking.py` (enlaces a sección).
 

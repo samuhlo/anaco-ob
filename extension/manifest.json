@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Anaco",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "default_locale": "es",
   "description": "__MSG_manifest_description__",
   "browser_specific_settings": {

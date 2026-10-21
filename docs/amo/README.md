@@ -19,6 +19,13 @@ Una versión ya enviada no se puede reemplazar ni reutilizar su número. Para la
 2. `npm run build` y, en la página del complemento en AMO, **Upload New Version** con el nuevo zip.
 3. En **Version notes**, pega las notas de la versión de abajo.
 
+**1.1.0 · notas de la versión**
+
+- ES: Podcasts y entrevistas: una conversación de YouTube de hasta 4 h se convierte en una nota con temas y su minuto, ideas clave, consejos, citas comprobadas en la transcripción y qué llevarte a la práctica. Cada tiempo de la nota abre el vídeo en ese segundo y las relaciones enlazan la sección exacta de tus notas.
+- EN: Podcasts and interviews: a YouTube conversation of up to 4 h becomes a note with topics and their minute, key ideas, advice, quotes checked against the transcript and what to put into practice. Every time in the note opens the video at that second, and links point to the exact section of your notes.
+
+Si la 1.0.1 no llegó a subirse, añade también sus notas.
+
 **1.0.1 · notas de la versión**
 
 - ES: Primer uso guiado: explica por qué hace falta la pieza local, la instala con una sola línea en la terminal y detecta sola cuándo responde. Elige la IA por su nombre: ChatGPT (Codex), Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter, Ollama o LM Studio.
@@ -42,7 +49,8 @@ Anaco convierte lo que lees en el navegador en notas para Obsidian que revisas a
 - Captura artículos, frases, imágenes, PDF, vídeos con subtítulos o transcripción local y cursos con visores incrustados.
 - Conserva publicaciones de X, demos de CodePen sin conexión y clips de vídeo, colocados en su sitio dentro de la nota.
 - Aprende la estructura de tu vault (destinos, tipos, nombres de archivo y metadatos) y guarda según tus reglas.
-- Propone relaciones con tus notas apoyadas en fragmentos literales de ambas; tú decides cuáles aceptar.
+- Convierte podcasts y entrevistas de YouTube de hasta 4 h en notas con temas, ideas clave, consejos, citas comprobadas y qué llevarte a la práctica; cada tiempo abre el vídeo en ese segundo.
+- Propone relaciones con tus notas apoyadas en fragmentos literales de ambas y enlazadas a la sección exacta; tú decides cuáles aceptar.
 - Prepara las notas con Codex y tu cuenta de ChatGPT, con Claude, Gemini, OpenAI, MiniMax, Qwen u OpenRouter con tu clave, con un modelo local (Ollama, LM Studio) o sin IA.
 - Interfaz y notas en español o inglés.
 
@@ -60,7 +68,8 @@ Anaco turns what you read in the browser into Obsidian notes that you review bef
 - Captures articles, quotes, images, PDFs, videos with subtitles or local transcription, and courses with embedded viewers.
 - Keeps posts from X, CodePen demos that work offline and video clips, placed where they belong in the note.
 - Learns your vault's structure (destinations, types, file names and metadata) and saves following your rules.
-- Proposes links to your notes backed by literal excerpts from both; you decide which to accept.
+- Turns YouTube podcasts and interviews of up to 4 h into notes with topics, key ideas, advice, checked quotes and what to put into practice; every time opens the video at that second.
+- Proposes links to your notes backed by literal excerpts from both and pointing to the exact section; you decide which to accept.
 - Prepares notes with Codex and your ChatGPT account, with Claude, Gemini, OpenAI, MiniMax, Qwen or OpenRouter using your key, with a local model (Ollama, LM Studio) or without AI.
 - Interface and notes in Spanish or English.
 
