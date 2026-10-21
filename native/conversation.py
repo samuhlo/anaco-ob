@@ -121,3 +121,59 @@ class Stretches:
                 'No inventes nada que no esté en el tramo. ' + writing_rule() + '\n\n' +
                 json.dumps({'title': capture['title'], 'author': capture.get('author', ''), 'intent': capture.get('intent', ''),
                             'stretch': f'{first}–{last}', 'transcript': part}, ensure_ascii=False))
+
+
+CONVERSATIONS = ('podcast', 'entrevista')
+PLACEHOLDER = '%%citas%%'
+
+
+def shape(c, result, draft, profile):
+    """A conversation note gets its verified quotes and the people the source names; any other note neither."""
+    choice = c.get('conversation', 'auto')
+    talk = c['kind'] == 'video' and choice != 'off' and (choice == 'on' or draft.get('source_format') in CONVERSATIONS)
+    section, rejected = '', 0
+    if talk:
+        if draft.get('source_format') not in CONVERSATIONS:
+            draft['source_format'] = 'podcast'
+        quotes, seen = [], set()
+        for item in result.get('quotes') or []:
+            text = clean(item.get('text') if isinstance(item, dict) else '', 600).replace('\n', ' ').strip().strip('«»"“” ')
+            at = quote_time(c['text'], text)
+            if at is None:
+                rejected += 1
+                continue
+            words = tuple(WORD.findall(text.lower()))
+            if words in seen:
+                continue
+            seen.add(words)
+            speaker = clean(item.get('speaker'), 120).replace('\n', ' ').strip()
+            # [DATA] The minute comes from the transcript, never from the model.
+            quotes.append(f"> «{text}»" + (f" — {speaker}" if speaker else '') + f" · [{stamp_of(at)}]")
+            if len(quotes) == 12:
+                break
+        if quotes:
+            section = '## ' + profile.section('quotes') + '\n\n' + '\n\n'.join(quotes)
+        haystack = ' '.join((c['title'], c.get('author', ''), c['text'])).lower()
+        names = [v.strip() for v in re.split(r'\s*/\s*', clean(result.get('author'), 300)) if v.strip()]
+        author = ' / '.join(dict.fromkeys(v for v in names if v.lower() in haystack))
+        if author:
+            draft['author'] = author
+        if rejected:
+            note = t('Se ha descartado una cita que no aparece palabra por palabra en la transcripción.') if rejected == 1 else \
+                t('Se han descartado {count} citas que no aparecen palabra por palabra en la transcripción.', count=rejected)
+            reason = draft.get('rationale', '').strip()
+            draft['rationale'] = (reason + ('' if not reason or reason[-1] in '.!?…' else '.') + ' ' + note).strip()
+    elif c['kind'] == 'video' and choice == 'off' and draft.get('source_format') in CONVERSATIONS:
+        draft['source_format'] = 'video'
+    draft['body'] = place(draft['body'], section)
+    for note in c.get('bundle', {}).get('notes', []):
+        note['body'] = place(note['body'], '')
+
+
+def place(body, section):
+    """Put the quotes where the model left the mark, or at the end; drop any other mark."""
+    if PLACEHOLDER in body:
+        body = body.replace(PLACEHOLDER, section, 1).replace(PLACEHOLDER, '')
+    elif section:
+        body = body.rstrip() + '\n\n' + section
+    return re.sub(r'\n{3,}', '\n\n', body).strip()

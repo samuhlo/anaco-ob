@@ -78,6 +78,7 @@ def main():
     parser.add_argument('--review-menu',action='store_true',help='Review assistant menu, per-topic connections, manual close and sidebar save')
     parser.add_argument('--split-review',action='store_true',help='Review a split suggestion, discard it, then accept and save without losing edits')
     parser.add_argument("--fresh-permissions", action="store_true", help="Exercise a new optional image host through the real permission prompt")
+    parser.add_argument('--podcast',action='store_true',help='Podcast mode in the panel, conversation note with checked quotes and preparing it again as a video from the review')
     parser.add_argument("--media",action="store_true",help="Exercise native PDF viewer, course iframe, subtitles and local imports")
     args = parser.parse_args()
     args.book = args.book or args.book_images
@@ -98,6 +99,7 @@ def main():
     if args.welcome:out=ROOT/'.test-artifacts/zen-welcome';out.mkdir(parents=True,exist_ok=True)
     if args.languages:out=ROOT/'.test-artifacts/zen-languages';out.mkdir(parents=True,exist_ok=True)
     if args.split_review:out=ROOT/'.test-artifacts/zen-split-review';out.mkdir(parents=True,exist_ok=True)
+    if args.podcast:out=ROOT/'.test-artifacts/zen-podcast';out.mkdir(parents=True,exist_ok=True)
     run_dir = Path(tempfile.mkdtemp(prefix="run-",dir=out))
     vault = run_dir / "Vault"
     for name in ("02_Cerebro/Modelos_Mentales", "02_Cerebro/Tech_&_Codigo", "07_Clases/01_Curso/01_Tema", "99_Recursos"):
@@ -151,9 +153,9 @@ def main():
                     if args.embeds or args.readme_shots:manifest["permissions"]+=["https://codepen.io/*","https://cdpn.io/*"]+(["https://tympanus.net/*"] if args.embeds_live or args.readme_shots else [])
                     archive.writestr(relative,json.dumps(manifest))
                 else:archive.write(p,relative)
-        if args.book_ai or args.editorial or args.workflow or args.split_review or args.review_menu:
+        if args.book_ai or args.editorial or args.workflow or args.split_review or args.review_menu or args.podcast:
             fake=run_dir/'fake_book_cli.py'
-            shutil.copyfile(ROOT/('tests/fake_editorial_cli.py' if args.editorial or args.workflow or args.split_review or args.review_menu else 'tests/fake_book_cli.py'),fake);fake.chmod(0o700)
+            shutil.copyfile(ROOT/('tests/fake_conversation_cli.py' if args.podcast else 'tests/fake_editorial_cli.py' if args.editorial or args.workflow or args.split_review or args.review_menu else 'tests/fake_book_cli.py'),fake);fake.chmod(0o700)
             config_path=run_dir/'state/config.json'
             config=json.loads(config_path.read_text());config['codex']=str(fake);config_path.write_text(json.dumps(config))
         session_requests=[]
@@ -1196,6 +1198,44 @@ def main():
             assert 'googleapis' not in driver.find_element(By.ID,'videoResource').text
             report={'passed':True,'browser':driver.capabilities['browserVersion'],'detected_images':24,'all_images_listed':True,'independent_gallery_scroll':True,'selection_limit':8,'later_images_selectable':True,'prominent_progress':True,'measured_audio_progress':True,'elapsed_time_updates':True,'controls_disabled_while_busy':True,'friendly_youtube_name':True,'busy_layout_states':len(busy_layout),'busy_panel_no_horizontal_overflow':True}
             (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,ensure_ascii=False,indent=2));return
+        if args.podcast:
+            fixture=run_dir/'podcast.vtt'
+            fixture.write_text('WEBVTT\n\n00:04.000 --> 00:06.000\nno vendáis vuestra\n\n00:06.000 --> 00:08.000\nvida por dinero porque\n\n00:08.000 --> 00:10.000\nluego no vuelve\n')
+            panel_handle=open_manual_importer()
+            Select(field('captureMode')).select_by_value('podcast')
+            wait.until(lambda d:d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("captureMode").then(s=>done(s.captureMode));')=='podcast')
+            driver.find_element(By.CSS_SELECTOR,'#fileImport summary').click()
+            driver.find_element(By.ID,'importFile').send_keys(str(fixture))
+            driver.find_element(By.ID,'importButton').click()
+            wait.until(lambda d:d.find_element(By.ID,'prepare').is_displayed())
+            Select(field('provider')).select_by_value('codex')
+            driver.find_element(By.ID,'prepare').click();open_review()
+            def reading(text):
+                wait.until(lambda d:text in d.find_element(By.ID,'markdown').get_attribute('textContent'))
+                return driver.find_element(By.ID,'markdown').get_attribute('textContent')
+            markdown=reading('Citas destacadas')
+            assert '> «No vendáis vuestra vida por dinero» — Emilio Duró · [00:04]' in markdown,markdown
+            assert 'nadie dijo' not in markdown and '%%citas%%' not in markdown and 'formato: "podcast"' in markdown,markdown
+            assert markdown.index('Citas destacadas')<markdown.index('Qué me llevo')
+            assert driver.find_element(By.ID,'conversationLine').is_displayed()
+            assert driver.find_element(By.ID,'conversationState').text=='Preparada como podcast o entrevista.'
+            driver.save_screenshot(str(out/'podcast-review.png'))
+            switch=driver.find_element(By.ID,'conversationSwitch');assert switch.text=='Preparar como vídeo'
+            switch.click();assert 'Confirmar' in driver.find_element(By.ID,'conversationSwitch').text
+            driver.find_element(By.ID,'conversationSwitch').click()
+            WebDriverWait(driver,90).until(lambda d:d.find_element(By.ID,'conversationState').text=='Preparada como vídeo.')
+            markdown=reading('Un vídeo sobre dinero')
+            assert 'Citas destacadas' not in markdown and 'formato: "video"' in markdown,markdown
+            assert driver.find_element(By.ID,'conversationSwitch').text=='Preparar como podcast o entrevista'
+            driver.save_screenshot(str(out/'video-review.png'))
+            calls=[json.loads(line)['conversation'] for line in (run_dir/'calls.jsonl').read_text().splitlines()]
+            assert calls==['on','off'],calls
+            current=driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("currentCapture").then(s=>done(s.currentCapture));')
+            finish_and_return('discard',current['source']['tabId'])
+            report={'passed':True,'podcast_mode_in_panel':True,'conversation_note':True,'literal_quote_kept_with_minute':True,'invented_quote_dropped':True,
+                    'review_shows_type':True,'prepared_again_as_video':True,'prompts':calls}
+            (out/'report.json').write_text(json.dumps(report,indent=2,ensure_ascii=False));print(json.dumps(report,indent=2,ensure_ascii=False))
+            return
         if args.manual_import:
             fixture=run_dir/'local.vtt'
             fixture.write_text('WEBVTT\n\n00:00.000 --> 00:03.000\nLa recuperación activa ayuda a recordar.\n')

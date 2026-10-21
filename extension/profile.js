@@ -8,7 +8,7 @@ globalThis.AnacoObProfileCard = (() => {
     url: tx('profile_url_de_la_fuente'), author: tx('profile_autor_de_la_fuente'), source_format: tx('profile_formato_de_la_fuente'), assisted: tx('profile_asistido_por_ia'),
     model: tx('profile_modelo_de_ia'), relations: tx('profile_relaciones_aceptadas')};
   // Default headings written into notes: the service gives them in the note language.
-  let SECTIONS = {summary: "Resumen", intent: "Intención personal", quote: "Cita", quote_context: "Contexto de la cita",
+  let SECTIONS = {summary: "Resumen", intent: "Intención personal", quote: "Cita", quote_context: "Contexto de la cita", quotes: "Citas destacadas",
     relations: "Notas relacionadas", resources: "Recursos de la fuente", source: "Fuente", warning: "Alcance de la captura"};
   let scanned = null, draft = null, evidence = {}, provider = "manual";
 

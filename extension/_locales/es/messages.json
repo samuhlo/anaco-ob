@@ -1010,6 +1010,9 @@
   "panel_permitir_lectura_de": {
     "message": "Permitir lectura de "
   },
+  "panel_podcast_entrevista_resumen_consejos_y_citas": {
+    "message": "Podcast · entrevista · resumen, consejos y citas"
+  },
   "panel_por_que_quieres_guardarlo": {
     "message": "¿Por qué quieres guardarlo?"
   },
@@ -1457,6 +1460,9 @@
   "review_conexiones_con_tu_conocimiento": {
     "message": "Conexiones con tu conocimiento"
   },
+  "review_confirmar_se_descartan_los_cambios_de_esta_revision": {
+    "message": "Confirmar: se descartan los cambios de esta revisión"
+  },
   "review_conocimiento_que_merece_quedarse": {
     "message": "Conocimiento que merece quedarse."
   },
@@ -1622,8 +1628,23 @@
   "review_pie_original_del_html": {
     "message": "Pie original del HTML"
   },
+  "review_preparada_como_podcast_o_entrevista": {
+    "message": "Preparada como podcast o entrevista."
+  },
+  "review_preparada_como_video": {
+    "message": "Preparada como vídeo."
+  },
+  "review_preparando_de_nuevo_la_propuesta": {
+    "message": "Preparando de nuevo la propuesta. Puede tardar varios minutos…"
+  },
   "review_preparando_un_cambio_revisable": {
     "message": "Preparando un cambio revisable…"
+  },
+  "review_preparar_como_podcast_o_entrevista": {
+    "message": "Preparar como podcast o entrevista"
+  },
+  "review_preparar_como_video": {
+    "message": "Preparar como vídeo"
   },
   "review_procedencia": {
     "message": "PROCEDENCIA"

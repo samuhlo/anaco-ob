@@ -19,12 +19,12 @@ SOURCES = {"type", "constant", "folder_map", "path_segment", "tags", "context", 
 TOKENS = {"date": r"\d{4}-\d{2}-\d{2}", "slug_": r"[a-z0-9_]+", "slug-": r"[a-z0-9-]+",
           "title": r"[^/\\:*?\"<>|#^\[\]]+", "variant": r"(?:_(?:frase|imagen)_[a-f0-9]{6})?"}
 FORBIDDEN = re.compile(r'[\\/:*?"<>|#^\[\]]')
-SECTIONS = ("summary", "intent", "quote", "quote_context", "relations", "resources", "source", "warning")
+SECTIONS = ("summary", "intent", "quote", "quote_context", "quotes", "relations", "resources", "source", "warning")
 
 
 def default_sections():
     """Headings a profile does not set, in the note language."""
-    return {"summary": n("Resumen"), "intent": n("Intención personal"), "quote": n("Cita"), "quote_context": n("Contexto de la cita"),
+    return {"summary": n("Resumen"), "intent": n("Intención personal"), "quote": n("Cita"), "quote_context": n("Contexto de la cita"), "quotes": n("Citas destacadas"),
             "relations": n("Notas relacionadas"), "resources": n("Recursos de la fuente"), "source": n("Fuente"), "warning": n("Alcance de la captura")}
 
 

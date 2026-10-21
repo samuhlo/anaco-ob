@@ -28,7 +28,7 @@ def extend_schema(properties, relation, note_types):
                  images={'type':'array','items':{'type':'integer'}},links=links,
                  relations={'type':'array','items':relation})
     properties.update(note_type=types,strategy={'type':'string','enum':['source','study','concept','reference','collection','quote','image','reading']},
-                      rationale={'type':'string'},source_format={'type':'string','enum':['articulo','libro','documento','video','podcast','hilo']},
+                      rationale={'type':'string'},source_format={'type':'string','enum':['articulo','libro','documento','video','podcast','entrevista','hilo']},
                       notes={'type':'array','items':{'type':'object','properties':child,'required':list(child),'additionalProperties':False}})
 
 

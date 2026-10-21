@@ -85,3 +85,55 @@ class LongConversationTest(unittest.TestCase):
         calls=[]
         with patch.object(self.app,'codex_json',side_effect=self.fake(calls)):self.app.draft(c['id'],provider='codex')
         self.assertEqual(len(calls),1);self.assertNotEqual(calls[0],'stretch')
+
+
+class ConversationNoteTest(unittest.TestCase):
+    setUp=core_tests.CoreTest.setUp
+    tearDown=core_tests.CoreTest.tearDown
+    LINES=[{'start':5,'text':'Bienvenido Emilio Duró a Tengo un Plan'},{'start':750,'text':'no vendáis vuestra'},{'start':752,'text':'vida por dinero porque'},{'start':755,'text':'luego no vuelve'}]
+
+    def podcast(self):
+        c=Media(self.app).transcript_capture(self.LINES,'Emilio Duró: sentido y afecto','https://www.youtube.com/watch?v=abcdefghijk','Subtítulos de la plataforma',metadata={'duration_seconds':3600},author='Tengo un Plan')
+        return c
+
+    def draft(self,c,result,conversation=None):
+        prompts=[]
+        def ai(prompt,spec,*args):prompts.append(prompt);return result
+        with patch.object(self.app,'codex_json',side_effect=ai):draft=self.app.draft(c['id'],provider='codex',conversation=conversation)['draft']
+        return draft,prompts[-1]
+
+    def conversation_answer(self):
+        return answer(body='## Temas tratados\n\n- [12:30] Dinero y sentido.\n\n%%citas%%\n\n## Qué me llevo\n\n- Revisar si cambio tiempo por dinero.',
+                      quotes=[{'text':'No vendáis vuestra vida por dinero.','speaker':'Emilio Duró'},{'text':'El dinero lo es todo en la vida.','speaker':''}],
+                      author='Emilio Duró / Tengo un Plan / Uri Sabat')
+
+    def test_forced_conversation_places_only_literal_quotes_with_their_minute(self):
+        c=self.podcast();draft,prompt=self.draft(c,self.conversation_answer(),'on')
+        self.assertIn('Esta captura es un podcast o una entrevista',prompt)
+        body=draft['body']
+        self.assertIn('## Citas destacadas\n\n> «No vendáis vuestra vida por dinero.» — Emilio Duró · [12:30]',body)
+        self.assertLess(body.index('Citas destacadas'),body.index('Qué me llevo'));self.assertNotIn('%%citas%%',body)
+        self.assertNotIn('lo es todo',body);self.assertEqual(draft['rationale'],'Una fuente. Se ha descartado una cita que no aparece palabra por palabra en la transcripción.')
+        self.assertEqual(draft['author'],'Emilio Duró / Tengo un Plan')
+        markdown=self.app.preview(c['id'],{})['markdown']
+        self.assertIn('· [12:30](https://www.youtube.com/watch?v=abcdefghijk&t=750s)',markdown)
+        self.assertIn('formato: "podcast"',markdown)
+
+    def test_automatic_mode_lets_the_model_decide_and_a_plain_video_gets_no_quotes(self):
+        c=self.podcast();result=self.conversation_answer();result['source_format']='video'
+        draft,prompt=self.draft(c,result)
+        self.assertIn('Si el vídeo es una conversación',prompt)
+        self.assertNotIn('Citas destacadas',draft['body']);self.assertNotIn('%%citas%%',draft['body'])
+        self.assertEqual(draft.get('author',''),'')
+
+    def test_a_video_can_be_prepared_again_without_the_conversation_form(self):
+        c=self.podcast();self.draft(c,self.conversation_answer(),'on')
+        result=answer(source_format='video',quotes=[],author='')
+        draft,prompt=self.draft(c,result,'off')
+        self.assertIn('No uses la forma de conversación',prompt);self.assertEqual(self.app.load(c['id'])['conversation'],'off')
+        self.assertNotIn('Citas destacadas',draft['body'])
+
+    def test_articles_never_receive_conversation_guidance(self):
+        c=self.app.stage({'kind':'article','url':'https://example.org/a','title':'Artículo','text':'Un artículo sobre ahorro y presupuesto familiar con ejemplos.'})
+        _,prompt=self.draft(c,answer(source_format='articulo',quotes=[],author=''))
+        self.assertNotIn('conversación',prompt.split('\n\n',1)[0])

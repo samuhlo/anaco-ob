@@ -163,6 +163,9 @@ def schema(note_types):
     properties = {k: {"type": "string"} for k in ("title", "context", "body", "folder")}
     properties["tags"] = {"type": "array", "items": {"type": "string"}}
     properties["relations"] = {"type": "array", "items": relation}
+    properties["quotes"] = {"type": "array", "items": {"type": "object", "properties": {"text": {"type": "string"}, "speaker": {"type": "string"}},
+                            "required": ["text", "speaker"], "additionalProperties": False}}
+    properties["author"] = {"type": "string"}
     properties["image_captions"]={"type":"array","items":{"type":"object","properties":{"index":{"type":"integer"},"description":{"type":"string"},"useful":{"type":"boolean"}},"required":["index","description","useful"],"additionalProperties":False}}
     from editorial import extend_schema
     extend_schema(properties, relation, note_types)
@@ -498,7 +501,7 @@ class App:
             result["_model"]=model
             return result
 
-    def draft(self, capture_id, intent="", provider=None, selected_images=None, note_structure=None):
+    def draft(self, capture_id, intent="", provider=None, selected_images=None, note_structure=None, conversation=None):
         c = self.load(capture_id)
         if c["status"] in ("saved", "discarded"):
             raise UserError("Esta captura ya está guardada o descartada.")
@@ -506,6 +509,9 @@ class App:
         if structure not in ('single','linked','auto'):
             raise UserError('Organización de notas no válida.')
         c['note_structure'] = structure
+        if conversation not in (None, 'auto', 'on', 'off'):
+            raise UserError('Tipo de conversación no válido.')
+        c['conversation'] = conversation or c.get('conversation') or 'auto'
         c["intent"] = clean(intent, 2000)
         selection=selected_images if selected_images is not None else c.get("selected_images",list(range(len(c["images"]))))
         if not isinstance(selection,list) or any(type(i) is not int or not 0<=i<len(c["images"]) for i in selection):raise UserError("Selección de imágenes no válida.")
@@ -568,6 +574,8 @@ class App:
                  "assisted": provider != "manual" or bool(reused_model), "profile_hash": self.guide()["hash"]}
         draft['provider']=provider
         draft=editorial.build(c,result,draft,candidates,folders)
+        from conversation import shape
+        shape(c,result,draft,self.vault_profile())
         c.update({"draft": draft, "status": "draft"})
         self.store(c)
         return {"capture": self.public(c), "draft": draft, "folders": folders,
@@ -643,7 +651,7 @@ class App:
         assisted=original["assisted"] or bool(fields.get('revision_model')) or link_assisted
         fm = profile.frontmatter({"type": typ, "folder": folder, "title": title, "tags": self.tags(fields.get("tags", original["tags"])),
                                   "context": clean(fields.get("context", original["context"]), 1000), "created": c["created"][:10], "today": today,
-                                  "url": c["url"], "author": c["author"],
+                                  "url": c["url"], "author": original.get("author") or c["author"],
                                   "source_format": original.get("source_format") or ("video" if c["kind"]=="video" else "documento" if c["kind"] in ("image","pdf") else "articulo"),
                                   "assisted": assisted, "model": clean(fields.get('revision_model') or original["model"] or original.get('connection_model'),80) if assisted else "",
                                   "relations": related})
@@ -810,7 +818,7 @@ class App:
         if action == "load":
             return self.public(self.load(message["id"]))
         if action == "draft":
-            return self.draft(message["id"], message.get("intent", ""), message.get("provider"),message.get("images"),message.get('note_structure'))
+            return self.draft(message["id"], message.get("intent", ""), message.get("provider"),message.get("images"),message.get('note_structure'),message.get('conversation'))
         if action in ("upload_begin","upload_chunk","upload_finish","finish_asset","video_url","subtitles"):
             from media import Media,subtitles
             media=Media(self)

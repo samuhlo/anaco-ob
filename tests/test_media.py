@@ -114,6 +114,7 @@ class YouTubeTimesTest(unittest.TestCase):
 
     def test_chapters_are_kept_in_the_capture_and_marked_in_the_transcript(self):
         c=self.youtube()
+        self.assertEqual(c['author'],'Tengo un Plan')
         self.assertEqual(c['media']['chapters'],[{'start':0,'title':'Presentación'},{'start':700,'title':'Inflación y ahorro'}])
         lines=c['text'].splitlines()
         self.assertLess(lines.index('[Capítulo 00:00] Presentación'),lines.index('[00:05] Bienvenidos al programa.'))
