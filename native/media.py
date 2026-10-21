@@ -101,8 +101,10 @@ def link_times(text,url,duration=None):
         parts=[int(v) for v in match.group(1).split(':')];seconds=sum(v*60**i for i,v in enumerate(reversed(parts)))
         # MOTIVE -> a time past the end was invented or miscopied: keep it as plain text.
         if duration and seconds>duration:return match.group(0)
-        return f"[{match.group(1)}](https://www.youtube.com/watch?v={video}&t={seconds}s)"
-    return re.sub(r'(?<![\[!\w])\[((?:\d{1,2}:)?\d{1,2}:[0-5]\d)\](?!\()',replace,text)
+        # A range [49:00–55:41] opens the video where it starts.
+        return f"[{match.group(1)}{match.group(2) or ''}](https://www.youtube.com/watch?v={video}&t={seconds}s)"
+    time=r'(?:\d{1,2}:)?\d{1,2}:[0-5]\d'
+    return re.sub(r'(?<![\[!\w])\[('+time+r')(\s*[–-]\s*'+time+r')?\](?!\()',replace,text)
 
 
 def subtitles(text):

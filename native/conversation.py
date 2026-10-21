@@ -170,10 +170,16 @@ def shape(c, result, draft, profile):
         note['body'] = place(note['body'], '')
 
 
+# The mark line, written bare, as a heading or a list item, and a heading of its own right before it.
+MARK = re.compile(r'^(?:#{1,6}[ \t]+[^\n]*\n[ \t]*\n)?[ \t>*#-]*' + re.escape(PLACEHOLDER) + r'[ \t]*$', re.M)
+
+
 def place(body, section):
     """Put the quotes where the model left the mark, or at the end; drop any other mark."""
-    if PLACEHOLDER in body:
-        body = body.replace(PLACEHOLDER, section, 1).replace(PLACEHOLDER, '')
+    found = MARK.search(body)
+    if found:
+        # MOTIVE -> the section brings its own heading; a second one would repeat it.
+        body = MARK.sub('', body[:found.start()] + section + body[found.end():])
     elif section:
         body = body.rstrip() + '\n\n' + section
     return re.sub(r'\n{3,}', '\n\n', body).strip()

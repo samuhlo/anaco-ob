@@ -615,9 +615,6 @@ class App:
         today = c.get('_render_date') or intent_date or dt.date.today().isoformat()
         attachments = profile.attachments.rstrip("/")
         from embeds import apply as apply_embeds
-        if c["kind"]=="video":
-            from media import link_times
-            body=link_times(body,c["url"],c.get("media",{}).get("duration_seconds"))
         body,resources,embedded=apply_embeds(self,c,body,attachments,not original.get("id"),profile.section("resources"))
         # [DATA] Accepted relations are verified before they reach links or frontmatter.
         selected = fields.get("relations", [])
@@ -668,6 +665,10 @@ class App:
             chunks.append("## "+profile.section("quote")+"\n\n" + "\n".join("> " + line for line in c["text"].split("\n")))
             if c["context"]:
                 chunks.append("## "+profile.section("quote_context")+"\n\n" + c["context"])
+        if c["kind"]=="video":
+            # [FLOW] Evidence is checked against the plain body; times become links only in the written note.
+            from media import link_times
+            body=link_times(body,c["url"],c.get("media",{}).get("duration_seconds"))
         chunks.append(body)
         if resources:chunks.append(resources)
         planned=c.get('_planned_links',[])

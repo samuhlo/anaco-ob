@@ -137,3 +137,18 @@ class ConversationNoteTest(unittest.TestCase):
         c=self.app.stage({'kind':'article','url':'https://example.org/a','title':'Artículo','text':'Un artículo sobre ahorro y presupuesto familiar con ejemplos.'})
         _,prompt=self.draft(c,answer(source_format='articulo',quotes=[],author=''))
         self.assertNotIn('conversación',prompt.split('\n\n',1)[0])
+
+
+class PlaceQuotesTest(unittest.TestCase):
+    SECTION='## Citas destacadas\n\n> «x» · [00:01]'
+
+    def test_the_mark_written_as_a_heading_or_under_its_own_heading_leaves_one_heading(self):
+        from conversation import place
+        for body in ('## Ideas\n\nuna\n\n## %%citas%%\n\n## Qué me llevo\n\n- algo','## Ideas\n\nuna\n\n## Citas\n\n%%citas%%\n\n## Qué me llevo\n\n- algo',
+                     '## Ideas\n\nuna\n\n- %%citas%%\n\n## Qué me llevo\n\n- algo'):
+            with self.subTest(body):
+                self.assertEqual(place(body,self.SECTION),'## Ideas\n\nuna\n\n'+self.SECTION+'\n\n## Qué me llevo\n\n- algo')
+
+    def test_a_heading_with_its_own_text_before_the_mark_is_kept(self):
+        from conversation import place
+        self.assertEqual(place('## Ideas\n\nuna\n\n%%citas%%',self.SECTION),'## Ideas\n\nuna\n\n'+self.SECTION)

@@ -128,6 +128,21 @@ class YouTubeTimesTest(unittest.TestCase):
         self.assertIn('- [1:02:03](https://www.youtube.com/watch?v=abcdefghijk&t=3723s) Cierre.',markdown)
         self.assertIn('- [2:00:00] Fuera del vídeo.',markdown)
         self.assertIn('- [12:34](https://otra.web) Ya enlazado.',markdown)
+        markdown=self.app.preview(c['id'],{'body':'En [49:00–55:41] habla de fondos y en [12:34 - 13:00] de ahorro.'})['markdown']
+        self.assertIn('En [49:00–55:41](https://www.youtube.com/watch?v=abcdefghijk&t=2940s) habla',markdown)
+        self.assertIn('en [12:34 - 13:00](https://www.youtube.com/watch?v=abcdefghijk&t=754s) de ahorro',markdown)
+
+    def test_a_relation_whose_evidence_has_a_time_still_saves(self):
+        c=self.youtube();self.app.draft(c['id'],provider='manual')
+        path='02_Cerebro/Tech_&_Codigo/nota_ahorro.md';(self.vault/path).write_text('# Ahorro\n\n## Inflación\n\nLa inflación reduce el poder adquisitivo de los ahorros guardados en efectivo.')
+        stored=self.app.load(c['id']);evidence='En [12:34] se explica que la inflación reduce el valor del efectivo ahorrado.'
+        stored['draft']['body']='## Temas\n\n'+evidence
+        stored['draft']['relations']=[{'path':path,'reason':'Explica el mecanismo de la inflación sobre el ahorro.','kind':'explica','source_evidence':evidence,
+                                       'note_evidence':'La inflación reduce el poder adquisitivo de los ahorros','evidence_origin':'note','accepted':False}]
+        self.app.store(stored)
+        markdown=self.app.preview(c['id'],{'relations':[path]})['markdown']
+        self.assertIn('En [12:34](https://www.youtube.com/watch?v=abcdefghijk&t=754s) se explica',markdown)
+        self.assertIn('[[02_Cerebro/Tech_&_Codigo/nota_ahorro#Inflación]]',markdown)
 
     def test_local_subtitles_keep_plain_times(self):
         path=self.root/'lesson.srt';path.write_text('1\n00:00:01,250 --> 00:00:03,000\nUna política autoriza acciones.\n')
