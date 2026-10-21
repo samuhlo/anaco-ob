@@ -3,6 +3,7 @@ import hashlib
 import json
 import re
 from core import UserError, clean, json_dump
+from media import stamp
 from translation import n, t, writing_rule
 
 STRETCH_CHARS = 40000   # about 35 minutes of conversation per call
@@ -20,11 +21,6 @@ SPEC = {'type': 'object', 'properties': {
 
 def seconds(stamp):
     return sum(int(v) * 60 ** i for i, v in enumerate(reversed(stamp.split(':'))))
-
-
-def stamp_of(value):
-    value = max(0, int(value))
-    return f"{value//3600:02d}:{value%3600//60:02d}:{value%60:02d}" if value >= 3600 else f"{value//60:02d}:{value%60:02d}"
 
 
 def stretches(text, limit=STRETCH_CHARS):
@@ -83,7 +79,7 @@ class Stretches:
     def generate(self, capture, candidates, folders):
         parts = stretches(capture['text'])
         cfg = self.app.config()
-        key = hashlib.sha256(json.dumps([hashlib.sha256(capture['text'].encode()).hexdigest(), cfg['provider'], cfg['model'], cfg.get('api_model'),
+        key = hashlib.sha256(json.dumps([hashlib.sha256(capture['text'].encode()).hexdigest(), getattr(self.app, '_provider', None) or cfg['provider'], cfg['model'], cfg.get('api_model'),
                                          capture.get('intent', ''), self.app.guide()['hash'], VERSION]).encode()).hexdigest()[:24]
         directory = self.app.state / 'stretches' / capture['id']
         summaries, quotes = [], []
@@ -105,7 +101,7 @@ class Stretches:
                 # MOTIVE -> a quote that is not word for word in the transcript never reaches the synthesis.
                 if at is not None:
                     speaker = clean(item.get('speaker'), 120).strip()
-                    quotes.append(f"[{stamp_of(at)}] «{text}»" + (f" — {speaker}" if speaker else ''))
+                    quotes.append(f"[{stamp(at)}] «{text}»" + (f" — {speaker}" if speaker else ''))
         self.app.progress(t('Sintetizando la conversación completa y buscando relaciones…'))
         text = '\n\n'.join(summaries) + '\n\n' + n('Citas literales comprobadas en la transcripción:') + '\n' + '\n'.join(quotes)
         result = self.app.codex_generate({**capture, 'text': text, 'stretches': {'scope': 'synthesis', 'count': len(parts)}}, candidates, folders)
@@ -148,7 +144,7 @@ def shape(c, result, draft, profile):
             seen.add(words)
             speaker = clean(item.get('speaker'), 120).replace('\n', ' ').strip()
             # [DATA] The minute comes from the transcript, never from the model.
-            quotes.append(f"> «{text}»" + (f" — {speaker}" if speaker else '') + f" · [{stamp_of(at)}]")
+            quotes.append(f"> «{text}»" + (f" — {speaker}" if speaker else '') + f" · [{stamp(at)}]")
             if len(quotes) == 12:
                 break
         if quotes:
