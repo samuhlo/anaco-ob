@@ -20,6 +20,7 @@ from core import UserError, ROOT, clean, json_dump, normalized_url
 from translation import n, t
 
 MAX_FILE = 100_000_000
+MAX_TRANSCRIPT = 400_000  # four hours of speech fit with room to spare
 
 
 def media_venv(app):
@@ -239,9 +240,10 @@ class Media:
             lines.append(f"[{stamp(segment['start'])}] {segment['text']}")
         text="\n".join(lines)
         warnings=[]
-        if len(text)>150000:warnings.append(t("La transcripción supera el límite de texto; se conservan los primeros 150.000 caracteres. Divide el vídeo para procesar el resto."))
+        if len(text)>MAX_TRANSCRIPT:warnings.append(t("La transcripción supera el límite de texto; se conservan los primeros {limit} caracteres. Divide el vídeo para procesar el resto.",limit=f"{MAX_TRANSCRIPT:,}".replace(",",".")))
         c=self.app.stage({"kind":"video","url":url,"title":title,"text":text[:150000],"images":images or [],"warnings":warnings},allow_local=True)
-        stored=self.app.load(c["id"]);stored["media"]={"type":"video","method":method,**(metadata or {})}
+        # [DATA] stage() bounds ordinary captures; a long conversation is read later by stretches.
+        stored=self.app.load(c["id"]);stored["text"]=text[:MAX_TRANSCRIPT];stored["media"]={"type":"video","method":method,**(metadata or {})}
         if chapters:stored["media"]["chapters"]=chapters
         self.app.store(stored)
         return self.app.public(stored)
@@ -260,7 +262,7 @@ class Media:
             while chunk:=stream.read(1048576):self.app.check_cancel();digest.update(chunk)
         key=hashlib.sha256((digest.hexdigest()+self.app.config()['asr_model']+'fw1.2.1-segments-v1').encode()).hexdigest()
         checkpoint=self.app.state/'transcripts'/(key+'.json')
-        result=run_progress([str(python),str(Path(__file__).with_name("transcribe.py")),str(path),"--model",self.app.config()["asr_model"],"--cache",str(venv/"models"),'--progress','--checkpoint',str(checkpoint)],self.app.progress,check=self.app.check_cancel)
+        result=run_progress([str(python),str(Path(__file__).with_name("transcribe.py")),str(path),"--model",self.app.config()["asr_model"],"--cache",str(venv/"models"),'--progress','--checkpoint',str(checkpoint)],self.app.progress,timeout=max(1800,int(duration)),check=self.app.check_cancel)
         if not result["segments"]:raise UserError("No se ha detectado voz en el archivo.")
         images=[]
         if any(s.get("codec_type")=="video" for s in info.get("streams",[])):
@@ -296,7 +298,7 @@ class Media:
                         return self.transcript_capture(subtitles(content.decode(errors="replace")),title,url,kind,metadata={"language":language,"duration_seconds":meta.get("duration"),"coverage":n("Subtítulos disponibles en la plataforma")},chapters=chapters)
                     except (OSError,UserError):continue
         self.app.progress({'stage':'download','message':t('Sin subtítulos accesibles. Descargando audio para transcribir…')})
-        self.run(["yt-dlp","--ignore-config","--no-playlist",*network,"--max-filesize","100M","-f","bestaudio/best","-o",str(directory/"source.%(ext)s"),url],timeout=600)
+        self.run(["yt-dlp","--ignore-config","--no-playlist",*network,"--max-filesize","100M","-f","bestaudio[filesize<95M]/bestaudio[filesize_approx<95M]/worstaudio/bestaudio/best","-o",str(directory/"source.%(ext)s"),url],timeout=600)
         files=[p for p in directory.glob("source.*") if p.suffix not in (".part",".ytdl")]
         if not files or files[0].stat().st_size>MAX_FILE:raise UserError("No se ha podido descargar un audio compatible de hasta 100 MB. Importa el archivo desde la plataforma.")
         return self.audio(files[0],title,url,chapters)

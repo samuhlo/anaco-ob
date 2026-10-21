@@ -211,7 +211,7 @@ class App:
         path = self.state / "config.json"
         default = {"vault": str(DEFAULT_VAULT), "vault_mode": "auto", "note_structure": "single",
                    "model": "gpt-6-luna", "vision_model":"gpt-6.1-sol", "describe_images":True,"vision_policy":"auto",
-                   "reader_batch_pages":6,"pdf_page_limit":60,"pdf_visual_pages":6,"video_minutes":120,"video_frames":3,"asr_model":"base",
+                   "reader_batch_pages":6,"pdf_page_limit":60,"pdf_visual_pages":6,"video_minutes":240,"video_frames":3,"asr_model":"base",
                    "provider": "codex", "codex": shutil.which("codex") or "codex",
                    "api_base": "https://api.openai.com/v1", "api_model": "", "api_vision_model": "", "note_language": "es"}
         if path.exists():
@@ -381,7 +381,7 @@ class App:
         return capture
 
     def public(self, c):
-        if c.get('reader',{}).get('job') and len(c.get('text','')) > 160000:
+        if len(c.get('text','')) > 160000:
             c = {**c, 'text': c['text'][:160000], 'text_preview_truncated': True}
         # Thumbnails are local UI assets too; never include base64 in AI context.
         return {**c, "images": [{k: v for k, v in i.items() if k not in ("data", "thumbnail")} for i in c.get("images", [])]}
@@ -423,6 +423,9 @@ class App:
         if capture.get('reader',{}).get('job'):
             from reader import Reader
             return Reader(self).generate(capture, candidates, folders)
+        from conversation import SINGLE_CHARS, Stretches
+        if capture['kind']=='video' and len(capture['text'])>SINGLE_CHARS and not capture.get('stretches'):
+            return Stretches(self).generate(capture, candidates, folders)
         cfg = self.config()
         profile = self.guide()
         chosen=self.prepare_captions(capture)

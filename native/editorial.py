@@ -5,6 +5,7 @@ import json
 import hashlib
 import re
 from urllib.parse import quote
+from conversation import literal
 from core import UserError, clean, safe_path, section_anchor, slug, write_new_atomic
 from translation import n, t
 
@@ -52,7 +53,7 @@ class Editorial:
         for value in values[:8] if isinstance(values,list) else []:
             if not isinstance(value,dict) or value.get('path') not in known:continue
             a,b=clean(value.get('source_evidence'),800).strip(),clean(value.get('note_evidence'),800).strip()
-            if len(a)<15 or len(b)<15 or a not in c['text'] or b not in known[value['path']]['excerpt']:continue
+            if len(a)<15 or len(b)<15 or not literal(c['text'],a) or b not in known[value['path']]['excerpt']:continue
             found.append({'path':value['path'],'reason':clean(value.get('reason'),1000),'kind':value.get('kind') if value.get('kind') in RELATION_KINDS else 'relaciona','source_evidence':a,'note_evidence':b,'accepted':False})
         return found
 
@@ -80,7 +81,7 @@ class Editorial:
             pages=child.get('pages') or []
             if not isinstance(pages,list) or any(type(n) is not int or n not in pages_allowed for n in pages):raise UserError('Una nota cita páginas fuera del contenido leído.')
             evidence=clean(child.get('source_evidence'),1500).strip()
-            if not pages and (len(evidence)<15 or evidence not in c['text']):raise UserError('Una nota derivada no tiene una referencia verificable a la fuente. Regenera la propuesta.')
+            if not pages and (len(evidence)<15 or not literal(c['text'],evidence)):raise UserError('Una nota derivada no tiene una referencia verificable a la fuente. Regenera la propuesta.')
             images=child.get('images') or []
             if not isinstance(images,list) or any(type(n) is not int or not 0<=n<len(c['images']) for n in images):raise UserError('Una nota contiene una figura inexistente.')
             images=[n for n in dict.fromkeys(images) if n in root['selected_images']]

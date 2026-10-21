@@ -282,7 +282,7 @@ Desde **Opciones → Importar un archivo local** puedes importar MP4, WebM, M4A,
 
 Los subtítulos y la voz quedan con referencias `[mm:ss]`. En un vídeo de YouTube, cada referencia de la nota enlaza al vídeo en ese segundo; una marca posterior al final del vídeo queda como texto. Si el vídeo tiene capítulos, la transcripción los marca como `[Capítulo mm:ss] Título` antes de su primera frase. La nota indica si proceden de la plataforma, de un archivo aportado o de Whisper. Los subtítulos importados no se presentan como comprobados contra el vídeo completo.
 
-Límites: PDF/subtítulos hasta 100 MB; archivos locales de audio/vídeo hasta 1 GB. Las descargas directas desde el navegador se limitan a 100 MB. Por defecto se admiten hasta 120 minutos. El audio se procesa en CPU; un curso largo puede tardar varios minutos. Puedes cerrar el panel y seguir navegando mientras el proceso continúe en segundo plano.
+Límites: PDF/subtítulos hasta 100 MB; archivos locales de audio/vídeo hasta 1 GB. Las descargas directas desde el navegador se limitan a 100 MB. Por defecto se admiten hasta 240 minutos (el máximo); una configuración guardada antes conserva su valor, que se cambia en Opciones. Una transcripción de más de una hora se lee por tramos de unos 35 minutos, empezando por un capítulo cuando lo hay, y después se sintetiza entera; los tramos leídos se conservan si hay que reintentar. El audio se procesa en CPU; un curso largo puede tardar varios minutos. Puedes cerrar el panel y seguir navegando mientras el proceso continúe en segundo plano.
 
 ### AWS Academy/Canvas y Xunta/Moodle
 
