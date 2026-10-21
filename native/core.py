@@ -82,6 +82,31 @@ def plain_body(text):
     return re.sub(r"\A---\s*\n.*?\n---\s*\n", "", text, count=1, flags=re.S)
 
 
+def section_anchor(text, fragment):
+    """Heading under which a literal fragment sits, or None to link the whole note."""
+    body = plain_body(text)
+    if not fragment or body.count(fragment) != 1:
+        return None
+    position = body.index(fragment)
+    headings, current, offset, fence = [], None, 0, False
+    for line in body.splitlines(keepends=True):
+        if re.match(r"\s{0,3}(```|~~~)", line):
+            fence = not fence
+        match = None if fence else re.match(r" {0,3}(#{1,6})[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$", line.rstrip("\n"))
+        if match:
+            title = match.group(2).strip()
+            headings.append(title)
+            if offset <= position:
+                # MOTIVE -> the title (#) names the whole note; it is not a section.
+                current = title if len(match.group(1)) > 1 else None
+        offset += len(line)
+    # MOTIVE -> Obsidian rewrites or rejects these characters in heading links;
+    # a link that may not resolve is worse than one to the whole note.
+    if not current or headings.count(current) > 1 or re.search(r"[\[\]|#^:%*`<>]", current):
+        return None
+    return current
+
+
 def json_dump(path, value):
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     temp = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
@@ -138,6 +163,9 @@ def schema(note_types):
     properties = {k: {"type": "string"} for k in ("title", "context", "body", "folder")}
     properties["tags"] = {"type": "array", "items": {"type": "string"}}
     properties["relations"] = {"type": "array", "items": relation}
+    properties["quotes"] = {"type": "array", "items": {"type": "object", "properties": {"text": {"type": "string"}, "speaker": {"type": "string"}},
+                            "required": ["text", "speaker"], "additionalProperties": False}}
+    properties["author"] = {"type": "string"}
     properties["image_captions"]={"type":"array","items":{"type":"object","properties":{"index":{"type":"integer"},"description":{"type":"string"},"useful":{"type":"boolean"}},"required":["index","description","useful"],"additionalProperties":False}}
     from editorial import extend_schema
     extend_schema(properties, relation, note_types)
@@ -186,7 +214,7 @@ class App:
         path = self.state / "config.json"
         default = {"vault": str(DEFAULT_VAULT), "vault_mode": "auto", "note_structure": "single",
                    "model": "gpt-6-luna", "vision_model":"gpt-6.1-sol", "describe_images":True,"vision_policy":"auto",
-                   "reader_batch_pages":6,"pdf_page_limit":60,"pdf_visual_pages":6,"video_minutes":120,"video_frames":3,"asr_model":"base",
+                   "reader_batch_pages":6,"pdf_page_limit":60,"pdf_visual_pages":6,"video_minutes":240,"video_frames":3,"asr_model":"base",
                    "provider": "codex", "codex": shutil.which("codex") or "codex",
                    "api_base": "https://api.openai.com/v1", "api_model": "", "api_vision_model": "", "note_language": "es"}
         if path.exists():
@@ -356,7 +384,7 @@ class App:
         return capture
 
     def public(self, c):
-        if c.get('reader',{}).get('job') and len(c.get('text','')) > 160000:
+        if len(c.get('text','')) > 160000:
             c = {**c, 'text': c['text'][:160000], 'text_preview_truncated': True}
         # Thumbnails are local UI assets too; never include base64 in AI context.
         return {**c, "images": [{k: v for k, v in i.items() if k not in ("data", "thumbnail")} for i in c.get("images", [])]}
@@ -398,6 +426,9 @@ class App:
         if capture.get('reader',{}).get('job'):
             from reader import Reader
             return Reader(self).generate(capture, candidates, folders)
+        from conversation import SINGLE_CHARS, Stretches
+        if capture['kind']=='video' and len(capture['text'])>SINGLE_CHARS and not capture.get('stretches'):
+            return Stretches(self).generate(capture, candidates, folders)
         cfg = self.config()
         profile = self.guide()
         chosen=self.prepare_captions(capture)
@@ -470,7 +501,7 @@ class App:
             result["_model"]=model
             return result
 
-    def draft(self, capture_id, intent="", provider=None, selected_images=None, note_structure=None):
+    def draft(self, capture_id, intent="", provider=None, selected_images=None, note_structure=None, conversation=None):
         c = self.load(capture_id)
         if c["status"] in ("saved", "discarded"):
             raise UserError("Esta captura ya está guardada o descartada.")
@@ -478,6 +509,9 @@ class App:
         if structure not in ('single','linked','auto'):
             raise UserError('Organización de notas no válida.')
         c['note_structure'] = structure
+        if conversation not in (None, 'auto', 'on', 'off'):
+            raise UserError('Tipo de conversación no válido.')
+        c['conversation'] = conversation or c.get('conversation') or 'auto'
         c["intent"] = clean(intent, 2000)
         selection=selected_images if selected_images is not None else c.get("selected_images",list(range(len(c["images"]))))
         if not isinstance(selection,list) or any(type(i) is not int or not 0<=i<len(c["images"]) for i in selection):raise UserError("Selección de imágenes no válida.")
@@ -540,6 +574,8 @@ class App:
                  "assisted": provider != "manual" or bool(reused_model), "profile_hash": self.guide()["hash"]}
         draft['provider']=provider
         draft=editorial.build(c,result,draft,candidates,folders)
+        from conversation import shape
+        shape(c,result,draft,self.vault_profile())
         c.update({"draft": draft, "status": "draft"})
         self.store(c)
         return {"capture": self.public(c), "draft": draft, "folders": folders,
@@ -595,22 +631,24 @@ class App:
             relation = known[rel_path]
             if relation.get('evidence_origin')=='note' and relation['source_evidence'] not in body:
                 raise UserError('La nota editada cambió y una conexión necesita revisarse. Pulsa Buscar conexiones.')
-            if relation["note_evidence"] not in read_note(target):
+            target_text = read_note(target)
+            if relation["note_evidence"] not in target_text:
                 raise UserError("El contenido de una nota relacionada ha cambiado. Regenera la propuesta.")
             link = rel_path.removesuffix(".md")
             if any(ch in link for ch in "[]|#^"):
                 raise UserError("El nombre de una nota relacionada contiene caracteres ambiguos para Obsidian.")
+            anchor = section_anchor(target_text, relation["note_evidence"])
             kind=fields.get('relation_kinds',{}).get(rel_path,relation.get('kind','relaciona'))
             from editorial import RELATION_KINDS
             if kind not in RELATION_KINDS:raise UserError('Tipo de relación no válido.')
             from editorial import kind_label
-            links.append(f"- [[{link}]] — {kind_label(kind)}: {relation['reason']}")
+            links.append(f"- [[{link}{'#' + anchor if anchor else ''}]] — {kind_label(kind)}: {relation['reason']}")
             related.append((rel_path, relation.get('title') or PurePosixPath(link).name))
         link_assisted=bool(original.get('connection_model') and (fields.get('relations') or c.get('_semantic_links')))
         assisted=original["assisted"] or bool(fields.get('revision_model')) or link_assisted
         fm = profile.frontmatter({"type": typ, "folder": folder, "title": title, "tags": self.tags(fields.get("tags", original["tags"])),
                                   "context": clean(fields.get("context", original["context"]), 1000), "created": c["created"][:10], "today": today,
-                                  "url": c["url"], "author": c["author"],
+                                  "url": c["url"], "author": original.get("author") or c["author"],
                                   "source_format": original.get("source_format") or ("video" if c["kind"]=="video" else "documento" if c["kind"] in ("image","pdf") else "articulo"),
                                   "assisted": assisted, "model": clean(fields.get('revision_model') or original["model"] or original.get('connection_model'),80) if assisted else "",
                                   "relations": related})
@@ -627,6 +665,10 @@ class App:
             chunks.append("## "+profile.section("quote")+"\n\n" + "\n".join("> " + line for line in c["text"].split("\n")))
             if c["context"]:
                 chunks.append("## "+profile.section("quote_context")+"\n\n" + c["context"])
+        if c["kind"]=="video":
+            # [FLOW] Evidence is checked against the plain body; times become links only in the written note.
+            from media import link_times
+            body=link_times(body,c["url"],c.get("media",{}).get("duration_seconds"))
         chunks.append(body)
         if resources:chunks.append(resources)
         planned=c.get('_planned_links',[])
@@ -777,7 +819,7 @@ class App:
         if action == "load":
             return self.public(self.load(message["id"]))
         if action == "draft":
-            return self.draft(message["id"], message.get("intent", ""), message.get("provider"),message.get("images"),message.get('note_structure'))
+            return self.draft(message["id"], message.get("intent", ""), message.get("provider"),message.get("images"),message.get('note_structure'),message.get('conversation'))
         if action in ("upload_begin","upload_chunk","upload_finish","finish_asset","video_url","subtitles"):
             from media import Media,subtitles
             media=Media(self)

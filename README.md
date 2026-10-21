@@ -95,10 +95,11 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 ## // 04_ CARACTERÍSTICAS
 
 - **Cursos y visores**: lee marcos anidados con permisos por dominio, lectores HTML con páginas dibujadas y PDF del visor. El modo **Curso** conserva la detección clásica.
-- **Vídeo y audio**: usa subtítulos cuando existen y, si no, transcribe en tu equipo con Whisper. El audio no sale a una API.
+- **Vídeo y audio**: usa subtítulos cuando existen y, si no, transcribe en tu equipo con Whisper. El audio no sale a una API. En YouTube, cada marca `[mm:ss]` de la nota abre el vídeo en ese segundo y los capítulos del vídeo se conservan en la transcripción.
+- **Podcasts y entrevistas**: una conversación de YouTube de hasta 4 h se convierte en una nota de fuente con ficha (programa, participantes, duración), resumen, temas con su minuto, ideas clave, consejos, citas y qué llevarte a la práctica. Anaco reconoce si un vídeo es una conversación; el modo **Podcast · entrevista** lo fuerza y la revisión permite prepararlo de nuevo como vídeo normal, o al revés. Cada cita se comprueba palabra a palabra contra la transcripción y se descarta si no aparece.
 - **Demos sin conexión**: cada pen de CodePen se guarda como un `index.html` con sus librerías y módulos ES, para verlo en la nota con el plugin HTML Prototype Viewer.
 - **Imágenes con criterio**: aprovecha los pies del HTML y solo envía a análisis visual las imágenes que lo necesitan.
-- **Relaciones verificables**: cada conexión con una nota existente se apoya en fragmentos literales de ambas notas, y la aceptas o la descartas tú.
+- **Relaciones verificables**: cada conexión con una nota existente se apoya en fragmentos literales de ambas notas, y la aceptas o la descartas tú. El enlace lleva a la sección donde está el fragmento (`[[nota#Sección]]`); si la sección no se puede señalar sin ambigüedad, a la nota entera.
 - **Una o varias notas**: una nota con apartados, varias enlazadas por temas o que decida la IA, con división e integración revisables.
 - **Tu IA**: Codex con tu suscripción de ChatGPT; Claude, Gemini, OpenAI, MiniMax, Qwen u OpenRouter con tu clave, eligiendo el servicio por su nombre; o un modelo local con Ollama o LM Studio, donde nada sale de tu ordenador.
 - **Español e inglés**: la interfaz y los mensajes del servicio siguen al navegador o al idioma que elijas en Opciones, y las notas se escriben en el idioma que elijas para ellas. El español es el principal.

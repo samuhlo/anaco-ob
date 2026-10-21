@@ -237,6 +237,7 @@ async function init(){
   $('model').textContent=data.draft.assisted?tx('review_asistido_por')+data.draft.model:tx('review_captura_manual_sin_resumen_generado');
   const rationale=data.bundle?.rationale||data.draft.rationale;
   $('editorialReason').hidden=!rationale;$('editorialReason').textContent=rationale||'';
+  conversationSwitch();
   showNote();$('workspace').hidden=false;$('assetCard').hidden=!data.capture.images.length;
   publishReview();
   await Promise.all(data.capture.images.map((_,i)=>loadImage(i).catch(e=>{const p=document.createElement('p');p.textContent=tx('review_no_se_pudo_mostrar_la_imagen')+(i+1)+': '+e.message;$('assetList').append(p);})));
@@ -244,6 +245,23 @@ async function init(){
   if(data.capture.connections){const stats=data.capture.connections;$('connectionStatus').textContent=tx('review_1_conexiones_2_3',[stats.external,stats.internal,stats.candidates]);}
   if(!data.capture.connections&&(data.draft.provider==='codex'||!data.draft.provider&&data.draft.assisted||isCollection()))await refreshConnections();
   await preview();$('operation').hidden=true;publishReview();
+}
+// A video can be prepared again with or without the conversation form; the
+// current edits are lost, so the first click only asks for confirmation.
+function conversationSwitch(){
+  const talk=['podcast','entrevista'].includes(data.draft.source_format),button=$('conversationSwitch');
+  $('conversationLine').hidden=data.capture.kind!=='video'||data.draft.provider==='manual';
+  $('conversationState').textContent=talk?tx('review_preparada_como_podcast_o_entrevista'):tx('review_preparada_como_video');
+  button.textContent=talk?tx('review_preparar_como_video'):tx('review_preparar_como_podcast_o_entrevista');
+  let armed=false;
+  button.onclick=async()=>{
+    if(!armed){armed=true;button.textContent=tx('review_confirmar_se_descartan_los_cambios_de_esta_revision');return;}
+    button.disabled=true;$('error').hidden=true;$('operation').textContent=tx('review_preparando_de_nuevo_la_propuesta');$('operation').hidden=false;
+    try{
+      await browser.runtime.sendMessage({type:'redraft',id:captureId,conversation:talk?'off':'on',provider:data.draft.provider});
+      localStorage.removeItem('editor:'+captureId);location.reload();
+    }catch(e){$('operation').hidden=true;button.disabled=false;armed=false;button.textContent=talk?tx('review_preparar_como_video'):tx('review_preparar_como_podcast_o_entrevista');error(e);}
+  };
 }
 // Cache the background and window before the click so opening the sidebar
 // stays inside the user gesture and reuses the explicit-window policy.

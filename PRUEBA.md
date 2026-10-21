@@ -42,6 +42,15 @@ La barra de rayitas bajo el logo se llena y se vacía al abrir el panel y despu�
 6. Captura una página y guárdala: la nota sigue las reglas del perfil y la estructura de tus plantillas. Tus notas existentes no se modifican.
 7. Mueve o edita una guía del perfil: el panel avisará con **Revisar perfil**. Si un destino deja de existir, guardar en él muestra un error claro.
 
+## Podcasts y entrevistas
+
+1. En Opciones, comprueba que **Duración máxima de vídeo/audio** permite la duración del podcast (hasta 240 minutos).
+2. Abre un podcast o una entrevista de YouTube y deja el **Modo de captura** en Automático. Extrae los subtítulos y prepara la nota con IA. Una conversación de más de una hora tarda más: el progreso muestra «Leyendo el tramo… (n/total)» y después la síntesis.
+3. En la revisión, **Propiedades y destino** dice «Preparada como podcast o entrevista». La nota trae ficha rápida, resumen, temas con su minuto, ideas clave, consejos, **Citas destacadas** y qué llevarte a la práctica. Cada `[mm:ss]` abre el vídeo en ese segundo, también el de cada cita. `formato` es `podcast` (o `entrevista`) y `fuente_autor` nombra solo a invitados y programa que constan en el título, el canal o la transcripción.
+4. Si una cita no aparecía palabra por palabra en la transcripción, la explicación lo dice («Se ha descartado una cita…») y no está en la nota.
+5. Pulsa **Preparar como vídeo** y confírmalo: la propuesta se rehace sin la forma de conversación y se pierden los cambios de esa revisión. **Preparar como podcast o entrevista** hace lo contrario; el modo **Podcast · entrevista** del panel lo fuerza desde el principio.
+6. Para notas derivadas con «Una sola nota», usa **Sugerir una división** en la revisión.
+
 ## Recursos incrustados y modo de captura: comprobar 0.10.0
 
 Recarga la extensión. Bajo el estado del servicio aparece **Modo de captura**:
@@ -49,6 +58,7 @@ Recarga la extensión. Bajo el estado del servicio aparece **Modo de captura**:
 - **Automático**: artículos y cursos. Reconoce publicaciones de X, demos de CodePen y clips silenciosos en la página principal. Los marcos de esos servicios no sustituyen al artículo ni piden permiso. El resto de marcos sigue la regla de siempre, para no alterar los cursos.
 - **Artículo web**: además, el texto de la página principal tiene prioridad sobre cualquier marco con texto.
 - **Curso · detección clásica**: el comportamiento anterior a esta versión, sin ninguna novedad. Úsalo si una lección de AWS o de la Xunta se detecta peor que antes y avísame.
+- **Podcast · entrevista**: detecta como Automático, pero prepara cualquier vídeo como una conversación (ver «Podcasts y entrevistas»).
 
 1. Abre <https://tympanus.net/codrops/2026/10/16/ksenia-kondrashova/> en Automático. El texto extraído es el del artículo. En **Recursos incrustados** aparecen los clips de vídeo (duración y peso), las demos de CodePen y las publicaciones de X, todos marcados salvo los clips de más de 20 MB. Los clips con peso desconocido o excesivo muestran un aviso. Los clips ya no aparecen como vídeos que transcribir. Al pasar el ratón por un recurso, o al enfocarlo con el teclado, el artículo se desplaza hasta él y lo rodea de amarillo con su etiqueta («Clip 1», «Demo 2», «Publicación 3»), igual que las imágenes. Un clip pausado empieza a reproducirse, sin sonido, al marcarlo. Si recargas la página y Anaco solo tenía el permiso de la pestaña activa, el panel dirá que no tiene permiso para leer esa página: pulsa **Permitir lectura** o **Detectar contenido** para concederlo; no es un visor de otro dominio.
 2. Desmarca lo que no quieras y pulsa **Preparar**. La extensión pedirá acceso a `codepen.io`, `cdpn.io` y al dominio de los clips si aún no lo tiene.
@@ -239,7 +249,7 @@ La revisión muestra el origen de cada pie —HTML, nombre de archivo, visión o
 9. La lectura se actualiza automáticamente al editar. Puedes ampliar las imágenes haciendo clic sobre ellas y consultar el Markdown completo y frontmatter en el desplegable inferior.
 10. Pulsa **Guardar y volver**. Se guarda la nota, se cierra únicamente la pestaña de revisión y vuelves a la pestaña original del artículo. El panel ofrece **Abrir en Obsidian**.
 
-Comprueba en Obsidian que la nota se lee bien, las imágenes aparecen y los wikilinks abren las notas correctas. Puedes guardar sin relaciones si no hay ninguna adecuada.
+Comprueba en Obsidian que la nota se lee bien, las imágenes aparecen y los wikilinks abren las notas correctas. Un enlace con `#Sección` debe llevar a ese apartado de la nota relacionada. Puedes guardar sin relaciones si no hay ninguna adecuada.
 
 **Descartar** cierra la revisión, retira la captura de pendientes y vuelve al artículo, sin crear una nota. **Volver al artículo** cierra la revisión conservando el borrador y tus ediciones; puedes retomarlo desde **Volver a la revisión** o **Capturas pendientes**. Si la pestaña original ya no existe, se abre de nuevo la URL capturada.
 
@@ -280,9 +290,9 @@ La detección busca también recursos multimedia ya cargados por el reproductor 
 
 Desde **Opciones → Importar un archivo local** puedes importar MP4, WebM, M4A, MP3, WAV, OGG, FLAC o MOV, o una transcripción SRT/VTT. Los archivos locales de vídeo generan hasta tres fotogramas candidatos, además de su transcripción. Con subtítulos solos no se descargan automáticamente todos los fotogramas del vídeo.
 
-Los subtítulos y la voz quedan con referencias `[mm:ss]`. La nota indica si proceden de la plataforma, de un archivo aportado o de Whisper. Los subtítulos importados no se presentan como comprobados contra el vídeo completo.
+Los subtítulos y la voz quedan con referencias `[mm:ss]`. En un vídeo de YouTube, cada referencia de la nota enlaza al vídeo en ese segundo, y un rango `[49:00–55:41]` a su inicio; una marca posterior al final del vídeo queda como texto. Si el vídeo tiene capítulos, la transcripción los marca como `[Capítulo mm:ss] Título` antes de su primera frase. La nota indica si proceden de la plataforma, de un archivo aportado o de Whisper. Los subtítulos importados no se presentan como comprobados contra el vídeo completo.
 
-Límites: PDF/subtítulos hasta 100 MB; archivos locales de audio/vídeo hasta 1 GB. Las descargas directas desde el navegador se limitan a 100 MB. Por defecto se admiten hasta 120 minutos. El audio se procesa en CPU; un curso largo puede tardar varios minutos. Puedes cerrar el panel y seguir navegando mientras el proceso continúe en segundo plano.
+Límites: PDF/subtítulos hasta 100 MB; archivos locales de audio/vídeo hasta 1 GB. Las descargas directas desde el navegador se limitan a 100 MB. Por defecto se admiten hasta 240 minutos (el máximo); una configuración guardada antes conserva su valor, que se cambia en Opciones. Una transcripción de más de una hora se lee por tramos de unos 35 minutos, empezando por un capítulo cuando lo hay, y después se sintetiza entera; los tramos leídos se conservan si hay que reintentar. El audio se procesa en CPU; un curso largo puede tardar varios minutos. Puedes cerrar el panel y seguir navegando mientras el proceso continúe en segundo plano.
 
 ### AWS Academy/Canvas y Xunta/Moodle
 
@@ -324,7 +334,7 @@ Si encuentras un fallo, apunta URL, tipo de captura, pasos, mensaje mostrado y r
 - Los cambios del editor se conservan en el almacenamiento local de la extensión al escribir, incluso si cierras la pestaña de revisión enseguida. Regenerar sustituye esa propuesta; recuperar una captura conserva las ediciones locales disponibles.
 - Cambiar el vault no mueve capturas: los pendientes se muestran al volver a su vault de origen.
 - Los duplicados exactos y nombres existentes se rechazan al crear notas. Las ampliaciones solo se añaden tras revisar un aporte y comprobar la versión de la nota existente.
-- Las relaciones con notas existentes requieren aceptación y se revalidan antes de guardar. Los enlaces entre notas nuevas se revisan en su propuesta y se ajustan a las notas seleccionadas y sus rutas finales.
+- Las relaciones con notas existentes requieren aceptación y se revalidan antes de guardar. Enlazan la sección que contiene la evidencia cuando se puede señalar sin ambigüedad; si no, la nota entera. Los enlaces entre notas nuevas se revisan en su propuesta y se ajustan a las notas seleccionadas y sus rutas finales.
 - La vista de lectura de la pestaña admite Markdown estándar, tablas, listas, código, enlaces y las imágenes locales conservadas. Las funciones de plugins de Obsidian se comprueban en Obsidian.
 - Para localizar imágenes, el artículo debe seguir abierto y sin navegar a otro sitio. Tras recargar la extensión, realiza una captura nueva para volver a vincularla con su pestaña.
 - Las páginas con contenido dinámico pueden requerir seleccionar el fragmento relevante. De los marcos incrustados se reconocen publicaciones de X, CodePen y clips silenciosos; otros widgets con texto pueden requerir el modo **Artículo web**. El texto extraído se puede revisar antes de preparar.

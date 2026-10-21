@@ -5,7 +5,8 @@ import json
 import hashlib
 import re
 from urllib.parse import quote
-from core import UserError, clean, safe_path, slug, write_new_atomic
+from conversation import literal
+from core import UserError, clean, safe_path, section_anchor, slug, write_new_atomic
 from translation import n, t
 
 RELATION_KINDS=('relaciona','explica','aplica','contrasta','amplia','requisito','ejemplo')
@@ -27,7 +28,7 @@ def extend_schema(properties, relation, note_types):
                  images={'type':'array','items':{'type':'integer'}},links=links,
                  relations={'type':'array','items':relation})
     properties.update(note_type=types,strategy={'type':'string','enum':['source','study','concept','reference','collection','quote','image','reading']},
-                      rationale={'type':'string'},source_format={'type':'string','enum':['articulo','libro','documento','video','podcast','hilo']},
+                      rationale={'type':'string'},source_format={'type':'string','enum':['articulo','libro','documento','video','podcast','entrevista','hilo']},
                       notes={'type':'array','items':{'type':'object','properties':child,'required':list(child),'additionalProperties':False}})
 
 
@@ -52,7 +53,7 @@ class Editorial:
         for value in values[:8] if isinstance(values,list) else []:
             if not isinstance(value,dict) or value.get('path') not in known:continue
             a,b=clean(value.get('source_evidence'),800).strip(),clean(value.get('note_evidence'),800).strip()
-            if len(a)<15 or len(b)<15 or a not in c['text'] or b not in known[value['path']]['excerpt']:continue
+            if len(a)<15 or len(b)<15 or not literal(c['text'],a) or b not in known[value['path']]['excerpt']:continue
             found.append({'path':value['path'],'reason':clean(value.get('reason'),1000),'kind':value.get('kind') if value.get('kind') in RELATION_KINDS else 'relaciona','source_evidence':a,'note_evidence':b,'accepted':False})
         return found
 
@@ -80,7 +81,7 @@ class Editorial:
             pages=child.get('pages') or []
             if not isinstance(pages,list) or any(type(n) is not int or n not in pages_allowed for n in pages):raise UserError('Una nota cita páginas fuera del contenido leído.')
             evidence=clean(child.get('source_evidence'),1500).strip()
-            if not pages and (len(evidence)<15 or evidence not in c['text']):raise UserError('Una nota derivada no tiene una referencia verificable a la fuente. Regenera la propuesta.')
+            if not pages and (len(evidence)<15 or not literal(c['text'],evidence)):raise UserError('Una nota derivada no tiene una referencia verificable a la fuente. Regenera la propuesta.')
             images=child.get('images') or []
             if not isinstance(images,list) or any(type(n) is not int or not 0<=n<len(c['images']) for n in images):raise UserError('Una nota contiene una figura inexistente.')
             images=[n for n in dict.fromkeys(images) if n in root['selected_images']]
@@ -167,7 +168,9 @@ class Editorial:
                 valid=(not evidence or evidence in current_body) and (not target_evidence or target_evidence in other_body)
                 accepted=tuple(sorted((canonical(key),target))) not in excluded and valid;kind=value.get('kind','relaciona')
                 graph.append({'id':target,'title':label,'kind':kind,'reason':value['reason'],'accepted':accepted,'source_evidence':evidence,'target_evidence':target_evidence,'stale':not valid})
-                if accepted:planned.append(f"- [[{paths[target].removesuffix('.md')}|{label}]] — {kind_label(kind)}: {clean(value['reason'],700)}");targets.append((paths[target],label))
+                # MOTIVE -> an append lands inside another note, whose headings are not this body's.
+                anchor=section_anchor(other_body,target_evidence) if target_evidence and effective[target].get('save_mode')!='append' else None;anchor='#'+anchor if anchor else ''
+                if accepted:planned.append(f"- [[{paths[target].removesuffix('.md')}{anchor}|{label}]] — {kind_label(kind)}: {clean(value['reason'],700)}");targets.append((paths[target],label))
             pages=sorted({p for member in groups[key] for p in drafts[member].get('source_pages',[])})
             d['source_pages']=pages
             local={**c,'draft':d,'_planned_links':planned,'_planned_targets':targets,'_semantic_links':any(v['accepted'] and v['source_evidence'] for v in graph)}

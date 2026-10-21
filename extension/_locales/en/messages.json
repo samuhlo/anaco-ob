@@ -1010,6 +1010,9 @@
   "panel_permitir_lectura_de": {
     "message": "Allow reading "
   },
+  "panel_podcast_entrevista_resumen_consejos_y_citas": {
+    "message": "Podcast · interview · summary, advice and quotes"
+  },
   "panel_por_que_quieres_guardarlo": {
     "message": "Why do you want to save it?"
   },
@@ -1457,6 +1460,9 @@
   "review_conexiones_con_tu_conocimiento": {
     "message": "Connections with your knowledge"
   },
+  "review_confirmar_se_descartan_los_cambios_de_esta_revision": {
+    "message": "Confirm: the changes in this review are discarded"
+  },
   "review_conocimiento_que_merece_quedarse": {
     "message": "Knowledge worth keeping."
   },
@@ -1622,8 +1628,23 @@
   "review_pie_original_del_html": {
     "message": "Original caption from the HTML"
   },
+  "review_preparada_como_podcast_o_entrevista": {
+    "message": "Prepared as a podcast or interview."
+  },
+  "review_preparada_como_video": {
+    "message": "Prepared as a video."
+  },
+  "review_preparando_de_nuevo_la_propuesta": {
+    "message": "Preparing the proposal again. It may take several minutes…"
+  },
   "review_preparando_un_cambio_revisable": {
     "message": "Preparing a reviewable change…"
+  },
+  "review_preparar_como_podcast_o_entrevista": {
+    "message": "Prepare as a podcast or interview"
+  },
+  "review_preparar_como_video": {
+    "message": "Prepare as a video"
   },
   "review_procedencia": {
     "message": "SOURCE"

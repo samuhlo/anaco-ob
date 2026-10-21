@@ -14,11 +14,13 @@ import selectors
 import tempfile
 import time
 import hashlib
+from urllib.parse import parse_qs, urlsplit
 from urllib.request import Request, urlopen
 from core import UserError, ROOT, clean, json_dump, normalized_url
 from translation import n, t
 
 MAX_FILE = 100_000_000
+MAX_TRANSCRIPT = 400_000  # four hours of speech fit with room to spare
 
 
 def media_venv(app):
@@ -78,6 +80,31 @@ def run(command, timeout=120,cancel=None):
 
 def stamp(seconds):
     seconds=max(0,int(seconds));return f"{seconds//3600:02d}:{seconds%3600//60:02d}:{seconds%60:02d}" if seconds>=3600 else f"{seconds//60:02d}:{seconds%60:02d}"
+
+
+def youtube_id(url):
+    """The video id of a YouTube address, or None for any other source."""
+    parts=urlsplit(str(url or ''));host=(parts.hostname or '').removeprefix('www.').removeprefix('m.')
+    if host=='youtu.be':value=parts.path.strip('/').split('/')[0]
+    elif host in ('youtube.com','music.youtube.com','youtube-nocookie.com'):
+        found=re.match(r'/(?:shorts|live|embed)/([^/?#]+)',parts.path)
+        value=found.group(1) if found else (parse_qs(parts.query).get('v') or [''])[0]
+    else:return None
+    return value if re.fullmatch(r'[A-Za-z0-9_-]{11}',value) else None
+
+
+def link_times(text,url,duration=None):
+    """Turn [mm:ss] marks into links that open the YouTube video at that second."""
+    video=youtube_id(url)
+    if not video:return text
+    def replace(match):
+        parts=[int(v) for v in match.group(1).split(':')];seconds=sum(v*60**i for i,v in enumerate(reversed(parts)))
+        # MOTIVE -> a time past the end was invented or miscopied: keep it as plain text.
+        if duration and seconds>duration:return match.group(0)
+        # A range [49:00–55:41] opens the video where it starts.
+        return f"[{match.group(1)}{match.group(2) or ''}](https://www.youtube.com/watch?v={video}&t={seconds}s)"
+    time=r'(?:\d{1,2}:)?\d{1,2}:[0-5]\d'
+    return re.sub(r'(?<![\[!\w])\[('+time+r')(\s*[–-]\s*'+time+r')?\](?!\()',replace,text)
 
 
 def subtitles(text):
@@ -206,15 +233,24 @@ class Media:
         stored=self.app.load(c["id"]);stored["media"]={"type":"pdf","total_pages":total,"pages":pages,"visual_pages":sorted(visual),"method":n("Texto PDF + páginas renderizadas; OCR local cuando hace falta")};self.app.store(stored)
         return self.app.public(stored)
 
-    def transcript_capture(self,segments,title,url,method,images=None,metadata=None):
-        text="\n".join(f"[{stamp(segment['start'])}] {segment['text']}" for segment in segments)
+    def transcript_capture(self,segments,title,url,method,images=None,metadata=None,chapters=None,author=None):
+        lines=[];pending=list(chapters or [])
+        for segment in segments:
+            # [FLOW] Each chapter title goes right before its first line of speech.
+            while pending and pending[0]['start']<=segment['start']:
+                chapter=pending.pop(0);lines.append(f"[{n('Capítulo')} {stamp(chapter['start'])}] {chapter['title']}")
+            lines.append(f"[{stamp(segment['start'])}] {segment['text']}")
+        text="\n".join(lines)
         warnings=[]
-        if len(text)>150000:warnings.append(t("La transcripción supera el límite de texto; se conservan los primeros 150.000 caracteres. Divide el vídeo para procesar el resto."))
-        c=self.app.stage({"kind":"video","url":url,"title":title,"text":text[:150000],"images":images or [],"warnings":warnings},allow_local=True)
-        stored=self.app.load(c["id"]);stored["media"]={"type":"video","method":method,**(metadata or {})};self.app.store(stored)
+        if len(text)>MAX_TRANSCRIPT:warnings.append(t("La transcripción supera el límite de texto; se conservan los primeros {limit} caracteres. Divide el vídeo para procesar el resto.",limit=f"{MAX_TRANSCRIPT:,}".replace(",",".")))
+        c=self.app.stage({"kind":"video","url":url,"title":title,"author":author or "","text":text[:150000],"images":images or [],"warnings":warnings},allow_local=True)
+        # [DATA] stage() bounds ordinary captures; a long conversation is read later by stretches.
+        stored=self.app.load(c["id"]);stored["text"]=text[:MAX_TRANSCRIPT];stored["media"]={"type":"video","method":method,**(metadata or {})}
+        if chapters:stored["media"]["chapters"]=chapters
+        self.app.store(stored)
         return self.app.public(stored)
 
-    def audio(self,path,title,url):
+    def audio(self,path,title,url,chapters=None,author=None):
         self.app.progress({'stage':'inspect','message':t('Comprobando duración y pista de audio…')})
         info=json.loads(self.run(["ffprobe","-v","error","-show_format","-show_streams","-of","json",str(path)]))
         duration=float(info.get("format",{}).get("duration") or 0)
@@ -228,7 +264,7 @@ class Media:
             while chunk:=stream.read(1048576):self.app.check_cancel();digest.update(chunk)
         key=hashlib.sha256((digest.hexdigest()+self.app.config()['asr_model']+'fw1.2.1-segments-v1').encode()).hexdigest()
         checkpoint=self.app.state/'transcripts'/(key+'.json')
-        result=run_progress([str(python),str(Path(__file__).with_name("transcribe.py")),str(path),"--model",self.app.config()["asr_model"],"--cache",str(venv/"models"),'--progress','--checkpoint',str(checkpoint)],self.app.progress,check=self.app.check_cancel)
+        result=run_progress([str(python),str(Path(__file__).with_name("transcribe.py")),str(path),"--model",self.app.config()["asr_model"],"--cache",str(venv/"models"),'--progress','--checkpoint',str(checkpoint)],self.app.progress,timeout=max(1800,int(duration)),check=self.app.check_cancel)
         if not result["segments"]:raise UserError("No se ha detectado voz en el archivo.")
         images=[]
         if any(s.get("codec_type")=="video" for s in info.get("streams",[])):
@@ -239,7 +275,7 @@ class Media:
                     self.run(["ffmpeg","-v","error","-y","-ss",str(second),"-i",str(path),"-frames:v","1","-vf","scale=1280:-2",str(output)])
                     if output.exists():images.append({"data":base64.b64encode(output.read_bytes()).decode(),"alt":n("Fotograma en {time}",time=stamp(second)),"timestamp":second})
                 except UserError:self.app.check_cancel()
-        return self.transcript_capture(result["segments"],title,url,n("Transcripción local con Whisper {model}",model=self.app.config()["asr_model"]),images,{"duration_seconds":duration,"language":result.get("language"),"coverage":n("Audio del archivo completo")})
+        return self.transcript_capture(result["segments"],title,url,n("Transcripción local con Whisper {model}",model=self.app.config()["asr_model"]),images,{"duration_seconds":duration,"language":result.get("language"),"coverage":n("Audio del archivo completo")},chapters,author)
 
     def video_url(self,message):
         url=normalized_url(message.get("url",""));directory=self.app.state/"uploads"/uuid.uuid4().hex;directory.mkdir(parents=True,mode=0o700)
@@ -248,7 +284,9 @@ class Media:
         meta=json.loads(self.run(["yt-dlp","--ignore-config","--no-playlist",*network,"--skip-download","--dump-single-json",url],timeout=180))
         if meta.get("is_live"):raise UserError("Para directos, importa una grabación terminada.")
         if (meta.get("duration") or 0)>self.app.config()["video_minutes"]*60:raise UserError("El vídeo supera la duración configurada.")
-        title=meta.get("title") or "Vídeo"
+        title=meta.get("title") or "Vídeo";author=clean(meta.get("channel") or meta.get("uploader"),200).strip()
+        chapters=sorted(({"start":int(v["start_time"]),"title":clean(v.get("title"),200).replace("\n"," ").strip()} for v in meta.get("chapters") or []
+                         if isinstance(v,dict) and isinstance(v.get("start_time"),(int,float)) and clean(v.get("title"),200).strip()),key=lambda v:v["start"])
         for kind,key in [(n("Subtítulos de la plataforma"),"subtitles"),(n("Subtítulos automáticos de la plataforma"),"automatic_captions")]:
             languages=meta.get(key) or {}
             for language in sorted(languages,key=lambda lang:(not lang.startswith("es"),not lang.startswith("en"),lang)):
@@ -259,11 +297,11 @@ class Media:
                     try:
                         with urlopen(request,timeout=30) as response:content=response.read(5_000_001)
                         if len(content)>5_000_000:raise UserError("Los subtítulos son demasiado grandes.")
-                        return self.transcript_capture(subtitles(content.decode(errors="replace")),title,url,kind,metadata={"language":language,"duration_seconds":meta.get("duration"),"coverage":n("Subtítulos disponibles en la plataforma")})
+                        return self.transcript_capture(subtitles(content.decode(errors="replace")),title,url,kind,metadata={"language":language,"duration_seconds":meta.get("duration"),"coverage":n("Subtítulos disponibles en la plataforma")},chapters=chapters,author=author)
                     except (OSError,UserError):continue
         self.app.progress({'stage':'download','message':t('Sin subtítulos accesibles. Descargando audio para transcribir…')})
-        self.run(["yt-dlp","--ignore-config","--no-playlist",*network,"--max-filesize","100M","-f","bestaudio/best","-o",str(directory/"source.%(ext)s"),url],timeout=600)
+        self.run(["yt-dlp","--ignore-config","--no-playlist",*network,"--max-filesize","100M","-f","bestaudio[filesize<95M]/bestaudio[filesize_approx<95M]/worstaudio/bestaudio/best","-o",str(directory/"source.%(ext)s"),url],timeout=600)
         files=[p for p in directory.glob("source.*") if p.suffix not in (".part",".ytdl")]
         if not files or files[0].stat().st_size>MAX_FILE:raise UserError("No se ha podido descargar un audio compatible de hasta 100 MB. Importa el archivo desde la plataforma.")
-        return self.audio(files[0],title,url)
+        return self.audio(files[0],title,url,chapters,author)
 

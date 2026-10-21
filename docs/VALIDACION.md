@@ -897,3 +897,13 @@ Al validar se corrigió un fallo previo a esta versión. Al editar la nota, la r
 | `--session-video` | falla al guardar | falla al guardar: dos vídeos con el mismo título el mismo día chocan con una nota existente, un límite de la prueba |
 
 No se ha comprobado dentro de Obsidian ni con las sesiones privadas de AWS y Xunta.
+
+## Sin publicar — Podcasts y entrevistas
+
+Pruebas automáticas: `tests/test_conversation.py` (tramos, citas palabra a palabra, conversación automática, forzada y desactivada, sitio de las citas), `tests/test_media.py` (capítulos, tiempos y rangos enlazados, evidencia con tiempos) y `tests/test_linking.py` (enlaces a sección).
+
+Recorrido en Zen (`e2e_zen.py --podcast`, IA simulada): el modo **Podcast · entrevista** del panel produce una nota de conversación con la cita literal y su minuto, y sin la inventada; **Preparar como vídeo**, tras confirmar, rehace la propuesta sin esa forma. `--manual-import` y `--editorial` siguen superándose.
+
+Prueba real (`scripts/smoke_podcast.py`, Codex `gpt-6-luna`, copia del vault del usuario; el vault real solo se lee): entrevista de 2:20 de Tengo un Plan con 20 capítulos y subtítulos automáticos. La transcripción completa (191.000 caracteres; antes se habría cortado en 150.000) se lee en 7 tramos y se sintetiza en unos dos minutos. Se detecta como `entrevista` sin forzarla, `fuente_autor` es «Ricard / Tengo un Plan», la nota cubre hasta los últimos capítulos (IA y trabajo, lecturas) y trae entre 4 y 5 citas comprobadas y unos 20 tiempos enlazados. En una de las tres pasadas el modelo propuso 4 relaciones; se guardan enlazando la sección de su evidencia (`#// EXPLICACION CORTA`, `#// QUE ME LLEVO A EJECUCION`). Esas pasadas reales encontraron tres fallos, ya corregidos con su prueba: el encabezado de citas duplicado cuando el modelo escribe el marcador como encabezado, los rangos `[49:00–55:41]` sin enlace y una relación cuya evidencia contenía un tiempo, que impedía guardar.
+
+No se ha comprobado dentro de Obsidian ni con la transcripción local de Whisper de un audio largo.

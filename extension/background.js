@@ -396,7 +396,8 @@ async function prepare(message,ownedCapture=null) {
       await browser.storage.local.set({sources});
       await publishCapture(c);
     }
-    const result = await native({action: "draft", id: c.id, intent: message.intent, provider: message.provider,images:selected,note_structure:message.note_structure},c.reader?.job?7200000:2400000);
+    const conversation=message.conversation||(captureModeCache==='podcast'?'on':'auto');
+    const result = await native({action: "draft", id: c.id, intent: message.intent, provider: message.provider,images:selected,note_structure:message.note_structure,conversation},c.reader?.job||c.kind==='video'?7200000:2400000);
     localStorage.removeItem("editor:" + c.id);
     result.capture.source = c.source;
     result.capture.token = c.token;
@@ -751,6 +752,13 @@ browser.runtime.onMessage.addListener((message, sender) => {
     const source=sources[c.id]||(current?.id===c.id?current.source:null)||{url:c.url};
     const work=await beginWork({...c,source,token:current?.id===c.id?current.token:undefined},connecting?tx('bg_buscando_conexiones_por_tema_en_tu_secon'):splitting?tx('bg_estudiando_una_posible_division_de_la_no'):tx('bg_preparando_una_revision_del_apartado'),connecting);
     try{const result=await native({...message,action:connecting?'refresh_links':splitting?'propose_split':'revise'});await endWork(work);return result;}catch(error){await endWork(work,error);throw error;}
+  })();
+  // Prepare a reviewed video again, as a conversation or as a plain video.
+  if(message.type==='redraft')return (async()=>{
+    const c=await native({action:'load',id:message.id});
+    const {sources={},currentCapture:current}=await browser.storage.local.get(['sources','currentCapture']);
+    const source=sources[c.id]||(current?.id===c.id?current.source:null)||{url:c.url};
+    return prepare({intent:c.intent,provider:message.provider,images:c.selected_images,note_structure:c.note_structure,conversation:message.conversation},{...c,source,token:current?.id===c.id?current.token:undefined});
   })();
   if(message.type==='splitDecision')return native({...message,action:'split_decision'});
   if (message.type === "adoptUpload") return (async()=>{
