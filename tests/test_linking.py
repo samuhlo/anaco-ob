@@ -77,3 +77,48 @@ class LinkingTest(base.unittest.TestCase):
         fields['selected_notes']=['source','tema-canvas']
         preview=self.app.preview(c['id'],fields)
         self.assertFalse(any(r['id']=='tema-reloj' for r in preview['internal_links']))
+
+    def test_relation_links_the_heading_that_holds_its_evidence(self):
+        from vault_profile import install
+        profile=json.loads(base.CLASSIC.read_text());profile['frontmatter'].append({'key':'relacionadas','from':'relations'})
+        install(self.app,profile,'99_Recursos/anaco/perfil.json')
+        c,fields,path=self.prepared()
+        (self.vault/path).write_text('---\ntipo: nota\n---\n# GSAP y su ticker\n\nIntroducción breve.\n\n## El ticker de GSAP\n\n'+TARGET+'\n\n## Otra sección\n\nNada más.\n')
+        self.refresh(c,fields);fields['notes']['tema-canvas']={'relations':[path]}
+        rendered=self.app.preview(c['id'],fields)['markdown']
+        self.assertIn('- [[02_Cerebro/Tech_&_Codigo/nota_gsap_ticker#El ticker de GSAP]] — ',rendered)
+        frontmatter=rendered.split('\n---\n',1)[0]
+        self.assertIn('[[02_Cerebro/Tech_&_Codigo/nota_gsap_ticker|',frontmatter);self.assertNotIn('#El ticker',frontmatter)
+
+    def test_internal_link_points_to_the_section_of_the_sibling_note(self):
+        c,fields,_=self.prepared()
+        c=self.app.load(c['id']);c['bundle']['notes'][1]['body']='Contexto general.\n\n## El ciclo de GSAP\n\n'+B;self.app.store(c)
+        self.refresh(c,fields)
+        rendered=self.app.preview(c['id'],fields)['markdown']
+        self.assertIn('[[02_Cerebro/Modelos_Mentales/nota_tema_reloj#El ciclo de GSAP|Coordinar el ciclo con GSAP]]',rendered)
+
+
+class SectionAnchorTest(base.unittest.TestCase):
+    def anchor(self,text,fragment='la evidencia literal'):
+        from core import section_anchor
+        return section_anchor(text,fragment)
+
+    def test_nearest_heading_below_the_title(self):
+        self.assertEqual(self.anchor('# Título\n\n## Uno\n\nx\n\n### Dos detalles\n\nAquí está la evidencia literal.\n'),'Dos detalles')
+        self.assertEqual(self.anchor('## // IDEA EN 1 FRASE ##\n\nla evidencia literal'),'// IDEA EN 1 FRASE')
+
+    def test_whole_note_when_the_anchor_would_be_wrong_or_ambiguous(self):
+        cases={'sin encabezado':'Solo texto con la evidencia literal.',
+               'solo el título':'# Título\n\nla evidencia literal',
+               'encabezado repetido':'## Ideas\n\nuno\n\n## Ideas\n\nla evidencia literal',
+               'evidencia en dos secciones':'## A\n\nla evidencia literal\n\n## B\n\nla evidencia literal',
+               'caracteres de enlace':'## Uno | dos\n\nla evidencia literal',
+               'formato en el encabezado':'## Usa **esto**\n\nla evidencia literal',
+               'dos puntos':'## Nota: algo\n\nla evidencia literal',
+               'no aparece':'## A\n\notro texto',
+               'solo en el frontmatter':'---\nx: la evidencia literal\n---\n## A\n\notro'}
+        for label,text in cases.items():
+            with self.subTest(label):self.assertIsNone(self.anchor(text))
+
+    def test_hashes_inside_code_blocks_are_not_headings(self):
+        self.assertEqual(self.anchor('## Real\n\n```sh\n# comentario\n```\n\nla evidencia literal'),'Real')

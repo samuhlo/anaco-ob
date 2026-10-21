@@ -82,6 +82,31 @@ def plain_body(text):
     return re.sub(r"\A---\s*\n.*?\n---\s*\n", "", text, count=1, flags=re.S)
 
 
+def section_anchor(text, fragment):
+    """Heading under which a literal fragment sits, or None to link the whole note."""
+    body = plain_body(text)
+    if not fragment or body.count(fragment) != 1:
+        return None
+    position = body.index(fragment)
+    headings, current, offset, fence = [], None, 0, False
+    for line in body.splitlines(keepends=True):
+        if re.match(r"\s{0,3}(```|~~~)", line):
+            fence = not fence
+        match = None if fence else re.match(r" {0,3}(#{1,6})[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$", line.rstrip("\n"))
+        if match:
+            title = match.group(2).strip()
+            headings.append(title)
+            if offset <= position:
+                # MOTIVE -> the title (#) names the whole note; it is not a section.
+                current = title if len(match.group(1)) > 1 else None
+        offset += len(line)
+    # MOTIVE -> Obsidian rewrites or rejects these characters in heading links;
+    # a link that may not resolve is worse than one to the whole note.
+    if not current or headings.count(current) > 1 or re.search(r"[\[\]|#^:%*`<>]", current):
+        return None
+    return current
+
+
 def json_dump(path, value):
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     temp = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
@@ -595,16 +620,18 @@ class App:
             relation = known[rel_path]
             if relation.get('evidence_origin')=='note' and relation['source_evidence'] not in body:
                 raise UserError('La nota editada cambió y una conexión necesita revisarse. Pulsa Buscar conexiones.')
-            if relation["note_evidence"] not in read_note(target):
+            target_text = read_note(target)
+            if relation["note_evidence"] not in target_text:
                 raise UserError("El contenido de una nota relacionada ha cambiado. Regenera la propuesta.")
             link = rel_path.removesuffix(".md")
             if any(ch in link for ch in "[]|#^"):
                 raise UserError("El nombre de una nota relacionada contiene caracteres ambiguos para Obsidian.")
+            anchor = section_anchor(target_text, relation["note_evidence"])
             kind=fields.get('relation_kinds',{}).get(rel_path,relation.get('kind','relaciona'))
             from editorial import RELATION_KINDS
             if kind not in RELATION_KINDS:raise UserError('Tipo de relación no válido.')
             from editorial import kind_label
-            links.append(f"- [[{link}]] — {kind_label(kind)}: {relation['reason']}")
+            links.append(f"- [[{link}{'#' + anchor if anchor else ''}]] — {kind_label(kind)}: {relation['reason']}")
             related.append((rel_path, relation.get('title') or PurePosixPath(link).name))
         link_assisted=bool(original.get('connection_model') and (fields.get('relations') or c.get('_semantic_links')))
         assisted=original["assisted"] or bool(fields.get('revision_model')) or link_assisted

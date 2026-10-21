@@ -5,7 +5,7 @@ import json
 import hashlib
 import re
 from urllib.parse import quote
-from core import UserError, clean, safe_path, slug, write_new_atomic
+from core import UserError, clean, safe_path, section_anchor, slug, write_new_atomic
 from translation import n, t
 
 RELATION_KINDS=('relaciona','explica','aplica','contrasta','amplia','requisito','ejemplo')
@@ -167,7 +167,9 @@ class Editorial:
                 valid=(not evidence or evidence in current_body) and (not target_evidence or target_evidence in other_body)
                 accepted=tuple(sorted((canonical(key),target))) not in excluded and valid;kind=value.get('kind','relaciona')
                 graph.append({'id':target,'title':label,'kind':kind,'reason':value['reason'],'accepted':accepted,'source_evidence':evidence,'target_evidence':target_evidence,'stale':not valid})
-                if accepted:planned.append(f"- [[{paths[target].removesuffix('.md')}|{label}]] — {kind_label(kind)}: {clean(value['reason'],700)}");targets.append((paths[target],label))
+                # MOTIVE -> an append lands inside another note, whose headings are not this body's.
+                anchor=section_anchor(other_body,target_evidence) if target_evidence and effective[target].get('save_mode')!='append' else None;anchor='#'+anchor if anchor else ''
+                if accepted:planned.append(f"- [[{paths[target].removesuffix('.md')}{anchor}|{label}]] — {kind_label(kind)}: {clean(value['reason'],700)}");targets.append((paths[target],label))
             pages=sorted({p for member in groups[key] for p in drafts[member].get('source_pages',[])})
             d['source_pages']=pages
             local={**c,'draft':d,'_planned_links':planned,'_planned_targets':targets,'_semantic_links':any(v['accepted'] and v['source_evidence'] for v in graph)}

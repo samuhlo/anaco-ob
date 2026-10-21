@@ -98,7 +98,7 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 - **Vídeo y audio**: usa subtítulos cuando existen y, si no, transcribe en tu equipo con Whisper. El audio no sale a una API.
 - **Demos sin conexión**: cada pen de CodePen se guarda como un `index.html` con sus librerías y módulos ES, para verlo en la nota con el plugin HTML Prototype Viewer.
 - **Imágenes con criterio**: aprovecha los pies del HTML y solo envía a análisis visual las imágenes que lo necesitan.
-- **Relaciones verificables**: cada conexión con una nota existente se apoya en fragmentos literales de ambas notas, y la aceptas o la descartas tú.
+- **Relaciones verificables**: cada conexión con una nota existente se apoya en fragmentos literales de ambas notas, y la aceptas o la descartas tú. El enlace lleva a la sección donde está el fragmento (`[[nota#Sección]]`); si la sección no se puede señalar sin ambigüedad, a la nota entera.
 - **Una o varias notas**: una nota con apartados, varias enlazadas por temas o que decida la IA, con división e integración revisables.
 - **Tu IA**: Codex con tu suscripción de ChatGPT; Claude, Gemini, OpenAI, MiniMax, Qwen u OpenRouter con tu clave, eligiendo el servicio por su nombre; o un modelo local con Ollama o LM Studio, donde nada sale de tu ordenador.
 - **Español e inglés**: la interfaz y los mensajes del servicio siguen al navegador o al idioma que elijas en Opciones, y las notas se escriben en el idioma que elijas para ellas. El español es el principal.

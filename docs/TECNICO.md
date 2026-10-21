@@ -8,6 +8,8 @@ La ampliación multimedia utiliza Poppler, FFmpeg y `yt-dlp`. Whisper se ejecuta
 
 La recuperación inicial busca en archivos locales y lee fragmentos relevantes. No se mantiene un índice semántico ni se envía el vault completo al proveedor. Se ha elegido una extensión pequeña propia para integrar la cola local y la revisión explícita de relaciones; las plantillas e interpretación de Obsidian Web Clipper sirvieron de referencia, sin crear un fork que hubiera que mantener.
 
+El enlace de una relación apunta al encabezado bajo el que está el fragmento literal de la nota destino (`section_anchor` en `native/core.py`), sin preguntar a la IA. Enlaza la nota entera cuando el fragmento no está bajo un encabezado de nivel 2 o inferior, aparece más de una vez, el encabezado está repetido o contiene caracteres que Obsidian reescribe en los enlaces (`[]|#^:%*` y acentos graves). No se usan referencias a bloque (`^id`): exigirían modificar la nota destino. En el frontmatter, `relacionadas` sigue enlazando la nota entera.
+
 La vista previa utiliza Marked y DOMPurify empaquetados en `extension/vendor/`, con sus licencias. No carga scripts de una CDN. Para regenerar esas copias en desarrollo: `npm ci` y `npm run vendor`. No hace falta npm para cargar la extensión entregada.
 
 ## Identidad y compatibilidad

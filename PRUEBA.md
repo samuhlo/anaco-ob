@@ -239,7 +239,7 @@ La revisión muestra el origen de cada pie —HTML, nombre de archivo, visión o
 9. La lectura se actualiza automáticamente al editar. Puedes ampliar las imágenes haciendo clic sobre ellas y consultar el Markdown completo y frontmatter en el desplegable inferior.
 10. Pulsa **Guardar y volver**. Se guarda la nota, se cierra únicamente la pestaña de revisión y vuelves a la pestaña original del artículo. El panel ofrece **Abrir en Obsidian**.
 
-Comprueba en Obsidian que la nota se lee bien, las imágenes aparecen y los wikilinks abren las notas correctas. Puedes guardar sin relaciones si no hay ninguna adecuada.
+Comprueba en Obsidian que la nota se lee bien, las imágenes aparecen y los wikilinks abren las notas correctas. Un enlace con `#Sección` debe llevar a ese apartado de la nota relacionada. Puedes guardar sin relaciones si no hay ninguna adecuada.
 
 **Descartar** cierra la revisión, retira la captura de pendientes y vuelve al artículo, sin crear una nota. **Volver al artículo** cierra la revisión conservando el borrador y tus ediciones; puedes retomarlo desde **Volver a la revisión** o **Capturas pendientes**. Si la pestaña original ya no existe, se abre de nuevo la URL capturada.
 
@@ -324,7 +324,7 @@ Si encuentras un fallo, apunta URL, tipo de captura, pasos, mensaje mostrado y r
 - Los cambios del editor se conservan en el almacenamiento local de la extensión al escribir, incluso si cierras la pestaña de revisión enseguida. Regenerar sustituye esa propuesta; recuperar una captura conserva las ediciones locales disponibles.
 - Cambiar el vault no mueve capturas: los pendientes se muestran al volver a su vault de origen.
 - Los duplicados exactos y nombres existentes se rechazan al crear notas. Las ampliaciones solo se añaden tras revisar un aporte y comprobar la versión de la nota existente.
-- Las relaciones con notas existentes requieren aceptación y se revalidan antes de guardar. Los enlaces entre notas nuevas se revisan en su propuesta y se ajustan a las notas seleccionadas y sus rutas finales.
+- Las relaciones con notas existentes requieren aceptación y se revalidan antes de guardar. Enlazan la sección que contiene la evidencia cuando se puede señalar sin ambigüedad; si no, la nota entera. Los enlaces entre notas nuevas se revisan en su propuesta y se ajustan a las notas seleccionadas y sus rutas finales.
 - La vista de lectura de la pestaña admite Markdown estándar, tablas, listas, código, enlaces y las imágenes locales conservadas. Las funciones de plugins de Obsidian se comprueban en Obsidian.
 - Para localizar imágenes, el artículo debe seguir abierto y sin navegar a otro sitio. Tras recargar la extensión, realiza una captura nueva para volver a vincularla con su pestaña.
 - Las páginas con contenido dinámico pueden requerir seleccionar el fragmento relevante. De los marcos incrustados se reconocen publicaciones de X, CodePen y clips silenciosos; otros widgets con texto pueden requerir el modo **Artículo web**. El texto extraído se puede revisar antes de preparar.
