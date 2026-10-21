@@ -604,6 +604,9 @@ class App:
         today = c.get('_render_date') or intent_date or dt.date.today().isoformat()
         attachments = profile.attachments.rstrip("/")
         from embeds import apply as apply_embeds
+        if c["kind"]=="video":
+            from media import link_times
+            body=link_times(body,c["url"],c.get("media",{}).get("duration_seconds"))
         body,resources,embedded=apply_embeds(self,c,body,attachments,not original.get("id"),profile.section("resources"))
         # [DATA] Accepted relations are verified before they reach links or frontmatter.
         selected = fields.get("relations", [])

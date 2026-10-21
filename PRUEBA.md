@@ -280,7 +280,7 @@ La detección busca también recursos multimedia ya cargados por el reproductor 
 
 Desde **Opciones → Importar un archivo local** puedes importar MP4, WebM, M4A, MP3, WAV, OGG, FLAC o MOV, o una transcripción SRT/VTT. Los archivos locales de vídeo generan hasta tres fotogramas candidatos, además de su transcripción. Con subtítulos solos no se descargan automáticamente todos los fotogramas del vídeo.
 
-Los subtítulos y la voz quedan con referencias `[mm:ss]`. La nota indica si proceden de la plataforma, de un archivo aportado o de Whisper. Los subtítulos importados no se presentan como comprobados contra el vídeo completo.
+Los subtítulos y la voz quedan con referencias `[mm:ss]`. En un vídeo de YouTube, cada referencia de la nota enlaza al vídeo en ese segundo; una marca posterior al final del vídeo queda como texto. Si el vídeo tiene capítulos, la transcripción los marca como `[Capítulo mm:ss] Título` antes de su primera frase. La nota indica si proceden de la plataforma, de un archivo aportado o de Whisper. Los subtítulos importados no se presentan como comprobados contra el vídeo completo.
 
 Límites: PDF/subtítulos hasta 100 MB; archivos locales de audio/vídeo hasta 1 GB. Las descargas directas desde el navegador se limitan a 100 MB. Por defecto se admiten hasta 120 minutos. El audio se procesa en CPU; un curso largo puede tardar varios minutos. Puedes cerrar el panel y seguir navegando mientras el proceso continúe en segundo plano.
 
