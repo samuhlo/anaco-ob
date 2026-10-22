@@ -1,0 +1,10 @@
+Anaco 1.2.0
+
+- Podcasts más rápidos: lectura de dos bloques simultáneos con GPT-6 Luna y elaboración final con GPT-6.1 Sol, ambos con razonamiento medio por defecto. El modelo de lectura se puede configurar por separado.
+- Reutilización de lecturas entre capturas equivalentes y de instrucciones compactadas del vault para reducir trabajo repetido y contexto enviado a la IA.
+- Notas de podcasts con dos partes claras: resumen por temas y aprendizajes con ejemplos y acciones para incorporar a tu vida. Se mantienen las comprobaciones literales de citas y relaciones.
+- Barra lateral simplificada, selección del recurso en páginas mixtas y descarte persistente de capturas y trabajos pendientes.
+- Progreso por unidades completadas, separación entre lectura y síntesis y cancelación más fiable.
+- Correcciones en la extracción de YouTube, evidencias de notas derivadas y finalización de la transcripción local.
+
+Actualiza también el servicio local a la versión 1.2.0 usando el instalador de la bienvenida. La actualización del complemento en Mozilla no actualiza por sí sola el servicio local.

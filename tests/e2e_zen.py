@@ -57,6 +57,8 @@ def main():
     parser.add_argument('--editorial',action='store_true',help='Review and save an editable linked collection with a deterministic model fixture')
     parser.add_argument('--session-video',action='store_true',help='Video, captions and HLS requiring the actual player referrer and session')
     parser.add_argument('--quality',action='store_true',help='Narrow sidebar, full image gallery, selection limit and visible progress')
+    parser.add_argument('--panel-ux',action='store_true',help='Capture sidebar states, single primary action, progressive disclosure and button spacing')
+    parser.add_argument('--pending',action='store_true',help='Dismiss pending captures and interrupted jobs with hover, keyboard and persistent state')
     parser.add_argument('--workflow',action='store_true',help='Scoped revisions, merge, amendments, cancellation/resume and automatic review')
     parser.add_argument('--windows',action='store_true',help='New browser windows do not inherit the capture panel or steal focus')
     parser.add_argument("--book-ai", action="store_true", help="Use a deterministic CLI fixture to verify all 55 reading pages and native progress")
@@ -87,6 +89,8 @@ def main():
     if args.editorial:out=ROOT/'.test-artifacts/zen-editorial';out.mkdir(parents=True,exist_ok=True)
     if args.session_video:out=ROOT/'.test-artifacts/zen-session-video';out.mkdir(parents=True,exist_ok=True)
     if args.quality:out=ROOT/'.test-artifacts/zen-quality';out.mkdir(parents=True,exist_ok=True)
+    if args.panel_ux:out=ROOT/'.test-artifacts/zen-panel-ux';out.mkdir(parents=True,exist_ok=True)
+    if args.pending:out=ROOT/'.test-artifacts/zen-pending';out.mkdir(parents=True,exist_ok=True)
     if args.workflow:out=ROOT/'.test-artifacts/zen-workflow';out.mkdir(parents=True,exist_ok=True)
     if args.windows:out=ROOT/'.test-artifacts/zen-windows';out.mkdir(parents=True,exist_ok=True)
     if args.code:out=ROOT/'.test-artifacts/zen-code';out.mkdir(parents=True,exist_ok=True)
@@ -107,7 +111,7 @@ def main():
     (vault / "02_Cerebro/Modelos_Mentales/recuperacion_activa.md").write_text("# Recuperación activa\n\nIntentar recordar sin mirar fortalece la memoria. Las pruebas sin apuntes ayudan a detectar lagunas y corregir errores.")
     (vault / "02_Cerebro/Tech_&_Codigo/recuperacion_paquetes.md").write_text("# Recuperación de paquetes\n\nLa recuperación de paquetes perdidos utiliza retransmisión en redes de ordenadores. Los routers conectan equipos.")
     app = App(run_dir / "state")
-    app.set_config({"vault":str(vault), "provider":"codex" if args.ai else "manual",'note_structure':'linked' if args.editorial or args.workflow or args.review_menu else 'single'})
+    app.set_config({"vault":str(vault), "provider":"codex" if args.ai or args.panel_ux else "manual",'note_structure':'linked' if args.editorial or args.workflow or args.review_menu else 'single'})
     if args.profile or args.readme_shots:
         # A reduced copy of the reorganized second_brain, with no profile yet.
         sys.path.insert(0,str(ROOT/'tests'))
@@ -115,7 +119,18 @@ def main():
         vault=second_brain(run_dir);app.set_config({"vault":str(vault),"provider":"manual"})
     else:
         from vault_profile import install
-        install(app, json.loads((ROOT/'tests/fixtures/profile-classic.json').read_text()), '99_Recursos/anaco/perfil.json')
+        profile=json.loads((ROOT/'tests/fixtures/profile-classic.json').read_text())
+        if args.panel_ux:
+            profile['instructions']=[]
+            for folder in ('03_Proyectos/App','04_Cajon_Ideas'):(vault/folder).mkdir(parents=True,exist_ok=True)
+        install(app, profile, '99_Recursos/anaco/perfil.json')
+    if args.pending:
+        from jobs import Job
+        pending_capture=app.stage({'kind':'article','title':'Podcast con una extracción incompleta y un título muy largo para comprobar el panel','url':'https://example.org/pending','text':'Una idea útil para recuperar después. '*10})
+        other_capture=app.stage({'kind':'article','title':'Otro pendiente que quiero conservar','url':'https://example.org/other','text':'Este contenido debe seguir disponible. '*10})
+        draft_job=Job(app,'a'*32);draft_job.start({'action':'draft','id':pending_capture['id']});draft_job.update(status='failed')
+        failed_job=Job(app,'b'*32);failed_job.start({'action':'video_url','url':'https://example.org/video'});failed_job.update(status='failed')
+        active_job=Job(app,'c'*32);active_job.start({'action':'video_url','url':'https://example.org/active'})
     app.db.close()
     (ROOT / "tests/fixtures/diagram.png").write_bytes(fixture_png())
     if args.media or args.detection:
@@ -271,17 +286,71 @@ def main():
         driver.switch_to.window(driver.current_window_handle)
         panel_handle=driver.current_window_handle
         wait=WebDriverWait(driver,30)
-        wait.until(lambda d:"CONECTADO" in d.find_element(By.ID,"connection").text)
+        wait.until(lambda d:"CONECTADO" in d.find_element(By.ID,"connection").text.upper())
         driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({autoReview:false}).then(done);')
         def field(identifier):
             element=driver.find_element(By.ID,identifier)
             driver.execute_script('let e=arguments[0];for(let p=e.parentElement;p;p=p.parentElement)if(p.tagName==="DETAILS")p.open=true;',element)
             return element
+        def resource_button(kind):
+            chooser=driver.find_elements(By.ID,'captureTargetGroup')
+            if chooser and chooser[0].is_displayed():Select(field('captureTarget')).select_by_value(kind)
+            return field('extract'+kind.capitalize())
         def message(value, timeout=30):
             driver.set_script_timeout(timeout)
             answer=driver.execute_async_script('const done=arguments[arguments.length-1]; browser.runtime.sendMessage(arguments[0]).then(result=>done({ok:true,result}),error=>done({ok:false,error:error.message}));',value)
             assert answer["ok"],answer
             return answer["result"]
+        if args.pending:
+            message({'type':'resume','id':other_capture['id']})
+            driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({workSources:{[arguments[0]]:{title:"Extracción fallida del podcast"}}}).then(done);','b'*32)
+            driver.execute_script('const f=document.createElement("iframe");f.id="pending-frame";f.src=location.href;f.style="position:fixed;inset:0 auto auto 0;width:300px;height:1000px;border:0;z-index:1000";document.body.append(f);')
+            pending_frame=driver.find_element(By.ID,'pending-frame');driver.switch_to.frame(pending_frame)
+            wait.until(lambda d:'CONECTADO' in d.find_element(By.ID,'connection').text.upper())
+            field('refresh').click()
+            wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'.pending-dismiss'))==5)
+            capture_selector=f'[data-capture="{pending_capture["id"]}"]'
+            job_selector=f'[data-job="{"b"*32}"]'
+            active_selector=f'[data-job="{"c"*32}"]'
+            assert not driver.find_element(By.CSS_SELECTOR,active_selector+' .pending-dismiss').is_enabled()
+            assert not driver.find_element(By.CSS_SELECTOR,active_selector+' .pending-resume').is_enabled()
+            dimensions=[]
+            for width in (360,300,240):
+                driver.switch_to.default_content();driver.execute_script('arguments[0].style.width=arguments[1]+"px";',pending_frame,width);driver.switch_to.frame(pending_frame)
+                field('pendingSection')
+                info=driver.execute_script('const main=document.querySelector("main"),r=main.getBoundingClientRect();return {width:innerWidth,overflow:[...document.querySelectorAll(".pending-row,.job-row,.pending-dismiss,.pending-resume")].filter(e=>{const b=e.getBoundingClientRect();return b.width&&(b.right>r.right+1||b.left<r.left-1)}).map(e=>e.className)}')
+                assert not info['overflow'],info;dimensions.append(info)
+            dismiss=driver.find_element(By.CSS_SELECTOR,capture_selector+' .pending-dismiss')
+            driver.execute_script('arguments[0].focus();',dismiss)
+            assert driver.execute_script('return getComputedStyle(arguments[0]).opacity',dismiss)=='1'
+            assert pending_capture['title'] in dismiss.get_attribute('aria-label')
+            driver.switch_to.default_content();pending_frame.screenshot(str(out/'keyboard.png'));driver.switch_to.frame(pending_frame)
+            ActionChains(driver).move_to_element(driver.find_element(By.CSS_SELECTOR,capture_selector)).perform()
+            assert driver.execute_script('return getComputedStyle(arguments[0]).opacity',dismiss)=='1'
+            dismiss.click()
+            wait.until(lambda d:not d.find_elements(By.CSS_SELECTOR,capture_selector))
+            assert not driver.find_elements(By.CSS_SELECTOR,'[data-job="'+'a'*32+'"]')
+            assert driver.find_element(By.ID,'captureTitle').text==other_capture['title']
+            saved=message({'type':'native','message':{'action':'status'}})
+            assert [c['id'] for c in saved['pending']]==[other_capture['id']]
+            assert 'a'*32 not in [j['id'] for j in saved['jobs']]
+            dismiss=driver.find_element(By.CSS_SELECTOR,job_selector+' .pending-dismiss');driver.execute_script('arguments[0].focus();',dismiss);dismiss.send_keys(Keys.ENTER)
+            wait.until(lambda d:not d.find_elements(By.CSS_SELECTOR,job_selector))
+            saved=message({'type':'native','message':{'action':'status'}});assert [j['id'] for j in saved['jobs']]==['c'*32]
+            driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({operation:"Leyendo el podcast…"}).then(done);')
+            wait.until(lambda d:all(not e.is_enabled() for e in d.find_elements(By.CSS_SELECTOR,'.pending-dismiss,.pending-resume')))
+            driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({operation:""}).then(done);')
+            wait.until(lambda d:d.find_element(By.CSS_SELECTOR,'.pending-row .pending-dismiss').is_enabled())
+            driver.refresh();wait.until(lambda d:'CONECTADO' in d.find_element(By.ID,'connection').text.upper());field('refresh').click()
+            wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'.pending-row'))==1)
+            assert not driver.find_elements(By.CSS_SELECTOR,capture_selector+','+job_selector)
+            assert driver.find_element(By.CSS_SELECTOR,'.pending-row .pending-item').text.startswith(other_capture['title'])
+            driver.execute_script('const f=document.createElement("iframe");f.id="pending-frame";f.src=location.href;f.style="position:fixed;inset:0 auto auto 0;width:300px;height:1000px;border:0;z-index:1000";document.body.append(f);')
+            pending_frame=driver.find_element(By.ID,'pending-frame');driver.switch_to.frame(pending_frame)
+            wait.until(lambda d:'CONECTADO' in d.find_element(By.ID,'connection').text.upper());field('refresh').click()
+            driver.switch_to.default_content();pending_frame.screenshot(str(out/'after.png'));driver.switch_to.frame(pending_frame)
+            report={'passed':True,'widths':dimensions,'hover_and_keyboard':True,'associated_failed_draft_removed':True,'active_work_protected':True,'unrelated_capture_preserved':True,'dismissal_survives_reload':True}
+            (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,ensure_ascii=False,indent=2));return
         if args.windows:
             original=driver.execute_async_script('const done=arguments[arguments.length-1];browser.windows.getCurrent().then(done);')
             driver.execute_async_script('const done=arguments[arguments.length-1];browser.runtime.getBackgroundPage().then(bg=>{bg.testSidebarPolicy=[];const previous=bg.allowSidebar;bg.allowSidebar=async id=>{const allowed=await previous(id);bg.testSidebarPolicy.push({id,allowed});return allowed;};done(true);});')
@@ -404,7 +473,7 @@ def main():
             driver.save_screenshot(str(out / 'options.png'))
             back.click()
             wait.until(lambda d: d.current_url == panel)
-            wait.until(lambda d: 'CONECTADO' in d.find_element(By.ID, 'connection').text)
+            wait.until(lambda d: 'CONECTADO' in d.find_element(By.ID, 'connection').text.upper())
             assert message({'type': 'native', 'message': {'action': 'settings'}})['config']['pdf_page_limit'] == cfg['pdf_page_limit']
 
             # Zen's WebDriver startup tab has extension tab ID -1. Create a
@@ -414,7 +483,7 @@ def main():
             assert source_tab['id'] >= 0
             panel_handle = wait.until(lambda d: next(iter(set(d.window_handles) - handles), None))
             driver.switch_to.window(panel_handle)
-            wait.until(lambda d: 'CONECTADO' in d.find_element(By.ID, 'connection').text)
+            wait.until(lambda d: 'CONECTADO' in d.find_element(By.ID, 'connection').text.upper())
 
             def open_options_from_panel():
                 handles = set(driver.window_handles)
@@ -460,7 +529,7 @@ def main():
             driver.find_element(By.ID, 'save-and-back').click()
             wait.until(lambda d: options_handle not in d.window_handles)
             driver.switch_to.window(panel_handle)
-            wait.until(lambda d: d.find_element(By.ID, 'connection').text == 'SERVICIO LOCAL CONECTADO')
+            wait.until(lambda d: d.find_element(By.ID, 'connection').text.upper() == 'CONECTADO')
             wait.until(lambda d: not d.find_element(By.ID, 'healthNotice').is_displayed() and not d.find_element(By.ID, 'error').is_displayed())
             applied = message({'type': 'native', 'message': {'action': 'settings'}})
             assert applied['config']['vault'] == str(vault) and applied['vault_available']
@@ -478,7 +547,7 @@ def main():
                 'all_saves_use_fixture_vault': str(vault)
             }, ensure_ascii=False, indent=2))
             driver.get(panel)
-            wait.until(lambda d: 'CONECTADO' in d.find_element(By.ID, 'connection').text)
+            wait.until(lambda d: 'CONECTADO' in d.find_element(By.ID, 'connection').text.upper())
         def capture(input,target_url=None):
             file_tab=None
             if target_url and target_url.startswith('file:'):
@@ -497,7 +566,10 @@ def main():
                 const c=await bg.capture(current,input);done({ok:true,result:c});
               }).catch(e=>done({ok:false,error:e.message}));''',target_url or url,input,file_tab['id'] if file_tab else None)
             assert result["ok"],result
-            wait.until(lambda d:not d.find_element(By.ID,"captureCard").get_attribute("hidden"))
+            wait.until(lambda d:not d.find_element(By.ID,"captureCard").get_attribute("hidden") or d.find_element(By.ID,'fileImport').is_displayed())
+            if not args.panel_ux:
+                attachment=driver.find_element(By.ID,'attachments')
+                if attachment.is_displayed() and not attachment.get_attribute('open'):attachment.find_element(By.TAG_NAME,'summary').click()
             return result["result"]
 
         def source_script(tab_id,code):
@@ -718,7 +790,7 @@ def main():
             assert settings['config']['note_language']=='en' and settings['default_sections']['source']=='Source',settings
             driver.get(panel_url)
             driver.execute_script('localStorage.setItem("anaco-ob:lang","es")');driver.refresh()
-            wait.until(lambda d:'SERVICIO LOCAL CONECTADO' in d.find_element(By.ID,'connection').text)
+            wait.until(lambda d:'CONECTADO' in d.find_element(By.ID,'connection').text.upper())
             report={'passed':True,'options_in_english':True,'panel_follows':True,'service_follows':True,'note_language_saved':True,'back_to_spanish':True}
             (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
         if args.welcome:
@@ -959,7 +1031,7 @@ def main():
         if args.embeds:
             base=url.rsplit('/',1)[0]
             def mode(value):
-                Select(driver.find_element(By.ID,'captureMode')).select_by_value(value)
+                Select(field('captureMode')).select_by_value(value)
                 wait.until(lambda d:d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("captureMode").then(s=>done(s.captureMode));')==value)
             # Course mode is the previous detection: no embeds, the clip is a video to transcribe.
             mode('course');classic=capture({},base+'/embeds-article.html')
@@ -1094,7 +1166,7 @@ def main():
             driver.find_element(By.ID,'cancelJob').click();wait.until(lambda d:not d.find_element(By.ID,'workCard').is_displayed());wait.until(lambda d:d.find_element(By.ID,'recoverSection').is_displayed())
             driver.find_element(By.CSS_SELECTOR,'#recoverJobs button').click();open_review(True);finish_and_return('discard',q['source']['tabId'])
             driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({autoReview:true}).then(done);')
-            v=capture({},url.replace('article.html','session-course.html?mode=captions'));Select(field('provider')).select_by_value('codex');driver.find_element(By.ID,'extractVideo').click();open_review(True)
+            v=capture({},url.replace('article.html','session-course.html?mode=captions'));Select(field('provider')).select_by_value('codex');resource_button('video').click();open_review(True)
             assert 'IAM controla' in message({'type':'native','message':{'action':'load','id':driver.execute_script('return new URL(location.href).searchParams.get("capture")')}})['text']
             finish_and_return('discard',v['source']['tabId'])
             report={'passed':True,'browser':driver.capabilities['browserVersion'],'scoped_revision_preserves_comments':True,'accept_and_undo':True,'merge_adjusts_note_count':True,'responsive_widths_checked':[480,640,950],'view_toolbar_does_not_follow_scroll':True,'append_preserves_existing_content':True,'explicit_amendment_approval':True,'cancel_stops_real_cli_process':True,'resume_opens_review':True,'extract_opens_review_automatically':True,'vault':str(vault)}
@@ -1108,7 +1180,7 @@ def main():
                 if mode=='direct':
                     status=driver.execute_async_script('const done=arguments[arguments.length-1];fetch(arguments[0],{credentials:"include"}).then(r=>done(r.status));',video['url'])
                     assert status==403,status
-                driver.find_element(By.ID,'extractVideo').click()
+                resource_button('video').click()
                 def complete(d):
                     s=d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get(["currentCapture","operation","operationError","operationDiagnostic","activeWork"]).then(done);')
                     if s.get('operation'):return False
@@ -1139,6 +1211,81 @@ def main():
             results['progress']={'real_worker_updates':True,'phases':[v.get('stage') for v in progress]}
             report={'passed':True,'browser':driver.capabilities['browserVersion'],'background_fetch_reproduces_403':True,'same_player_context_downloads':True,'cases':results,'requests':session_requests,'vault':str(vault)}
             (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,ensure_ascii=False,indent=2));return
+        if args.panel_ux:
+            article=capture({})
+            driver.execute_script('const f=document.createElement("iframe");f.id="panel-ux-frame";f.src=location.href;f.style="position:fixed;inset:0 auto auto 0;width:360px;height:900px;border:0;z-index:1000";document.body.append(f);')
+            ux_frame=driver.find_element(By.ID,'panel-ux-frame');driver.switch_to.frame(ux_frame)
+            wait.until(lambda d:d.find_element(By.ID,'connection').text.upper().find('CONECTADO')>=0)
+            def snapshot(name):
+                driver.switch_to.default_content();ux_frame.screenshot(str(out/(name+'.png')));driver.switch_to.frame(ux_frame)
+            base={'url':'https://example.org/article','kind':'article','title':'Una idea que quiero llevar a la práctica',
+                  'text':'Contenido listo para la nota. '*12,'contentReady':True,'images':[], 'warnings':[], 'documents':[], 'videos':[], 'embeds':[]}
+            video={**base,'kind':'video','url':'https://www.youtube.com/watch?v=abcdefghijk','title':'Cómo convertir las ideas de un podcast en decisiones útiles',
+                   'contentReady':False,'text':'','videos':[{'url':'https://www.youtube.com/watch?v=abcdefghijk','title':'Un podcast','tracks':[],'extractable':True}]}
+            pdf={**base,'kind':'pdf','url':'https://example.org/book.pdf','title':'Guía de aprendizaje','contentReady':False,'text':'',
+                 'documents':[{'url':'https://example.org/book.pdf','title':'Guía de aprendizaje'}]}
+            book={**base,'url':'https://example.org/reader','title':'Un libro para estudiar','text':'','reader':{'pages':[{'id':str(i)} for i in range(55)]}}
+            mixed={**base,'url':'https://example.org/course','title':'Una lección con texto, PDF y vídeos','documents':pdf['documents'],
+                   'videos':[{'url':'blob:unavailable','extractable':False},video['videos'][0],{'url':'https://www.youtube.com/watch?v=12345678901','title':'Segundo vídeo','extractable':True}]}
+            ready={**video,'id':'ready-fixture','text':'Transcripción completa lista para preparar la nota.','contentReady':True}
+            draft={**ready,'id':'draft-fixture','draft':{'body':'Propuesta lista para revisar'}}
+            def publish(c,**extra):
+                value={**c,'token':c.get('id') or c['url']}
+                driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({currentCapture:arguments[0],draftResult:null,operation:"",operationError:"",operationProgress:null,autoReview:true,pageContext:{url:arguments[0].url,status:"ready"},...arguments[1]}).then(done);',value,extra)
+                wait.until(lambda d:d.find_element(By.ID,'captureTitle').get_attribute('textContent')==c['title'])
+                driver.execute_script('document.getElementById("advancedCapture").open=false;document.getElementById("attachments").open=false;window.scrollTo(0,0);')
+            def primary():
+                return [b.get_attribute('id') for b in driver.find_elements(By.CSS_SELECTOR,'#captureCard button.primary') if b.is_displayed()]
+            dimensions=[]
+            for width in (360,300,240):
+                driver.switch_to.default_content();driver.execute_script('arguments[0].style.width=arguments[1]+"px";',ux_frame,width);driver.switch_to.frame(ux_frame)
+                assert driver.execute_script('return innerWidth')==width
+                for name,c,action in [('article',article,'prepare'),('video',video,'extractVideo'),('pdf',pdf,'extractPdf'),('book',book,'extractReader'),('mixed',mixed,'prepare'),('ready',ready,'prepare'),('draft',draft,'reviewReady')]:
+                    publish(c)
+                    wait.until(lambda d:primary()==[action])
+                    assert not driver.find_element(By.ID,'advancedCapture').get_attribute('open')
+                    if name=='video':
+                        assert not driver.find_element(By.ID,'videoChoice').is_displayed()
+                        assert not driver.find_element(By.ID,'captureTargetGroup').is_displayed()
+                        Select(field('noteStructure')).select_by_value('linked')
+                        assert driver.find_element(By.ID,'extractVideo').text=='Crear notas'
+                    if name=='article':
+                        assert not driver.find_element(By.ID,'attachments').get_attribute('open')
+                        assert not driver.find_element(By.ID,'images').is_displayed()
+                        driver.find_element(By.ID,'intent').send_keys('Quiero aplicaciones concretas para mí.')
+                        driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("currentCapture").then(s=>browser.storage.local.set({currentCapture:{...s.currentCapture,token:"refreshed"}})).then(done);')
+                        wait.until(lambda d:d.find_element(By.ID,'intent').get_attribute('value')=='Quiero aplicaciones concretas para mí.')
+                    if name=='mixed':
+                        Select(field('captureTarget')).select_by_value('video')
+                        assert primary()==['extractVideo']
+                        assert driver.find_element(By.ID,'videoResource').get_attribute('value')=='1'
+                        Select(field('captureTarget')).select_by_value('pdf');assert primary()==['extractPdf']
+                        Select(field('captureTarget')).select_by_value('note');assert primary()==['prepare']
+                    if name=='draft':
+                        gap=driver.execute_script('return document.getElementById("prepare").getBoundingClientRect().top-document.getElementById("reviewReady").getBoundingClientRect().bottom')
+                        assert gap>=8,gap
+                    info=driver.execute_script('const main=document.querySelector("main"),r=main.getBoundingClientRect();return {width:r.width,overflow:[...main.querySelectorAll("button,input,select,textarea,summary")].filter(n=>{const b=n.getBoundingClientRect();return b.width&&(b.right>r.right+1||b.left<r.left-1)}).map(n=>n.id)}')
+                    assert not info['overflow'],(name,width,info)
+                    dimensions.append({'state':name,**info})
+                    if width==300:snapshot(name)
+            publish(video)
+            Select(field('noteStructure')).select_by_value('linked')
+            driver.find_element(By.ID,'intent').send_keys('Aplicaciones para mi trabajo')
+            publish(ready)
+            wait.until(lambda d:primary()==['prepare'])
+            assert driver.find_element(By.ID,'noteStructure').get_attribute('value')=='linked'
+            assert driver.find_element(By.ID,'intent').get_attribute('value')=='Aplicaciones para mi trabajo'
+            publish(video,operation='Leyendo el tramo 2 de 7…',activeWork={'title':video['title'],'startedAt':int(time.time()*1000)-65000},operationProgress={'stage':'reading','unit':'stretches','completed':1,'total':7})
+            wait.until(lambda d:d.find_element(By.ID,'workCard').is_displayed())
+            assert not driver.find_element(By.ID,'captureWorkspace').is_displayed()
+            assert driver.find_element(By.ID,'cancelJob').is_displayed()
+            snapshot('working')
+            publish(video,operationError='No se ha podido recuperar este recurso. Puedes volver a intentarlo.')
+            wait.until(lambda d:d.find_element(By.ID,'copyError').is_displayed())
+            assert driver.find_element(By.ID,'copyError').rect['y']>=driver.find_element(By.ID,'error').rect['y']+driver.find_element(By.ID,'error').rect['height']
+            snapshot('error')
+            report={'passed':True,'states_and_widths':dimensions,'single_primary_action':True,'draft_actions_separated':True,'metadata_refresh_preserves_intent':True,'extraction_preserves_intent_and_structure':True,'busy_form_hidden':True,'copy_error_does_not_overlap':True}
+            (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,ensure_ascii=False,indent=2));return
         if args.quality:
             driver.set_window_size(480,960)
             c=capture({},url.replace('article.html','gallery.html'));assert len(c['images'])==24,len(c['images'])
@@ -1159,10 +1306,31 @@ def main():
             driver.save_screenshot(str(out/'progress.png'))
             elapsed=driver.find_element(By.ID,'workElapsed').text
             wait.until(lambda d:d.find_element(By.ID,'workElapsed').text!=elapsed)
+            progress_cases=[
+                ({'stage':'reading','unit':'stretches','completed':1,'total':7},14,'Tramos completados: 1 de 7'),
+                ({'stage':'reading','unit':'stretches','completed':2,'total':7},28,'Tramos completados: 2 de 7'),
+                ({'stage':'reading','unit':'stretches','completed':7,'total':7},100,'Tramos completados: 7 de 7'),
+                ({'stage':'synthesis'},None,'Esperando el resultado'),
+                ({'stage':'capture','unit':'pages','completed':27,'total':55},49,'Páginas procesadas: 27 de 55'),
+                ({'stage':'download','unit':'segments','completed':3,'total':4},75,'Segmentos descargados: 3 de 4'),
+                ({'stage':'transcribe','processed_seconds':1200,'total_seconds':1200},100,'20:00 de 20:00'),
+                ({'stage':'cancel'},None,'Esperando el resultado')]
+            for index,(progress,percent,detail) in enumerate(progress_cases):
+                operation='Fase de prueba '+str(index)
+                driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({operation:arguments[0],operationProgress:arguments[1]}).then(done);',operation,progress)
+                wait.until(lambda d:d.find_element(By.ID,'operation').text==operation)
+                actual=driver.execute_script('const p=document.getElementById("workProgress");return p.hasAttribute("value")?Math.floor(p.value):null;')
+                assert actual==percent,(progress,actual)
+                assert driver.find_element(By.ID,'workProgress').is_displayed()==(percent is not None)
+                assert detail in driver.find_element(By.ID,'workDetail').text
+                assert 'porcentaje medible' not in driver.find_element(By.ID,'workDetail').text
+                assert driver.find_element(By.ID,'cancelJob').is_enabled()==(progress['stage']!='cancel')
+                if index in (1,3):driver.save_screenshot(str(out/('reading-progress.png' if index==1 else 'synthesis-progress.png')))
+            driver.save_screenshot(str(out/'phase-progress.png'))
             # Working state must fit the same viewport as the resting panel,
             # even when a phase includes a long resource or engine name.
             busy_layout=[]
-            phases=[('generic','Preparando la propuesta…',''),('model','Cargando el modelo de transcripción local…',''),('download','Sin subtítulos accesibles. Descargando audio para transcribir…',''),('subtitles','Recuperando los subtítulos de la plataforma…',''),('transcribe','Transcribiendo en el equipo…','Whisper base · CPU'),('inspect','Comprobando duración y pista de audio…',''),('frames','Transcripción terminada. Extrayendo fotogramas…',''),('resource','Leyendo '+('recurso_sin_espacios_'*30)+'.pdf','motor_'+('nombre_largo_'*30))]
+            phases=[('generic','Preparando la propuesta…',''),('model','Cargando el modelo de transcripción local…',''),('download','Sin subtítulos accesibles. Descargando audio para transcribir…',''),('subtitles','Recuperando los subtítulos de la plataforma…',''),('transcribe','Transcribiendo en el equipo…','Whisper base · CPU'),('inspect','Comprobando duración y pista de audio…',''),('frames','Transcripción terminada. Extrayendo fotogramas…',''),('reading','Leyendo el tramo 16:09–32:54 (2/7)…',''),('synthesis','Sintetizando la conversación completa y buscando relaciones…',''),('resource','Leyendo '+('recurso_sin_espacios_'*30)+'.pdf','motor_'+('nombre_largo_'*30))]
             # Zen can impose a minimum native window width. A same-extension
             # frame gives the real panel an exact, measurable CSS viewport.
             driver.execute_script('const f=document.createElement("iframe");f.id="busy-layout-frame";f.src=location.href;f.style="position:fixed;inset:0 auto auto 0;width:300px;height:920px;border:0;z-index:1000";document.body.append(f);')
@@ -1194,14 +1362,33 @@ def main():
             selected=[int(e.get_attribute('value')) for e in checks if e.is_selected()]
             video={**c,'selected_images':selected,'videos':[{'url':'https://youtube.googleapis.com/v/abcdefghijk','title':'youtube.googleapis.com','tracks':[]}]}
             driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({currentCapture:arguments[0]}).then(done);',video)
-            wait.until(lambda d:'YouTube' in d.find_element(By.ID,'videoResource').text)
-            assert 'googleapis' not in driver.find_element(By.ID,'videoResource').text
-            report={'passed':True,'browser':driver.capabilities['browserVersion'],'detected_images':24,'all_images_listed':True,'independent_gallery_scroll':True,'selection_limit':8,'later_images_selectable':True,'prominent_progress':True,'measured_audio_progress':True,'elapsed_time_updates':True,'controls_disabled_while_busy':True,'friendly_youtube_name':True,'busy_layout_states':len(busy_layout),'busy_panel_no_horizontal_overflow':True}
+            wait.until(lambda d:'YouTube' in d.find_element(By.ID,'videoResource').get_attribute('textContent'))
+            assert 'googleapis' not in driver.find_element(By.ID,'videoResource').get_attribute('textContent')
+            report={'passed':True,'browser':driver.capabilities['browserVersion'],'detected_images':24,'all_images_listed':True,'independent_gallery_scroll':True,'selection_limit':8,'later_images_selectable':True,'prominent_progress':True,'measured_audio_progress':True,'measured_phase_cases':len(progress_cases),'elapsed_time_updates':True,'controls_disabled_while_busy':True,'friendly_youtube_name':True,'busy_layout_states':len(busy_layout),'busy_panel_no_horizontal_overflow':True}
             (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,ensure_ascii=False,indent=2));return
         if args.podcast:
             fixture=run_dir/'podcast.vtt'
             fixture.write_text('WEBVTT\n\n00:04.000 --> 00:06.000\nno vendáis vuestra\n\n00:06.000 --> 00:08.000\nvida por dinero porque\n\n00:08.000 --> 00:10.000\nluego no vuelve\n')
             panel_handle=open_manual_importer()
+            # A platform page is not ready for a note just because it has metadata.
+            # Even loaded browser cues must use full platform extraction.
+            raw_video={'kind':'video','url':'https://www.youtube.com/watch?v=2HqM4UJGZ1A&t=6055s',
+                       'title':'Podcast pendiente de extracción','text':'Descripción y recomendaciones de la página.',
+                       'images':[],'warnings':[],'contentReady':True,'token':'raw-video','source':{'url':driver.current_url},
+                       'videos':[{'url':'https://www.youtube.com/watch?v=2HqM4UJGZ1A','title':'Podcast',
+                                  'extractable':True,'subtitles':'Solo unas frases ya reproducidas',
+                                  'tracks':[{'url':'https://captions.example/partial.vtt','language':'es'}]}]}
+            driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({currentCapture:arguments[0]}).then(done);',raw_video)
+            wait.until(lambda d:d.find_element(By.ID,'extractVideo').is_displayed())
+            assert not driver.find_element(By.ID,'prepare').is_displayed()
+            assert not driver.find_element(By.ID,'readerControls').is_displayed()
+            driver.execute_script('''window.originalSendMessage=browser.runtime.sendMessage;
+                browser.runtime.sendMessage=message=>{if(message.type==='importResource'){window.extractionRequest=message;return Promise.resolve({});}return window.originalSendMessage(message);};''')
+            resource_button('video').click()
+            request=wait.until(lambda d:d.execute_script('return window.extractionRequest'))
+            assert request['kind']=='video-platform' and request['url']=='https://www.youtube.com/watch?v=2HqM4UJGZ1A',request
+            driver.execute_async_script('''const done=arguments[arguments.length-1];browser.runtime.sendMessage=window.originalSendMessage;
+                browser.storage.local.set({currentCapture:null}).then(done);''')
             Select(field('captureMode')).select_by_value('podcast')
             wait.until(lambda d:d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("captureMode").then(s=>done(s.captureMode));')=='podcast')
             driver.find_element(By.CSS_SELECTOR,'#fileImport summary').click()
@@ -1232,7 +1419,7 @@ def main():
             assert calls==['on','off'],calls
             current=driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("currentCapture").then(s=>done(s.currentCapture));')
             finish_and_return('discard',current['source']['tabId'])
-            report={'passed':True,'podcast_mode_in_panel':True,'conversation_note':True,'literal_quote_kept_with_minute':True,'invented_quote_dropped':True,
+            report={'passed':True,'raw_platform_video_requires_extraction':True,'full_transcript_instead_of_browser_cues':True,'podcast_mode_in_panel':True,'conversation_note':True,'literal_quote_kept_with_minute':True,'invented_quote_dropped':True,
                     'review_shows_type':True,'prepared_again_as_video':True,'prompts':calls}
             (out/'report.json').write_text(json.dumps(report,indent=2,ensure_ascii=False));print(json.dumps(report,indent=2,ensure_ascii=False))
             return
@@ -1304,7 +1491,7 @@ def main():
             events=driver.execute_async_script('const done=arguments[arguments.length-1];browser.runtime.getBackgroundPage().then(bg=>done(bg.testCaptures));')
             assert not events,events
             driver.save_screenshot(str(out/'book-detected.png'))
-            driver.find_element(By.ID,'extractReader').click()
+            resource_button('reader').click()
             # Switch to a different article while the first pages are transferring.
             switched=driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.create({url:arguments[0],active:true}).then(done);',url)
             pinned=driver.execute_async_script('const done=arguments[arguments.length-1];setTimeout(()=>browser.storage.local.get(["activeWork","currentCapture","pageContext"]).then(done),700);')
@@ -1359,7 +1546,7 @@ def main():
             assert 'PÁGINA OCULTA' not in c['text']
             assert 'SEGUNDA PÁGINA CARGADA FUERA DE LA PANTALLA' in c['text']
             assert c['images']==[]
-            driver.find_element(By.ID,'extractReader').click()
+            resource_button('reader').click()
             def extracted(d):
                 result=d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get(["currentCapture","operation","operationError"]).then(done);')
                 if result.get('operationError'):raise AssertionError(result['operationError'])
@@ -1387,7 +1574,7 @@ def main():
                 pdf=driver.execute_async_script('const done=arguments[arguments.length-1];browser.runtime.getBackgroundPage().then(async bg=>done(await bg.capture(await browser.tabs.get(arguments[0]))));',pdf['source']['tabId'])
             assert pdf['kind']=='pdf' and pdf['documents'],pdf['documents']
             assert not driver.find_element(By.ID,'noteControls').is_displayed()
-            driver.find_element(By.ID,'extractPdf').click()
+            resource_button('pdf').click()
             WebDriverWait(driver,60).until(lambda d:d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get(["currentCapture","operation"]).then(s=>done(s.currentCapture?.id&&s.currentCapture.kind==="pdf"&&!s.operation));'))
             loaded=driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("currentCapture").then(s=>done(s.currentCapture));')
             assert '[Página 2]' in loaded['text']
@@ -1511,7 +1698,7 @@ def main():
             # path must detect the PDF before trying to inject into that viewer.
             raw_pdf=capture({},url.replace('article.html','lesson.pdf'))
             assert raw_pdf['kind']=='pdf'
-            driver.find_element(By.ID,'extractPdf').click();pdf_capture=wait_import('pdf')
+            resource_button('pdf').click();pdf_capture=wait_import('pdf')
             assert '[Página 2]' in pdf_capture['text'] and len(pdf_capture['images'])==2
             Select(field('provider')).select_by_value('manual')
             driver.find_element(By.ID,'prepare').click();open_review()
@@ -1524,8 +1711,9 @@ def main():
             # Canvas/Moodle-like parent page with an embedded lesson.
             course=capture({},url.replace('article.html','course.html'))
             assert course['videos'] and course['documents']
+            Select(field('captureTarget')).select_by_value('video')
             wait.until(lambda d:d.find_element(By.ID,'videoControls').is_displayed())
-            driver.find_element(By.ID,'extractVideo').click();video=wait_import('video')
+            resource_button('video').click();video=wait_import('video')
             assert '[00:04]' in video['text'] and 'privilegio mínimo' in video['text']
             Select(field('provider')).select_by_value('manual');driver.find_element(By.ID,'prepare').click();open_review()
             field('filename').clear();field('filename').send_keys('fuente_2026-10-16_subtitulos_del_curso.md')
@@ -1590,7 +1778,7 @@ def main():
             assert nested['detection']['framesRead']>=3 and nested['videos'][0]['tracks']
             assert driver.find_element(By.ID,'videoControls').is_displayed()
             driver.save_screenshot(str(out/'nested-video.png'))
-            driver.find_element(By.ID,'extractVideo').click()
+            resource_button('video').click()
             WebDriverWait(driver,60).until(lambda d: (s:=stored_capture())['currentCapture'].get('id') and not s.get('operation'))
             assert 'privilegio mínimo' in stored_capture()['currentCapture']['text']
             assert activate(pdf_tab)['kind']=='pdf'
@@ -1600,7 +1788,7 @@ def main():
             wait.until(lambda d: any(v['url'].endswith('stream.m3u8') for v in (stored_capture()['currentCapture'] or {}).get('videos',[])))
             driver.switch_to.window(panel_handle)
             wait.until(lambda d: d.find_element(By.ID,'extractVideo').is_displayed())
-            driver.find_element(By.ID,'extractVideo').click()
+            resource_button('video').click()
             WebDriverWait(driver,120).until(lambda d: (s:=stored_capture())['currentCapture'].get('id') and not s.get('operation'))
             assert 'Whisper' in stored_capture()['currentCapture']['media']['method']
             panel_handle=open_manual_importer()

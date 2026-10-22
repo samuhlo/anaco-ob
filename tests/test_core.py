@@ -20,6 +20,28 @@ PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4
 
 
 class CoreTest(unittest.TestCase):
+    def test_codex_quality_defaults_and_selected_effort_reach_every_call(self):
+        cfg=self.app.config()
+        self.assertEqual(cfg['model'],'gpt-6.1-sol');self.assertEqual(cfg['vision_model'],'gpt-6.1-sol')
+        self.assertEqual(cfg['reading_model'], 'gpt-6-luna')
+        self.assertEqual(cfg['reasoning_effort'],'medium')
+        commands=[]
+        def fake(command,**kwargs):
+            commands.append(command)
+            Path(command[command.index('--output-last-message')+1]).write_text('{}')
+            return subprocess.CompletedProcess(command,0)
+        with patch('core.subprocess.run',side_effect=fake):
+            self.app.codex_json('Fixture',{'type':'object'})
+            self.app.codex_json('Vision fixture',{'type':'object'},cfg['vision_model'],[{'data':base64.b64encode(PNG).decode()}])
+            self.app.set_config({'reasoning_effort':'high'})
+            self.app.codex_json('Fixture',{'type':'object'})
+        for command in commands[:2]:
+            self.assertIn('model_reasoning_effort="medium"',command)
+            self.assertEqual(command[command.index('--model')+1],'gpt-6.1-sol')
+        self.assertIn('model_reasoning_effort="high"',commands[-1])
+        with self.assertRaises(UserError):self.app.set_config({'reasoning_effort':'invalid'})
+        with self.assertRaises(UserError):self.app.set_config({'reading_model':'bad/model'})
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)

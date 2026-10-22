@@ -35,5 +35,6 @@ if args.file:
         checkpoint({'language':info.language,'segments':result,'duration':info.duration,'complete':False})
         progress(stage='transcribe',message=t('Transcribiendo en el equipo…'),processed_seconds=min(s.end,info.duration),total_seconds=info.duration,elapsed_seconds=round(time.monotonic()-started,1))
     value={'language':info.language,'segments':result,'duration':info.duration,'complete':True};checkpoint(value)
+    progress(stage='transcribe',message=t('Transcripción terminada.'),processed_seconds=info.duration,total_seconds=info.duration,elapsed_seconds=round(time.monotonic()-started,1))
     emit({'event':'result','result':value} if args.progress else value)
 else:emit({"ready":True,"model":args.model})

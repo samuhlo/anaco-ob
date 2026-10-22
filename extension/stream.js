@@ -54,9 +54,10 @@ const AnacoObStream = (() => {
     }
     if(parsed.variant)throw new Error(tx('stream_el_manifiesto_del_video_contiene_demasia'));
     if(parsed.duration>maxSeconds)throw new Error(tx('stream_el_video_supera_la_duracion_maxima_confi'));
+    await onProgress(0,parsed.segments.length);
     for(let i=0;i<parsed.segments.length;i++){
-      onProgress(i+1,parsed.segments.length);
       await resource(parsed.segments[i]);
+      await onProgress(i+1,parsed.segments.length);
     }
     return {parts,size};
   }

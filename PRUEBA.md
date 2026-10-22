@@ -1,6 +1,14 @@
-# Probar Anaco 1.1.0
+# Probar Anaco 1.2.0
 
 Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/audio. Prepara una propuesta editable y guarda Markdown y adjuntos en tu vault. Las relaciones, las imágenes recomendadas y sus descripciones se revisan antes de guardar.
+
+## Barra lateral actualizada
+
+La captura muestra el contenido detectado, un objetivo opcional, su organización y **Crear nota** o **Crear notas**. Cuando hay texto, PDF y vídeo en la misma página, el selector **¿Qué contenido quieres guardar?** permite elegir uno antes de continuar. **Imágenes y recursos** se despliega para seleccionar adjuntos; **Actualizar** vuelve a detectar la página.
+
+En **Ajustes de captura** están el tipo de contenido (Automático, Artículo, Curso o Podcast), el proveedor y **Crear la nota al terminar la extracción**. Al desmarcarlo se extrae primero y se prepara después. La cabecera de los ajustes indica los modos especiales activos. Durante el trabajo se ve el progreso; al terminar se recuperan la intención y organización elegidas. Una propuesta ya creada ofrece **Abrir revisión** y, por separado, **Volver a generar**. Los ejemplos históricos que siguen pueden usar los nombres anteriores de estos controles.
+
+En **Pendientes**, pasa por una captura o un trabajo interrumpido para mostrar su **×** y descartarlo. También aparece al navegar con Tab y permanece visible en dispositivos táctiles. El descarte se conserva al actualizar o reiniciar; no elimina notas guardadas en el vault. Descartar una captura retira también su intento de generación fallido. Durante un trabajo en curso los controles de pendientes quedan desactivados.
 
 ## Bienvenida y diagnóstico
 
@@ -42,7 +50,7 @@ La barra de rayitas bajo el logo se llena y se vacía al abrir el panel y despu�
 6. Captura una página y guárdala: la nota sigue las reglas del perfil y la estructura de tus plantillas. Tus notas existentes no se modifican.
 7. Mueve o edita una guía del perfil: el panel avisará con **Revisar perfil**. Si un destino deja de existir, guardar en él muestra un error claro.
 
-## Podcasts y entrevistas: comprobar 1.1.0
+## Podcasts y entrevistas: comprobar 1.2.0
 
 1. En Opciones, comprueba que **Duración máxima de vídeo/audio** permite la duración del podcast (hasta 240 minutos).
 2. Abre un podcast o una entrevista de YouTube y deja el **Modo de captura** en Automático. Extrae los subtítulos y prepara la nota con IA. Una conversación de más de una hora tarda más: el progreso muestra «Leyendo el tramo… (n/total)» y después la síntesis.

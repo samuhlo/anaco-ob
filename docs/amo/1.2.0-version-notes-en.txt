@@ -1,0 +1,10 @@
+Anaco 1.2.0
+
+- Faster podcasts: two stretches are read concurrently with GPT-6 Luna, and GPT-6.1 Sol prepares the final note. Both default to medium reasoning. The reading model can be configured separately.
+- Readings are reused across equivalent captures, and compact vault instructions are cached to reduce repeated work and AI input context.
+- Podcast notes separate a thematic summary from personal learning, examples and practical applications. Literal verification of quotes and relationship evidence is retained.
+- A simpler sidebar, resource selection on mixed-content pages and persistent dismissal of pending captures and interrupted jobs.
+- Progress counts completed units, separates reading from synthesis and handles cancellation more reliably.
+- Fixes for YouTube extraction, evidence for derived notes and completion of local transcription.
+
+Also update the local companion service to version 1.2.0 using the welcome-page installer. Updating the add-on through Mozilla does not update the local service automatically.

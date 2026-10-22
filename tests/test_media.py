@@ -26,7 +26,10 @@ class MediaTest(unittest.TestCase):
 
     def test_pdf_text_pages_and_rendered_visuals(self):
         pdf=make_pdf(self.root/'pdf')
+        events=[];self.app.progress=events.append
         c=self.upload(pdf)
+        for phase in ('pdf-text','pdf-images'):
+            self.assertEqual([p['completed'] for p in events if p['stage']==phase],[0,1,2])
         self.assertEqual(c['kind'],'pdf');self.assertIn('[Página 2]',c['text']);self.assertIn('Least privilege',c['text'])
         self.assertEqual(c['media']['total_pages'],2);self.assertEqual(len(c['images']),2)
         self.app.draft(c['id'],provider='manual')
@@ -51,6 +54,26 @@ class MediaTest(unittest.TestCase):
         path=self.root/'lesson.srt';path.write_text('1\n00:00:01,250 --> 00:00:03,000\nUna política autoriza acciones.\n\n2\n00:00:05,000 --> 00:00:08,000\nAplicar privilegio mínimo.\n')
         c=self.upload(path);self.assertEqual(c['kind'],'video');self.assertIn('[00:01]',c['text'])
         self.app.draft(c['id'],provider='manual');self.assertIn('formato: "video"',self.app.preview(c['id'],{})['markdown'])
+
+    def test_audio_transcription_finishes_with_and_without_video_frames(self):
+        path=self.root/'audio.mp4';path.write_bytes(b'audio fixture')
+        venv=self.root/'venv';(venv/'bin').mkdir(parents=True);(venv/'bin/python').touch()
+        result={'segments':[{'start':0,'text':'Una transcripción local completa.'}],'language':'es'}
+        for video in (False,True):
+            events=[];self.app.progress=events.append
+            streams=[{'codec_type':'audio'}]+([{'codec_type':'video'}] if video else [])
+            def run(command,**kwargs):
+                if command[0]=='ffprobe':return json.dumps({'format':{'duration':60},'streams':streams}).encode()
+                self.assertEqual(command[0],'ffmpeg');Path(command[-1]).write_bytes(PNG);return b''
+            with patch('media.media_venv',return_value=venv),patch('media.run_progress',return_value=result),patch.object(Media,'run',side_effect=run):
+                capture=Media(self.app).audio(path,'Audio','https://example.org/video')
+            self.assertIn('Whisper',capture['media']['method'])
+            self.assertIn('transcripción local completa',capture['text'])
+            frames=[p for p in events if p['stage']=='frames']
+            if video:
+                self.assertEqual([p['completed'] for p in frames],list(range(len(capture['images'])+1)))
+                self.assertEqual(frames[-1]['completed'],frames[-1]['total'])
+            else:self.assertEqual(frames,[])
 
     def test_upload_size_offset_and_id_validation(self):
         m=Media(self.app)
@@ -131,6 +154,8 @@ class YouTubeTimesTest(unittest.TestCase):
         markdown=self.app.preview(c['id'],{'body':'En [49:00–55:41] habla de fondos y en [12:34 - 13:00] de ahorro.'})['markdown']
         self.assertIn('En [49:00–55:41](https://www.youtube.com/watch?v=abcdefghijk&t=2940s) habla',markdown)
         self.assertIn('en [12:34 - 13:00](https://www.youtube.com/watch?v=abcdefghijk&t=754s) de ahorro',markdown)
+        markdown=self.app.preview(c['id'],{'body':'[10:32–12:15; 01:00:09–01:00:40; 02:00:00] Varios momentos.'})['markdown']
+        self.assertIn('[10:32–12:15](https://www.youtube.com/watch?v=abcdefghijk&t=632s); [01:00:09–01:00:40](https://www.youtube.com/watch?v=abcdefghijk&t=3609s); [02:00:00]',markdown)
 
     def test_a_relation_whose_evidence_has_a_time_still_saves(self):
         c=self.youtube();self.app.draft(c['id'],provider='manual')

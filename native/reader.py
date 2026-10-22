@@ -168,14 +168,15 @@ class Reader:
         batch_size = cfg.get('reader_batch_pages', 6)
         if not visual and any(not p['text'].strip() for p in pages):
             raise UserError('Hay páginas gráficas sin texto. Activa visión para leer el libro completo; no se resumirá una parte como si fuera todo.')
-        key = hashlib.sha256(json.dumps([meta['pages'], cfg['model'], cfg['vision_model'], visual, batch_size,
+        key = hashlib.sha256(json.dumps([meta['pages'], cfg['model'], cfg['vision_model'], cfg['reasoning_effort'], visual, batch_size,
                                         capture.get('intent', ''), self.app.guide()['hash']], sort_keys=True).encode()).hexdigest()[:24]
         previous_profile=capture.get('draft',{}).get('profile_hash')
-        previous_key=hashlib.sha256(json.dumps([meta['pages'],cfg['model'],cfg['vision_model'],visual,batch_size,capture.get('intent',''),previous_profile],sort_keys=True).encode()).hexdigest()[:24] if previous_profile else None
+        previous_key=hashlib.sha256(json.dumps([meta['pages'],cfg['model'],cfg['vision_model'],cfg['reasoning_effort'],visual,batch_size,capture.get('intent',''),previous_profile],sort_keys=True).encode()).hexdigest()[:24] if previous_profile else None
         summaries, captions, models = [], {}, set()
         for start in range(0, len(pages), batch_size):
             batch = pages[start:start + batch_size]
-            self.app.progress(t("Leyendo páginas {first}–{last} de {total}…", first=batch[0]['index'], last=batch[-1]['index'], total=len(pages)))
+            self.app.progress({'stage':'reading','unit':'pages','completed':start,'total':len(pages),
+                               'message':t("Leyendo páginas {first}–{last} de {total}…", first=batch[0]['index'], last=batch[-1]['index'], total=len(pages))})
             path = directory / f'analysis-{key}-{start}.json'
             legacy=directory/f'analysis-{previous_key}-{start}.json' if previous_key else None
             if not path.exists() and legacy and legacy.exists():json_dump(path,json.loads(legacy.read_text()))
@@ -201,7 +202,8 @@ class Reader:
                 index = item.get('index')
                 if type(index) is int and 0 <= index < len(image_pages):
                     captions[image_pages[index]['index']] = item
-        self.app.progress(t('Sintetizando las {total} páginas y buscando relaciones…', total=len(pages)))
+        self.app.progress({'stage':'reading','unit':'pages','completed':len(pages),'total':len(pages),'message':t('Lectura de las páginas completada.')})
+        self.app.progress({'stage':'synthesis','message':t('Sintetizando las {total} páginas y buscando relaciones…', total=len(pages))})
         samples = '\n\n'.join(f"[Página {p['index']}, extracto literal]\n{p['text'][:650]}" for p in pages if p['text'])
         synthesis = {**capture, 'reader': {'scope': 'synthesis', 'total_pages': len(pages)},
                      'images': [], 'selected_images': [], 'available_figures':[{'index':i,'page':v.get('page'),'description':captions.get(v.get('page'),{}).get('description','')} for i,v in enumerate(capture['images'])], 'text': '\n\n'.join(summaries) + '\n\nTexto HTML adicional del lector:\n'+meta.get('html_context','')+'\n\nExtractos literales para verificar relaciones:\n' + samples}

@@ -20,6 +20,9 @@
   "bg_captura": {
     "message": "Captura"
   },
+  "bg_captura_ya_no_pendiente": {
+    "message": "Esta captura ya no está pendiente."
+  },
   "bg_clip_1_no_se_pudo_guardar_2": {
     "message": "Clip «$1»: no se pudo guardar ($2)."
   },
@@ -521,6 +524,12 @@
   "options_modelo_de_codex_para_texto": {
     "message": "Modelo de Codex para texto"
   },
+  "options_modelo_lectura": {
+    "message": "Modelo de Codex para leer bloques"
+  },
+  "options_modelo_lectura_ayuda": {
+    "message": "Los podcasts largos se leen con este modelo, dos bloques a la vez. El modelo de texto elabora la nota final. Ambos usan el razonamiento elegido."
+  },
   "options_modelo_visual_de_codex_cuando_haga_falta": {
     "message": "Modelo visual de Codex cuando haga falta"
   },
@@ -583,6 +592,24 @@
   },
   "options_puedes_cambiarlo_antes_de_preparar_cada_": {
     "message": "Puedes cambiarlo antes de preparar cada captura. El código relevante se conserva con su explicación en cualquiera de los modos."
+  },
+  "options_reasoning_effort": {
+    "message": "Razonamiento de Codex"
+  },
+  "options_reasoning_high": {
+    "message": "Alto"
+  },
+  "options_reasoning_low": {
+    "message": "Bajo"
+  },
+  "options_reasoning_max": {
+    "message": "Máximo"
+  },
+  "options_reasoning_medium": {
+    "message": "Medio"
+  },
+  "options_reasoning_xhigh": {
+    "message": "Muy alto"
   },
   "options_revisa_la_propuesta": {
     "message": "Revisa la propuesta"
@@ -693,7 +720,7 @@
     "message": "Abrir la revisión ↗"
   },
   "panel_abrir_la_revision_al_terminar_de_extraer": {
-    "message": "Abrir la revisión al terminar de extraer"
+    "message": "Crear la nota al terminar la extracción"
   },
   "panel_abrir_opciones": {
     "message": "Abrir Opciones ↗"
@@ -711,16 +738,16 @@
     "message": "ARTÍCULO"
   },
   "panel_articulo_web_prioriza_la_pagina": {
-    "message": "Artículo web · prioriza la página"
+    "message": "Artículo web"
   },
   "panel_asistente_de_revision": {
     "message": "ASISTENTE DE REVISIÓN"
   },
   "panel_automatico_articulos_y_cursos": {
-    "message": "Automático · artículos y cursos"
+    "message": "Automático"
   },
   "panel_automatico_que_decida_la_ia": {
-    "message": "Automático · que decida la IA"
+    "message": "Elegir automáticamente"
   },
   "panel_avance_del_trabajo": {
     "message": "Avance del trabajo"
@@ -744,7 +771,7 @@
     "message": "Capturar · Conectar · Aprender"
   },
   "panel_capturas_pendientes": {
-    "message": "Capturas pendientes"
+    "message": "Pendientes"
   },
   "panel_clip": {
     "message": "Clip"
@@ -798,7 +825,7 @@
     "message": "Crear notas del libro completo"
   },
   "panel_curso_deteccion_clasica": {
-    "message": "Curso · detección clásica"
+    "message": "Curso o lector"
   },
   "panel_demo": {
     "message": "Demo"
@@ -808,6 +835,9 @@
   },
   "panel_descargando_audio": {
     "message": "DESCARGANDO AUDIO"
+  },
+  "panel_descartar_pendiente": {
+    "message": "Descartar pendiente: $1"
   },
   "panel_destino_e_imagenes": {
     "message": "Destino e imágenes"
@@ -819,7 +849,7 @@
     "message": "Detectar contenido"
   },
   "panel_detectar_de_nuevo": {
-    "message": "Detectar de nuevo"
+    "message": "Actualizar"
   },
   "panel_diagnostico_de_deteccion": {
     "message": "Diagnóstico de detección"
@@ -875,6 +905,78 @@
   "panel_extrayendo_fotogramas": {
     "message": "EXTRAYENDO FOTOGRAMAS"
   },
+  "panel_flow_attachments": {
+    "message": "Imágenes y recursos"
+  },
+  "panel_flow_attachments_count": {
+    "message": "$1 / $2"
+  },
+  "panel_flow_choose_content": {
+    "message": "¿Qué contenido quieres guardar?"
+  },
+  "panel_flow_connected": {
+    "message": "Conectado"
+  },
+  "panel_flow_create_many": {
+    "message": "Crear notas"
+  },
+  "panel_flow_create_one": {
+    "message": "Crear nota"
+  },
+  "panel_flow_detect_again": {
+    "message": "Volver a detectar el contenido"
+  },
+  "panel_flow_disconnected": {
+    "message": "Sin conexión"
+  },
+  "panel_flow_extract_only": {
+    "message": "Solo extraer"
+  },
+  "panel_flow_extracted_hint": {
+    "message": "Después podrás revisar el contenido y crear la nota."
+  },
+  "panel_flow_manual": {
+    "message": "Sin IA"
+  },
+  "panel_flow_mode_course": {
+    "message": "Curso"
+  },
+  "panel_flow_mode_podcast": {
+    "message": "Podcast"
+  },
+  "panel_flow_note_hint": {
+    "message": "Revisarás el resultado antes de guardarlo en tu vault."
+  },
+  "panel_flow_open_review": {
+    "message": "Abrir revisión"
+  },
+  "panel_flow_page_text": {
+    "message": "Texto de la página"
+  },
+  "panel_flow_pages": {
+    "message": "$1 páginas detectadas"
+  },
+  "panel_flow_pdf_hint": {
+    "message": "Se extraerán las páginas indicadas del PDF."
+  },
+  "panel_flow_reader_hint": {
+    "message": "Se leerán todas las páginas detectadas."
+  },
+  "panel_flow_ready_review": {
+    "message": "Abre la propuesta para revisarla. Los cambios en estos campos se aplican al volver a generar."
+  },
+  "panel_flow_regenerate": {
+    "message": "Volver a generar"
+  },
+  "panel_flow_settings": {
+    "message": "Ajustes de captura"
+  },
+  "panel_flow_unavailable_hint": {
+    "message": "Todavía no hay contenido listo. Vuelve a detectar la página o permite su lectura."
+  },
+  "panel_flow_video_hint": {
+    "message": "Primero recuperaremos los subtítulos o transcribiremos el audio."
+  },
   "panel_fotogramas_del_video_para_incorporar_dia": {
     "message": "Fotogramas del vídeo para incorporar diagramas o diapositivas a los apuntes."
   },
@@ -885,10 +987,10 @@
     "message": "Guardar y volver"
   },
   "panel_ia_servidor_compatible_con_openai": {
-    "message": "IA · otro servicio o modelo local"
+    "message": "Otro servicio de IA"
   },
   "panel_ia_tu_sesion_de_codex_chatgpt": {
-    "message": "IA · tu sesión de Codex / ChatGPT"
+    "message": "Codex · ChatGPT"
   },
   "panel_imagen": {
     "message": "IMAGEN"
@@ -918,7 +1020,7 @@
     "message": "La revisión se abrirá en una pestaña amplia. Al guardar o descartar volverás al artículo."
   },
   "panel_lector_html": {
-    "message": "LECTOR HTML"
+    "message": "Libro o lector"
   },
   "panel_lectura": {
     "message": "Lectura"
@@ -930,7 +1032,7 @@
     "message": "Límite: 100 MB para PDF/subtítulos y 1 GB para archivos locales de audio/vídeo."
   },
   "panel_modo_de_captura": {
-    "message": "Modo de captura"
+    "message": "Tipo de contenido"
   },
   "panel_no_hay_audio_o_subtitulos_accesibles_en_": {
     "message": "No hay audio o subtítulos accesibles en este reproductor."
@@ -972,7 +1074,7 @@
     "message": "Opciones ↗"
   },
   "panel_organizacion_de_la_propuesta": {
-    "message": "Organización de la propuesta"
+    "message": "Organización"
   },
   "panel_origen_del_trabajo_1": {
     "message": "Origen del trabajo: $1"
@@ -981,7 +1083,7 @@
     "message": "Página: $1"
   },
   "panel_paginas_a_procesar": {
-    "message": "Páginas a procesar"
+    "message": "Rango de páginas (opcional)"
   },
   "panel_paginas_del_pdf_opcional": {
     "message": "Páginas del PDF, opcional"
@@ -1011,10 +1113,10 @@
     "message": "Permitir lectura de "
   },
   "panel_podcast_entrevista_resumen_consejos_y_citas": {
-    "message": "Podcast · entrevista · resumen, consejos y citas"
+    "message": "Podcast o entrevista"
   },
   "panel_por_que_quieres_guardarlo": {
-    "message": "¿Por qué quieres guardarlo?"
+    "message": "Qué quieres obtener (opcional)"
   },
   "panel_preparacion_de_nota": {
     "message": "Preparación de nota"
@@ -1056,7 +1158,7 @@
     "message": "Qué se envía a la IA"
   },
   "panel_que_te_interesa_que_quieres_aprender_o_d": {
-    "message": "Qué te interesa, qué quieres aprender o dónde podrías aplicarlo…"
+    "message": "Ej.: ideas prácticas para mí, con ejemplos."
   },
   "panel_reanudar": {
     "message": "Reanudar"
@@ -1119,7 +1221,7 @@
     "message": "TRABAJO EN CURSO"
   },
   "panel_trabajos_recuperables": {
-    "message": "Trabajos recuperables"
+    "message": "Trabajos interrumpidos"
   },
   "panel_transcribiendo_o_leyendo_subtitulos_pued": {
     "message": "Transcribiendo o leyendo subtítulos. Puedes seguir navegando…"
@@ -1128,10 +1230,10 @@
     "message": "TRANSCRIPCIÓN LOCAL"
   },
   "panel_una_nota_con_apartados": {
-    "message": "Una nota con apartados"
+    "message": "Una nota"
   },
   "panel_varias_notas_enlazadas_por_temas": {
-    "message": "Varias notas enlazadas por temas"
+    "message": "Varias notas enlazadas"
   },
   "panel_ver_conexiones": {
     "message": "Ver conexiones"
@@ -1378,6 +1480,48 @@
   },
   "profile_zonas_donde_anaco_puede_guardar_notas_co": {
     "message": "Zonas donde Anaco puede guardar notas, con los tipos que admite cada una."
+  },
+  "progress_cancel": {
+    "message": "Cancelando"
+  },
+  "progress_capture": {
+    "message": "Extracción de páginas"
+  },
+  "progress_download": {
+    "message": "Descargando recurso"
+  },
+  "progress_frames": {
+    "message": "Fotogramas procesados: $1 de $2 · $3% de esta fase"
+  },
+  "progress_pages": {
+    "message": "Páginas procesadas: $1 de $2 · $3% de esta fase"
+  },
+  "progress_pdf_images": {
+    "message": "Imágenes del PDF"
+  },
+  "progress_pdf_text": {
+    "message": "Texto del PDF"
+  },
+  "progress_reading": {
+    "message": "Lectura del contenido"
+  },
+  "progress_resources": {
+    "message": "Recursos procesados: $1 de $2 · $3% de esta fase"
+  },
+  "progress_resources_stage": {
+    "message": "Preparando recursos"
+  },
+  "progress_segments": {
+    "message": "Segmentos descargados: $1 de $2 · $3% de esta fase"
+  },
+  "progress_stretches": {
+    "message": "Tramos completados: $1 de $2 · $3% de esta fase"
+  },
+  "progress_synthesis": {
+    "message": "Síntesis de la nota"
+  },
+  "progress_waiting": {
+    "message": "Esperando el resultado de esta fase."
   },
   "render_ampliar_1": {
     "message": "Ampliar: $1"

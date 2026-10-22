@@ -1,10 +1,27 @@
 import json
 import sys
 import unittest
+import contextlib
+import io
+import runpy
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'native'))
 from media import run_progress
 from core import UserError
 
 class TranscriptionProgressTest(unittest.TestCase):
+    def test_worker_reaches_full_duration_after_processing_trailing_silence(self):
+        segment=SimpleNamespace(start=0,end=50,text='Audio fixture')
+        model=SimpleNamespace(transcribe=lambda *args,**kwargs:(iter([segment]),SimpleNamespace(duration=60,language='es')))
+        output=io.StringIO()
+        with patch.dict(sys.modules,{'faster_whisper':SimpleNamespace(WhisperModel=lambda *args,**kwargs:model)}),patch.object(sys,'argv',['transcribe.py','audio.wav','--cache','/tmp/anaco-test-cache','--progress']),contextlib.redirect_stdout(output):
+            runpy.run_path(str(Path(__file__).resolve().parents[1]/'native/transcribe.py'),run_name='__main__')
+        events=[json.loads(line) for line in output.getvalue().splitlines()]
+        self.assertEqual(events[-2]['processed_seconds'],60);self.assertEqual(events[-2]['total_seconds'],60)
+        self.assertEqual(events[-1]['event'],'result')
+
     def test_progress_is_forwarded_without_transcript_text_and_result_is_kept(self):
         events=[{'event':'progress','stage':'transcribe','message':'Transcribiendo','processed_seconds':12,'total_seconds':60,'text':'PRIVATE AUDIO'},
                 {'event':'result','result':{'language':'es','segments':[{'start':0,'end':12,'text':'Contenido privado'}]}}]

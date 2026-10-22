@@ -20,6 +20,9 @@
   "bg_captura": {
     "message": "Capture"
   },
+  "bg_captura_ya_no_pendiente": {
+    "message": "This capture is no longer pending."
+  },
   "bg_clip_1_no_se_pudo_guardar_2": {
     "message": "Clip «$1»: could not be saved ($2)."
   },
@@ -521,6 +524,12 @@
   "options_modelo_de_codex_para_texto": {
     "message": "Codex model for text"
   },
+  "options_modelo_lectura": {
+    "message": "Codex model for reading stretches"
+  },
+  "options_modelo_lectura_ayuda": {
+    "message": "Long podcasts are read with this model, two stretches at a time. The text model prepares the final note. Both use the selected reasoning effort."
+  },
   "options_modelo_visual_de_codex_cuando_haga_falta": {
     "message": "Codex vision model when needed"
   },
@@ -583,6 +592,24 @@
   },
   "options_puedes_cambiarlo_antes_de_preparar_cada_": {
     "message": "You can change it before preparing each capture. Relevant code is kept with its explanation in any mode."
+  },
+  "options_reasoning_effort": {
+    "message": "Codex reasoning"
+  },
+  "options_reasoning_high": {
+    "message": "High"
+  },
+  "options_reasoning_low": {
+    "message": "Low"
+  },
+  "options_reasoning_max": {
+    "message": "Maximum"
+  },
+  "options_reasoning_medium": {
+    "message": "Medium"
+  },
+  "options_reasoning_xhigh": {
+    "message": "Very high"
   },
   "options_revisa_la_propuesta": {
     "message": "Review the proposal"
@@ -693,7 +720,7 @@
     "message": "Open the review ↗"
   },
   "panel_abrir_la_revision_al_terminar_de_extraer": {
-    "message": "Open the review when extraction finishes"
+    "message": "Create the note after extraction"
   },
   "panel_abrir_opciones": {
     "message": "Open Options ↗"
@@ -711,16 +738,16 @@
     "message": "ARTICLE"
   },
   "panel_articulo_web_prioriza_la_pagina": {
-    "message": "Web article · the page comes first"
+    "message": "Web article"
   },
   "panel_asistente_de_revision": {
     "message": "REVIEW ASSISTANT"
   },
   "panel_automatico_articulos_y_cursos": {
-    "message": "Automatic · articles and courses"
+    "message": "Automatic"
   },
   "panel_automatico_que_decida_la_ia": {
-    "message": "Automatic · let the AI decide"
+    "message": "Choose automatically"
   },
   "panel_avance_del_trabajo": {
     "message": "Job progress"
@@ -744,7 +771,7 @@
     "message": "Capture · Connect · Learn"
   },
   "panel_capturas_pendientes": {
-    "message": "Pending captures"
+    "message": "Pending"
   },
   "panel_clip": {
     "message": "Clip"
@@ -798,7 +825,7 @@
     "message": "Create notes from the whole book"
   },
   "panel_curso_deteccion_clasica": {
-    "message": "Course · classic detection"
+    "message": "Course or reader"
   },
   "panel_demo": {
     "message": "Demo"
@@ -808,6 +835,9 @@
   },
   "panel_descargando_audio": {
     "message": "DOWNLOADING AUDIO"
+  },
+  "panel_descartar_pendiente": {
+    "message": "Dismiss pending item: $1"
   },
   "panel_destino_e_imagenes": {
     "message": "Destination and images"
@@ -819,7 +849,7 @@
     "message": "Detect content"
   },
   "panel_detectar_de_nuevo": {
-    "message": "Detect again"
+    "message": "Refresh"
   },
   "panel_diagnostico_de_deteccion": {
     "message": "Detection diagnosis"
@@ -875,6 +905,78 @@
   "panel_extrayendo_fotogramas": {
     "message": "EXTRACTING FRAMES"
   },
+  "panel_flow_attachments": {
+    "message": "Images and resources"
+  },
+  "panel_flow_attachments_count": {
+    "message": "$1 / $2"
+  },
+  "panel_flow_choose_content": {
+    "message": "Which content do you want to save?"
+  },
+  "panel_flow_connected": {
+    "message": "Connected"
+  },
+  "panel_flow_create_many": {
+    "message": "Create notes"
+  },
+  "panel_flow_create_one": {
+    "message": "Create note"
+  },
+  "panel_flow_detect_again": {
+    "message": "Detect the content again"
+  },
+  "panel_flow_disconnected": {
+    "message": "Disconnected"
+  },
+  "panel_flow_extract_only": {
+    "message": "Extract only"
+  },
+  "panel_flow_extracted_hint": {
+    "message": "You can then review the content and create the note."
+  },
+  "panel_flow_manual": {
+    "message": "No AI"
+  },
+  "panel_flow_mode_course": {
+    "message": "Course"
+  },
+  "panel_flow_mode_podcast": {
+    "message": "Podcast"
+  },
+  "panel_flow_note_hint": {
+    "message": "You will review the result before saving it to your vault."
+  },
+  "panel_flow_open_review": {
+    "message": "Open review"
+  },
+  "panel_flow_page_text": {
+    "message": "Page text"
+  },
+  "panel_flow_pages": {
+    "message": "$1 pages detected"
+  },
+  "panel_flow_pdf_hint": {
+    "message": "The selected PDF pages will be extracted."
+  },
+  "panel_flow_reader_hint": {
+    "message": "All detected pages will be read."
+  },
+  "panel_flow_ready_review": {
+    "message": "Open the draft to review it. Changes to these fields apply when you generate again."
+  },
+  "panel_flow_regenerate": {
+    "message": "Generate again"
+  },
+  "panel_flow_settings": {
+    "message": "Capture settings"
+  },
+  "panel_flow_unavailable_hint": {
+    "message": "No content is ready yet. Detect the page again or allow access."
+  },
+  "panel_flow_video_hint": {
+    "message": "We will first retrieve captions or transcribe the audio."
+  },
   "panel_fotogramas_del_video_para_incorporar_dia": {
     "message": "Video frames to bring diagrams or slides into the notes."
   },
@@ -885,10 +987,10 @@
     "message": "Save and go back"
   },
   "panel_ia_servidor_compatible_con_openai": {
-    "message": "AI · another service or local model"
+    "message": "Another AI service"
   },
   "panel_ia_tu_sesion_de_codex_chatgpt": {
-    "message": "AI · your Codex / ChatGPT session"
+    "message": "Codex · ChatGPT"
   },
   "panel_imagen": {
     "message": "IMAGE"
@@ -918,7 +1020,7 @@
     "message": "The review opens in a wide tab. Saving or discarding takes you back to the article."
   },
   "panel_lector_html": {
-    "message": "HTML READER"
+    "message": "Book or reader"
   },
   "panel_lectura": {
     "message": "Reading"
@@ -930,7 +1032,7 @@
     "message": "Limit: 100 MB for PDF/subtitles and 1 GB for local audio/video files."
   },
   "panel_modo_de_captura": {
-    "message": "Capture mode"
+    "message": "Content type"
   },
   "panel_no_hay_audio_o_subtitulos_accesibles_en_": {
     "message": "There is no accessible audio or subtitles in this player."
@@ -972,7 +1074,7 @@
     "message": "Options ↗"
   },
   "panel_organizacion_de_la_propuesta": {
-    "message": "Proposal organization"
+    "message": "Organization"
   },
   "panel_origen_del_trabajo_1": {
     "message": "Job source: $1"
@@ -981,7 +1083,7 @@
     "message": "Page: $1"
   },
   "panel_paginas_a_procesar": {
-    "message": "Pages to process"
+    "message": "Page range (optional)"
   },
   "panel_paginas_del_pdf_opcional": {
     "message": "PDF pages, optional"
@@ -1011,10 +1113,10 @@
     "message": "Allow reading "
   },
   "panel_podcast_entrevista_resumen_consejos_y_citas": {
-    "message": "Podcast · interview · summary, advice and quotes"
+    "message": "Podcast or interview"
   },
   "panel_por_que_quieres_guardarlo": {
-    "message": "Why do you want to save it?"
+    "message": "What you want to get (optional)"
   },
   "panel_preparacion_de_nota": {
     "message": "Note preparation"
@@ -1056,7 +1158,7 @@
     "message": "What is sent to the AI"
   },
   "panel_que_te_interesa_que_quieres_aprender_o_d": {
-    "message": "What interests you, what you want to learn or where you could apply it…"
+    "message": "E.g. practical ideas for me, with examples."
   },
   "panel_reanudar": {
     "message": "Resume"
@@ -1119,7 +1221,7 @@
     "message": "JOB IN PROGRESS"
   },
   "panel_trabajos_recuperables": {
-    "message": "Recoverable jobs"
+    "message": "Interrupted jobs"
   },
   "panel_transcribiendo_o_leyendo_subtitulos_pued": {
     "message": "Transcribing or reading subtitles. You can keep browsing…"
@@ -1128,10 +1230,10 @@
     "message": "LOCAL TRANSCRIPTION"
   },
   "panel_una_nota_con_apartados": {
-    "message": "One note with sections"
+    "message": "One note"
   },
   "panel_varias_notas_enlazadas_por_temas": {
-    "message": "Several notes linked by topic"
+    "message": "Several linked notes"
   },
   "panel_ver_conexiones": {
     "message": "See connections"
@@ -1378,6 +1480,48 @@
   },
   "profile_zonas_donde_anaco_puede_guardar_notas_co": {
     "message": "Areas where Anaco can save notes, with the types each one accepts."
+  },
+  "progress_cancel": {
+    "message": "Cancelling"
+  },
+  "progress_capture": {
+    "message": "Extracting pages"
+  },
+  "progress_download": {
+    "message": "Downloading resource"
+  },
+  "progress_frames": {
+    "message": "Frames processed: $1 of $2 · $3% of this phase"
+  },
+  "progress_pages": {
+    "message": "Pages processed: $1 of $2 · $3% of this phase"
+  },
+  "progress_pdf_images": {
+    "message": "PDF images"
+  },
+  "progress_pdf_text": {
+    "message": "PDF text"
+  },
+  "progress_reading": {
+    "message": "Reading content"
+  },
+  "progress_resources": {
+    "message": "Resources processed: $1 of $2 · $3% of this phase"
+  },
+  "progress_resources_stage": {
+    "message": "Preparing resources"
+  },
+  "progress_segments": {
+    "message": "Segments downloaded: $1 of $2 · $3% of this phase"
+  },
+  "progress_stretches": {
+    "message": "Stretches completed: $1 of $2 · $3% of this phase"
+  },
+  "progress_synthesis": {
+    "message": "Synthesizing note"
+  },
+  "progress_waiting": {
+    "message": "Waiting for this phase to finish."
   },
   "render_ampliar_1": {
     "message": "Enlarge: $1"

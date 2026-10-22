@@ -3,6 +3,7 @@ const call = message => browser.runtime.sendMessage({type:"native",message});
 const manualImport=typeof location!=='undefined'&&new URL(location.href).searchParams.get('import')==='1';
 let state = {}, status, locateTimer, serviceError = '';
 let structureInitialized=false;
+let captureFormKey='',captureFormSource='',captureFormId=null,captureTarget='';
 let activeReview=null,preferredReview=null;
 let panelWindowId=null,panelStarted=false;
 const sidebarView=typeof window!=='undefined'&&Boolean(browser.extension?.getViews?.({type:'sidebar'}).includes(window));
@@ -12,24 +13,29 @@ function workDisplay(){
   const busy=Boolean(state.operation),p=state.operationProgress||{};
   $('workCard').hidden=!busy;document.body?.classList?.toggle('is-working',busy);
   if(!busy)return;
-  const names={model:tx('panel_preparando_el_motor'),transcribe:tx('panel_transcripcion_local'),download:tx('panel_descargando_audio'),subtitles:tx('panel_buscando_subtitulos'),inspect:tx('panel_comprobando_el_archivo'),frames:tx('panel_extrayendo_fotogramas')};
+  const names={model:tx('panel_preparando_el_motor'),transcribe:tx('panel_transcripcion_local'),download:tx('progress_download'),subtitles:tx('panel_buscando_subtitulos'),inspect:tx('panel_comprobando_el_archivo'),frames:tx('panel_extrayendo_fotogramas'),reading:tx('progress_reading'),synthesis:tx('progress_synthesis'),capture:tx('progress_capture'),resources:tx('progress_resources_stage'),cancel:tx('progress_cancel'),'pdf-text':tx('progress_pdf_text'),'pdf-images':tx('progress_pdf_images')};
   $('workStage').textContent=names[p.stage]||tx('panel_trabajo_en_curso_caps');$('workTitle').textContent=state.activeWork?.title||tx('panel_preparando_contenido');
   $('workElapsed').textContent=state.activeWork?.startedAt?timeLabel((Date.now()-state.activeWork.startedAt)/1000):'';
   const progress=$('workProgress');
-  if(p.total_seconds>0&&Number.isFinite(p.processed_seconds)){
-    const fraction=Math.min(.99,p.processed_seconds/p.total_seconds);progress.max=100;progress.value=fraction*100;
-    $('workDetail').textContent=tx('panel_1_de_2_de_audio_3',[timeLabel(p.processed_seconds),timeLabel(p.total_seconds),Math.floor(fraction*100)])+(p.engine?' · '+p.engine:'');
-  }else{progress.removeAttribute?.('value');$('workDetail').textContent=p.engine||tx('panel_esta_fase_no_ofrece_un_porcentaje_medibl');}
+  const measured=AnacoObProgress.measure(p);
+  // Firefox paints an indeterminate <progress> as a full bar with our theme.
+  // The spinner already shows activity; only measured phases need the bar.
+  progress.hidden=!measured;
+  $('cancelJob').disabled=p.stage==='cancel';
+  if(measured){progress.max=100;progress.value=measured.fraction*100;}
+  else progress.removeAttribute?.('value');
+  $('workDetail').textContent=(measured?.detail||tx('progress_waiting'))+(p.engine?' · '+p.engine:'');
+  progress.setAttribute('aria-valuetext',$('workDetail').textContent);
   $('workHint').textContent=p.stage==='model'?tx('panel_la_primera_carga_puede_descargar_el_mode'):tx('panel_puedes_seguir_navegando_o_cerrar_este_pa');
 }
 // [UI] The strip under the logo follows the note: detected, preparing, review, saved.
 let brandReady=false;
 function brandProgress(){
   if(!brandReady)return;
-  const c=state.currentCapture,p=state.operationProgress||{};
+  const c=state.currentCapture;
   let value=0;
   if(activeReview)value=75;
-  else if(state.operation)value=p.total_seconds>0&&Number.isFinite(p.processed_seconds)?30+40*Math.min(1,p.processed_seconds/p.total_seconds):45;
+  else if(state.operation)value=45;
   else if(state.lastResult&&!c)value=100;
   else if(state.draftResult)value=70;
   else if(c)value=25;
@@ -49,6 +55,11 @@ function imageSelection(){
   const checks=[...document.querySelectorAll('#images input[type=checkbox]')],n=checks.filter(e=>e.checked).length;
   $('imageCount').textContent=tx('panel_1_8_elegidas_2_disponibles',[n,checks.length]);
   for(const check of checks)check.disabled=Boolean(state.operation)||(!check.checked&&n>=8);
+  attachmentSummary();
+}
+function attachmentSummary(){
+  const checks=[...document.querySelectorAll('#images input[type=checkbox],#embeds input[type=checkbox]')];
+  $('attachmentCount').textContent=tx('panel_flow_attachments_count',[checks.filter(c=>c.checked).length,checks.length]);
 }
 const showError = error => {$("error").textContent=error.message||String(error);$("error").hidden=false;};
 const run = fn => async () => {$("error").hidden=true;try{await fn();}catch(error){showError(error);}};
@@ -84,12 +95,13 @@ function locate(c,index,clear=false,embed=null) {
 }
 function drawCapture(c) {
   if(manualImport&&c?.source?.url!==location.href)c=null;
-  $("empty").hidden=manualImport||Boolean(c)||state.pageContext?.status==="loading";$("captureCard").hidden=!c;
+  $("empty").hidden=manualImport||Boolean(c)||state.pageContext?.status==="loading";$("captureCard").hidden=!c||Boolean(!c.id&&c.kind==='pdf'&&c.url.startsWith('file:'));
   $("reviewReady").hidden=!state.draftResult||!c;
   $("fileImport").hidden=!manualImport&&!(c?.kind==='pdf'&&c.url.startsWith('file:'));
+  if(c?.kind==='pdf'&&c.url.startsWith('file:')&&!c.id)$('fileImport').querySelector('details').open=true;
   $("authorizeDetection").hidden=!c?.requiredOrigins?.length;
   $("authorizeDetection").textContent=c?.requiredOrigins?.length?tx('panel_permitir_lectura_de')+c.requiredOrigins.map(u=>new URL(u).hostname).join(', '):tx('panel_permitir_detectar_el_contenido_del_visor');
-  const diagnostics=Boolean(c&&(c.detectionError||c.reader||c.requiredOrigins?.length||c.videos?.some(v=>v.extractable===false)));
+  const diagnostics=Boolean(c&&(c.detectionError||c.requiredOrigins?.length||c.videos?.some(v=>v.extractable===false)));
   $("diagnostic").hidden=!diagnostics;
   if(diagnostics)$("detectionReport").textContent=JSON.stringify({version:browser.runtime.getManifest?.().version,
     page:new URL(c.url).hostname,kind:c.kind,readable:Boolean(c.contentReady),pdf:c.documents?.length||0,
@@ -97,14 +109,26 @@ function drawCapture(c) {
     video:(c.videos||[]).map(v=>({accessible:v.extractable!==false,subtitles:Boolean(v.subtitles||v.tracks?.length),host:(()=>{try{return new URL(v.url).hostname;}catch{return '';}})()})),
     ...c.detection,accessNeeded:(c.requiredOrigins||[]).map(u=>new URL(u).hostname)},null,2);
   if(!c)return;
-  $("noteControls").hidden=(!c.id&&(c.reader||c.kind==="pdf"))||!(c.id||(c.contentReady??Boolean(c.text?.length>=100||c.kind==='quote'||c.kind==='image')));
+  const key=c.id||c.url;
+  if(key!==captureFormKey){
+    const source=c.source?.url||c.url,adopting=Boolean(c.id&&!captureFormId&&source===captureFormSource);
+    captureFormKey=key;captureTarget='';
+    if(!adopting||c.intent)$('intent').value=c.intent||'';
+    if(!adopting||c.note_structure)$('noteStructure').value=c.note_structure||status?.config?.note_structure||'single';
+    captureFormSource=source;captureFormId=c.id||null;
+    $('attachments').open=c.kind==='image';
+    $('capturePreview').open=c.kind==='quote';
+  }
+  if(state.operation&&c.note_structure)$('noteStructure').value=c.note_structure;
   if(c.detectionError)showError(c.detectionError);
   $("success").hidden=true;
   $("captureTitle").textContent=c.title;$("kind").textContent={article:tx('panel_articulo'),quote:tx('panel_frase'),image:tx('panel_imagen'),pdf:"PDF",video:tx('panel_video_audio')}[c.kind];
   if(c.reader&&c.kind!=="pdf")$("kind").textContent=tx('panel_lector_html');
   if(!c.id&&!c.contentReady)$("kind").textContent=c.documents?.length?'PDF':c.videos?.length?tx('panel_video_audio'):c.requiredOrigins?.length?tx('panel_visor'):tx('panel_sin_contenido');
   $("source").textContent=(()=>{try{return new URL(c.url).hostname+' ↗';}catch{return tx('panel_abrir_fuente');}})();$("source").href=c.url;$("extracted").textContent=c.text||tx('panel_este_recurso_todavia_no_se_ha_extraido');
-  $("warnings").textContent=(c.warnings||[]).join("\n");$("warnings").hidden=!c.warnings?.length;$("intent").value=c.intent||"";
+  const warnings=(c.warnings||[]).filter(w=>!c.reader||w!==tx('capture_libro_detectado_1_paginas_disponibles_us',[c.reader.pages?.length||0]));
+  $("warnings").textContent=warnings.join("\n");$("warnings").hidden=!warnings.length;
+  $('capturePreview').hidden=!c.text?.trim();
   $("images").replaceChildren();
   $('imageSection').hidden=!c.images.length;
   $("imageHint").hidden=!c.images.length;
@@ -127,21 +151,58 @@ function drawCapture(c) {
   });
   imageSelection();
   drawEmbeds(c);
-  $("prepare").textContent=c.id?tx('panel_regenerar_y_abrir_revision'):tx('panel_preparar_y_abrir_revision');
   const documents=c.documents||[],videos=c.videos||[];
     const rawBook=Boolean(c.reader&&!c.id&&c.kind!=="pdf");
-  $("readerControls").hidden=!rawBook;
-  $("readerCount").textContent=rawBook?tx('panel_1_paginas_localizadas_se_extraeran_todas',[c.reader.pages?.length||0]):'';
-  $("resources").hidden=!(rawBook||documents.length||videos.some(v=>v.extractable!==false));
+  $("readerCount").textContent=rawBook?tx('panel_flow_pages',[c.reader.pages?.length||0]):'';
   for(const [name,items,label] of [["pdf",documents,"PDF"],["video",videos,tx('panel_video')]]){
-    $(name+"Controls").hidden=!items.length||(name==='video'&&items.every(v=>v.extractable===false));$(name+"Resource").replaceChildren();
-    items.forEach((item,index)=>{const option=document.createElement("option");option.value=index;option.textContent=name==='video'?AnacoObMedia.label(item,index):item.title||label+" "+(index+1);$(name+"Resource").append(option);});
+    const previous=$(name+'Resource').selectedOptions?.[0]?.dataset.url;
+    $(name+"Resource").replaceChildren();
+    items.forEach((item,index)=>{const option=document.createElement("option");option.value=index;option.dataset.url=item.url;option.textContent=name==='video'?AnacoObMedia.label(item,index):item.title||label+" "+(index+1);option.disabled=name==='video'?item.extractable===false:item.url.startsWith('file:');$(name+"Resource").append(option);});
+    const usable=items.map((v,i)=>({v,i})).filter(({v})=>name==='video'?v.extractable!==false:!v.url.startsWith('file:'));
+    $(name+'Resource').value=String((usable.find(({v})=>v.url===previous)||usable[0])?.i??0);
+    $(name+'Choice').hidden=usable.length<2;
   }
   const onlyLocalPDF=documents.length>0&&documents.every(d=>d.url.startsWith('file:'));
   $("extractPdf").hidden=onlyLocalPDF;
-  if(onlyLocalPDF){$("pdfControls").hidden=true;$("resources").hidden=!(rawBook||videos.some(v=>v.extractable!==false));}
   const selectedVideo=videos[Number($("videoResource").value)||0];
   $("extractVideo").hidden=selectedVideo?.extractable===false;
+  const labels={note:tx('panel_flow_page_text'),reader:tx('panel_lector_html'),pdf:'PDF',video:tx('panel_video_audio')};
+  $('captureTarget').replaceChildren();
+  for(const type of AnacoObCaptureFlow.choices(c)){const option=document.createElement('option');option.value=type;option.textContent=labels[type];$('captureTarget').append(option);}
+  renderCaptureFlow(c);
+}
+function renderCaptureFlow(c=state.currentCapture){
+  if(!c){$('autoReviewLabel').hidden=!manualImport;return;}
+  const types=AnacoObCaptureFlow.choices(c);
+  $('captureFields').hidden=!types.length;
+  captureTarget=AnacoObCaptureFlow.select(c,captureTarget);
+  $('captureTarget').value=captureTarget;$('captureTargetGroup').hidden=types.length<2;
+  $('noteControls').hidden=captureTarget!=='note';
+  $('resources').hidden=!['reader','pdf','video'].includes(captureTarget);
+  for(const type of ['reader','pdf','video'])$(type+'Controls').hidden=captureTarget!==type;
+  const hasDraft=Boolean(c.id&&(c.draft||state.draftResult?.capture?.id===c.id));
+  $('reviewReady').hidden=!hasDraft;$('prepare').classList?.toggle('primary',!hasDraft);
+  const create=$('noteStructure').value==='single'?tx('panel_flow_create_one'):tx('panel_flow_create_many');
+  $('prepare').textContent=hasDraft?tx('panel_flow_regenerate'):create;
+  $('reviewReady').textContent=tx('panel_flow_open_review');
+  const extracts=state.autoReview!==false;
+  $('extractVideo').textContent=extracts?create:tx('panel_extraer_subtitulos_o_transcribir');
+  $('extractPdf').textContent=extracts?create:tx('panel_extraer_pdf_y_paginas');
+  $('extractReader').textContent=extracts?create:tx('panel_extraer_libro_completo');
+  $('autoReviewLabel').hidden=!(manualImport||captureTarget&&captureTarget!=='note');
+  $('attachments').hidden=!(c.images?.length||!c.id&&c.embeds?.length);
+  const kinds={article:tx('panel_articulo'),quote:tx('panel_frase'),image:tx('panel_imagen'),pdf:'PDF',video:tx('panel_video_audio')};
+  $('kind').textContent=captureTarget==='reader'?tx('panel_lector_html'):captureTarget==='pdf'?'PDF':captureTarget==='video'?tx('panel_video_audio'):kinds[c.kind]||tx('panel_sin_contenido');
+  $('captureHint').textContent=hasDraft?tx('panel_flow_ready_review'):captureTarget==='video'?tx('panel_flow_video_hint'):captureTarget==='reader'?tx('panel_flow_reader_hint'):captureTarget==='pdf'?tx('panel_flow_pdf_hint'):captureTarget==='note'?tx('panel_flow_note_hint'):tx('panel_flow_unavailable_hint');
+  if(['video','reader','pdf'].includes(captureTarget))$('captureHint').textContent+=' '+(extracts?tx('panel_flow_note_hint'):tx('panel_flow_extracted_hint'));
+  captureSettingsSummary();
+}
+function captureSettingsSummary(){
+  const parts=[],modes={article:tx('panel_articulo'),course:tx('panel_flow_mode_course'),podcast:tx('panel_flow_mode_podcast')};
+  if(modes[state.captureMode])parts.push(modes[state.captureMode]);
+  if($('provider').value==='manual')parts.push(tx('panel_flow_manual'));
+  if(state.autoReview===false&&(manualImport||captureTarget&&captureTarget!=='note'))parts.push(tx('panel_flow_extract_only'));
+  $('captureSettingsState').textContent=parts.length?' · '+parts.join(' · '):'';
 }
 // [UI] Embedded resources are chosen like images; heavy clips start unchecked.
 function drawEmbeds(c){
@@ -174,13 +235,32 @@ function drawEmbeds(c){
 }
 function embedSelection(){
   const checks=[...document.querySelectorAll('#embeds input[type=checkbox]')];
-  $('embedCount').textContent=`${checks.filter(e=>e.checked).length} / ${checks.length} elegidos`;
+  $('embedCount').textContent=tx('panel_flow_attachments_count',[checks.filter(e=>e.checked).length,checks.length]);
   for(const check of checks)check.disabled=Boolean(state.operation);
+  attachmentSummary();
+}
+function pendingControls(){
+  for(const button of document.querySelectorAll('.pending-resume,.pending-dismiss'))button.disabled=Boolean(state.operation)||button.dataset.running==='true';
+}
+function pendingDismiss(target,title){
+  const button=document.createElement('button');button.type='button';button.className='pending-dismiss';button.textContent='×';
+  button.title=tx('panel_descartar_pendiente',[title]);button.setAttribute('aria-label',button.title);
+  button.onclick=run(async()=>{
+    const index=[...document.querySelectorAll('.pending-dismiss')].indexOf(button);
+    button.disabled=true;
+    try{
+      await browser.runtime.sendMessage({type:'discardPending',...target});await refresh();
+      const remaining=[...document.querySelectorAll('.pending-dismiss')].filter(b=>!b.disabled);
+      (remaining[Math.min(index,remaining.length-1)]||$('options')).focus();
+    }finally{pendingControls();}
+  });
+  return button;
 }
 async function refresh() {
   try {
     status=await call({action:"status"});
-    if(!structureInitialized){$('noteStructure').value=status.config.note_structure||'single';structureInitialized=true;}$("connection").textContent=tx('panel_servicio_local_conectado');
+    if(!structureInitialized){$('noteStructure').value=state.currentCapture?.note_structure||status.config.note_structure||'single';structureInitialized=true;}$("connection").textContent=tx('panel_flow_connected');
+    if($('connection').dataset)$('connection').dataset.state='ready';
     // [UI] The vault profile decides where notes go: missing or outdated, say so before preparing.
     const profile=status.profile||{};$('profileNotice').hidden=!(profile.missing||profile.problems?.length);
     $('profileNoticeText').textContent=profile.missing?(profile.message||tx('panel_este_vault_aun_no_tiene_perfil_escanealo')):profile.problems?.length?profile.problems[0]+(profile.problems.length>1?tx('panel_y_1_mas',[profile.problems.length-1]):''):'';
@@ -188,14 +268,31 @@ async function refresh() {
     serviceError='';
     $('recoverSection').hidden=!(status.jobs||[]).length;$('recoverJobs').replaceChildren();
     const {workSources={}}=await browser.storage.local.get('workSources');
-    for(const job of status.jobs||[]){const row=document.createElement('div');row.className='job-row';const label=document.createElement('span');label.textContent=(workSources[job.id]?.title||({upload_finish:tx('panel_extraccion_de_archivo'),draft:tx('panel_preparacion_de_nota'),video_url:tx('panel_video_de_plataforma')})[job.action])+' · '+({cancelled:tx('panel_cancelado'),interrupted:tx('panel_interrumpido'),failed:tx('panel_error_recuperable'),pending:tx('panel_pendiente'),running:tx('panel_en_curso_job')}[job.status]||tx('panel_pendiente'));const button=document.createElement('button');button.textContent=tx('panel_reanudar');button.disabled=Boolean(state.operation);button.onclick=run(async()=>{await browser.runtime.sendMessage({type:'resumeJob',job:job.id});await refresh();});row.append(label,button);$('recoverJobs').append(row);}
+    for(const job of status.jobs||[]){
+      const row=document.createElement('div');row.className='job-row';row.dataset.job=job.id;
+      const title=workSources[job.id]?.title||({upload_finish:tx('panel_extraccion_de_archivo'),draft:tx('panel_preparacion_de_nota'),video_url:tx('panel_video_de_plataforma')})[job.action];
+      const label=document.createElement('span');label.textContent=title+' · '+({cancelled:tx('panel_cancelado'),interrupted:tx('panel_interrumpido'),failed:tx('panel_error_recuperable'),pending:tx('panel_pendiente'),running:tx('panel_en_curso_job')}[job.status]||tx('panel_pendiente'));
+      const button=document.createElement('button');button.className='pending-resume';button.textContent=tx('panel_reanudar');
+      button.onclick=run(async()=>{await browser.runtime.sendMessage({type:'resumeJob',job:job.id});await refresh();});
+      const dismiss=pendingDismiss({job:job.id},title);
+      button.dataset.running=dismiss.dataset.running=String(job.status==='running');
+      row.append(label,button,dismiss);$('recoverJobs').append(row);
+    }
     $("provider").value=status.config.provider;$("pending").replaceChildren();
-    for(const c of status.pending){const b=document.createElement("button");b.className="pending-item";b.textContent=c.title+" · "+c.kind;b.addEventListener("click",run(async()=>browser.runtime.sendMessage({type:"resume",id:c.id})));$("pending").append(b);}
+    for(const c of status.pending){
+      const row=document.createElement('div');row.className='pending-row';row.dataset.capture=c.id;
+      const b=document.createElement('button');b.className='pending-item pending-resume';b.textContent=c.title+' · '+c.kind;
+      b.addEventListener('click',run(async()=>browser.runtime.sendMessage({type:'resume',id:c.id})));
+      row.append(b,pendingDismiss({id:c.id},c.title));$('pending').append(row);
+    }
+    pendingControls();
     if(!status.pending.length)$("pending").textContent=tx('panel_no_hay_capturas_pendientes');
+    $('pendingSection').hidden=!(status.pending.length||(status.jobs||[]).length);
     showHealth(AnacoObDiagnosis.status(status,browser.runtime.getManifest().version)[0]);
+    captureSettingsSummary();
   }catch(error){
     // The service is missing or broken: explain the fix instead of a raw error.
-    serviceError=error.message;$("connection").textContent=tx('panel_servicio_sin_conectar');showHealth(AnacoObDiagnosis.connection(error));
+    serviceError=error.message;$("connection").textContent=tx('panel_flow_disconnected');if($('connection').dataset)$('connection').dataset.state='error';showHealth(AnacoObDiagnosis.connection(error));
   }
 }
 async function sync(changes) {
@@ -208,8 +305,12 @@ async function sync(changes) {
   $('extractReader').textContent=$('autoReview').checked?tx('panel_crear_notas_del_libro_completo'):tx('panel_extraer_libro_completo');
   $('importButton').textContent=$('autoReview').checked?tx('panel_extraer_y_preparar_nota'):tx('panel_extraer_archivo');
   if(!changes||changes.currentCapture||changes.draftResult||changes.pageContext)drawCapture(state.currentCapture);
+  renderCaptureFlow();
+  pendingControls();
+  captureSettingsSummary();
   const page=state.pageContext;
   $("pageStatus").textContent=manualImport?tx('panel_importacion_manual_de_un_archivo_local'):page?.status==='loading'?tx('panel_detectando_el_contenido_de_esta_pestana'):page?.url?(host=>state.operation?tx('panel_origen_del_trabajo_1',[host]):tx('panel_pagina_1',[host]))((()=>{try{return new URL(page.url).hostname;}catch{return tx('panel_archivo_local');}})()):'';
+  $('pageStatus').hidden=Boolean(state.currentCapture&&!manualImport&&page?.status!=='loading');
   if(activeReview&&!state.operationError)$('error').hidden=true;
   else if(page?.status==='error')showError(page.error);
   else if(page?.status==='ready'&&!state.operationError&&!state.currentCapture?.detectionError)$("error").hidden=true;
@@ -217,6 +318,7 @@ async function sync(changes) {
   $("prepare").disabled=Boolean(state.operation)||(!state.currentCapture?.id&&state.currentCapture?.kind==="pdf");$("recapture").disabled=Boolean(state.operation);
   for(const id of ["importButton","extractPdf","extractVideo","extractReader"])$(id).disabled=Boolean(state.operation);
   for(const id of ['provider','intent','noteStructure'])$(id).disabled=Boolean(state.operation);
+  for(const id of ['captureTarget','autoReview','pdfPages','pdfResource','videoResource'])$(id).disabled=Boolean(state.operation);
   if(state.operationError){
     showError(new Error(state.operationError));
     $("diagnostic").hidden=false;
@@ -278,9 +380,12 @@ $("options").onclick=run(async()=>{
 $('cancelJob').onclick=run(async()=>{await browser.runtime.sendMessage({type:'cancelWork'});});
 $('captureMode').onchange=run(async()=>{
   await browser.storage.local.set({captureMode:$('captureMode').value});
-  await browser.runtime.sendMessage({type:'detectActive',fresh:true,windowId:panelWindowId});
+  if(!manualImport)await browser.runtime.sendMessage({type:'detectActive',fresh:true,windowId:panelWindowId});
 });
 $('autoReview').onchange=()=>browser.storage.local.set({autoReview:$('autoReview').checked});
+$('captureTarget').onchange=()=>{captureTarget=$('captureTarget').value;renderCaptureFlow();};
+$('noteStructure').onchange=()=>renderCaptureFlow();
+$('provider').onchange=()=>captureSettingsSummary();
 const preparation=()=>({prepareAfter:state.autoReview!==false,provider:$('provider').value,intent:$('intent').value,note_structure:$('noteStructure').value});
 for(const id of ["captureEmpty","recapture"])$(id).onclick=run(async()=>{
   const origins=[state.pageContext?.url,state.currentCapture?.url].filter(Boolean);
@@ -323,13 +428,15 @@ $("extractPdf").onclick=run(async()=>{
 $("extractVideo").onclick=run(async()=>{
   const c=state.currentCapture,video=c.videos[Number($("videoResource").value)];
   if(video.extractable===false)throw new Error(video.unavailableReason||tx('panel_no_hay_audio_o_subtitulos_accesibles_en_'));
-  const track=[...(video.tracks||[])].sort((a,b)=>(!a.language?.startsWith("es"))-(!b.language?.startsWith("es")))[0];
   const platform=AnacoObMedia.platformURL(video.url);
+  const track=platform?null:[...(video.tracks||[])].sort((a,b)=>(!a.language?.startsWith("es"))-(!b.language?.startsWith("es")))[0];
   const direct=video.download||(/^https?:/.test(video.url)&&!platform&&!AnacoObMedia.apiURL(video.url)&&video.url!==c.url?video.url:null);
   const granted=await requestOrigins([track?.url,direct,...(video.download?['https://drive.usercontent.google.com/','https://*.googleusercontent.com/']:[])]);
   if(!granted)throw new Error(tx('panel_no_se_ha_concedido_acceso_al_recurso_de_'));
   const audio=direct&&!/\.mpd(?:[?#]|$)/i.test(direct)?(/\.m3u8(?:[?#]|$)/i.test(direct)?{kind:'video-hls',url:direct}:{kind:'video',url:direct,name:'video.mp4'}):platform?{kind:'video-platform',url:platform}:null;
-  const request=video.subtitles?{kind:'subtitles',text:video.subtitles,fallback:audio}:track?{kind:'subtitle-url',url:track.url,frameId:video.frameId,fallback:audio}:audio;
+  // Browser cues may cover only the part already played. Platform extraction
+  // fetches the full transcript and falls back to downloading audio.
+  const request=platform?audio:video.subtitles?{kind:'subtitles',text:video.subtitles,fallback:audio}:track?{kind:'subtitle-url',url:track.url,frameId:video.frameId,fallback:audio}:audio;
   if(!request)throw new Error(tx('panel_el_reproductor_no_expone_un_recurso_de_a'));
   await browser.runtime.sendMessage({type:"importResource",token:c.token,...request,frameId:video.frameId,frameURL:video.frameURL,title:video.title||c.title,pageUrl:c.url,...preparation()});
 });
@@ -353,7 +460,7 @@ $("importButton").onclick=run(async()=>{
   try{
     const begin=await call({action:"upload_begin",name:file.name,size:file.size,url:manualImport?"":state.currentCapture?.url||""});
     for(let offset=0;offset<file.size;offset+=393216){const bytes=new Uint8Array(await file.slice(offset,offset+393216).arrayBuffer());let binary="";for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));await call({action:"upload_chunk",upload:begin.upload,offset,data:btoa(binary)});}
-    await browser.storage.local.set({operation:file.name.toLowerCase().endsWith(".pdf")?tx('panel_leyendo_pdf_y_renderizando_paginas'):tx('panel_transcribiendo_o_leyendo_subtitulos_pued')});
+    await browser.storage.local.set({operation:file.name.toLowerCase().endsWith(".pdf")?tx('panel_leyendo_pdf_y_renderizando_paginas'):tx('panel_transcribiendo_o_leyendo_subtitulos_pued'),operationProgress:null});
     const c=await call({action:"upload_finish",upload:begin.upload,pages:$("importPages").value});
     await browser.runtime.sendMessage({type:"adoptUpload",capture:c,work:uploadWork.work,manual:manualImport,...preparation()});
   }catch(error){await browser.runtime.sendMessage({type:'failWork',work:uploadWork.work,error:error.message});throw error;}

@@ -41,7 +41,7 @@ class LinkingTest(base.unittest.TestCase):
         fields['notes']['tema-canvas']={'relations':[path]}
         rendered=self.app.preview(c['id'],fields)['markdown']
         self.assertIn('[[02_Cerebro/Tech_&_Codigo/nota_gsap_ticker]]',rendered)
-        self.assertIn('llm_asistido: true',rendered);self.assertIn('llm_modelo: "gpt-6-luna"',rendered)
+        self.assertIn('llm_asistido: true',rendered);self.assertIn('llm_modelo: "'+self.app.config()['model']+'"',rendered)
         unused=copy.deepcopy(fields);unused['notes']['tema-canvas']={'relations':[],'excluded_links':['tema-reloj']}
         self.assertIn('llm_asistido: false',self.app.preview(c['id'],unused)['markdown'])
         self.assertEqual(self.app.load(c['id'])['bundle']['notes'][0]['body'],A)

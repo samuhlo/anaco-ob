@@ -46,6 +46,7 @@ class CaptionTest(unittest.TestCase):
         self.assertEqual(c['images'][0]['caption_source'],'filename')
 
     def test_html_only_uses_text_model_and_has_no_image_attachments(self):
+        self.app.set_config({'model':'gpt-6-luna'})  # Keep distinct text/vision models to verify routing.
         c=self.app.load(self.capture(images=[self.image(figcaption='Diagrama del flujo de permisos entre identidades y recursos.')])['id'])
         def fake(command,**kwargs):
             self.assertNotIn('--image',command)

@@ -104,6 +104,32 @@ class WorkflowTest(unittest.TestCase):
         self.assertEqual(pending(self.app),[])
         with self.assertRaises(UserError):job.resume()
 
+    def test_dismissed_jobs_stay_out_of_pending_and_cannot_resume(self):
+        job=Job(self.app,'a'*32);job.start({'action':'video_url','url':'https://example.org/video'});job.update(status='failed')
+        self.assertTrue(self.app.handle({'action':'discard_job','job':'a'*32})['discarded'])
+        self.assertEqual(pending(self.app),[])
+        self.assertEqual(Job(self.app,'a'*32).load()['status'],'discarded')
+        with self.assertRaises(UserError):job.resume()
+
+    def test_discard_capture_also_dismisses_its_failed_draft_without_affecting_other_jobs(self):
+        c=self.prepared();job=Job(self.app,'a'*32);job.start({'action':'draft','id':c['id']});job.update(status='failed')
+        other=Job(self.app,'b'*32);other.start({'action':'video_url','url':'https://example.org/other'});other.update(status='interrupted')
+        result=self.app.handle({'action':'discard','id':c['id']})
+        self.assertEqual(result['discarded_jobs'],['a'*32]);self.assertEqual(self.app.load(c['id'])['status'],'discarded')
+        self.assertEqual([j['id'] for j in pending(self.app)],['b'*32])
+        self.assertEqual(self.app.pending(),[])
+        with self.assertRaises(UserError):job.resume()
+
+    def test_active_jobs_and_their_captures_cannot_be_dismissed(self):
+        c=self.prepared();job=Job(self.app,'a'*32);job.start({'action':'draft','id':c['id']})
+        with self.assertRaises(UserError):self.app.handle({'action':'discard_job','job':'a'*32})
+        with self.assertRaises(UserError):self.app.handle({'action':'discard','id':c['id']})
+        self.assertEqual(self.app.load(c['id'])['status'],'draft');self.assertEqual(job.load()['status'],'running')
+        with patch('jobs.os.kill',side_effect=ProcessLookupError):
+            self.assertEqual(pending(self.app)[0]['status'],'interrupted')
+            job.discard()
+        self.assertEqual(pending(self.app),[])
+
     def test_cancellation_during_running_subprocess_terminates_it(self):
         calls=[]
         def check():
