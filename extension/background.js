@@ -61,6 +61,7 @@ async function returnFromOptions(sender) {
 let locateSequence = 0;
 let port;
 let workClaim=null;
+let pendingDiscard=false;
 // Close the sidebar Firefox inherits into a new window, keeping explicit opens.
 const knownSidebarWindows=new Set(),inheritedSidebarWindows=new Set();
 const sidebarInitialization=browser.windows?.getAll?browser.windows.getAll({windowTypes:['normal']}).then(windows=>{for(const w of windows)knownSidebarWindows.add(w.id);}):Promise.resolve();
@@ -82,7 +83,7 @@ const cancelledWork=new Set(),workResources=new Map(),workAbortControllers=new M
 function checkWork(){if(workClaim&&cancelledWork.has(workClaim))throw new Error(tx('bg_trabajo_cancelado_puedes_reanudarlo_desd'));}
 const requests = new Map();
 browser.storage.local.get(["operation","activeWork"]).then(({operation,activeWork}) => {
-  if (operation||activeWork) browser.storage.local.set({activeWork:null,operation:"",operationError:tx('bg_la_preparacion_anterior_se_interrumpio_p')});
+  if (operation||activeWork) browser.storage.local.set({activeWork:null,operation:"",operationProgress:null,operationError:tx('bg_la_preparacion_anterior_se_interrumpio_p')});
 });
 function native(message, timeoutMs=2400000) {
   return new Promise((resolve, reject) => {
@@ -92,7 +93,7 @@ function native(message, timeoutMs=2400000) {
       port.onMessage.addListener(response => {
         const pending = requests.get(response.requestId);
         if (!pending) return;
-        if(response.progress){if(pending.workId===workClaim){const p=response.progress;browser.storage.local.set({operation:typeof p==='string'?p:p.message,operationProgress:typeof p==='object'?{...p,updatedAt:Date.now()}:null});}return;}
+        if(response.progress){if(pending.workId&&pending.workId===workClaim&&!cancelledWork.has(workClaim)){const p=response.progress;browser.storage.local.set({operation:typeof p==='string'?p:p.message,operationProgress:typeof p==='object'?{...p,updatedAt:Date.now()}:null});}return;}
         clearTimeout(pending.timer); requests.delete(response.requestId);
         response.ok ? pending.resolve(response.result) : pending.reject(new Error(response.error));
       });
@@ -111,7 +112,7 @@ function native(message, timeoutMs=2400000) {
 }
 
 async function beginWork(c,operation,showCapture=true){
-  if(workClaim)throw new Error(tx('bg_ya_hay_un_trabajo_en_curso_puedes_seguir'));
+  if(workClaim||pendingDiscard)throw new Error(tx('bg_ya_hay_un_trabajo_en_curso_puedes_seguir'));
   const id=crypto.randomUUID();workClaim=id;++detectionSequence;
   if(typeof AbortController==='function')workAbortControllers.set(id,new AbortController());
   const activeWork={id,title:c.title||tx('bg_captura'),source:c.source||{url:c.url},captureToken:c.token,captureId:c.id,startedAt:Date.now()};
@@ -130,7 +131,7 @@ async function endWork(id,error=null){
 }
 async function cancelWork(){
   if(!workClaim)return;
-  const id=workClaim;cancelledWork.add(id);await browser.storage.local.set({operation:tx('bg_cancelando_el_trabajo_y_conservando_el_a')});
+  const id=workClaim;cancelledWork.add(id);await browser.storage.local.set({operation:tx('bg_cancelando_el_trabajo_y_conservando_el_a'),operationProgress:{stage:'cancel'}});
   workAbortControllers.get(id)?.abort();
   for(const r of workResources.get(id)||[])browser.tabs.executeScript(r.tabId,{frameId:r.frameId,code:`AnacoObResource.close(${JSON.stringify(r.job)});void 0;`}).catch(()=>{});
   const result=await browser.runtime.sendNativeMessage(HOST,{action:'cancel_job',job:id,lang:AnacoObI18n.language()});if(!result.ok)throw new Error(result.error);
@@ -359,10 +360,13 @@ async function embedResources(c,selection,warnings){
   for(const [index,value] of (c.embeds||[]).entries()){
     const {thumbnail,warning,index:_,...item}=value;const selected=chosen.has(index);
     if(!selected||item.type==='tweet'){out.push({...item,selected});continue;}
-    checkWork();await browser.storage.local.set({operation:tx('bg_guardando_recursos_incrustados_1_de_2',[++done,total])});
-    if(item.type==='pen'){out.push({...await penPackage(item,c.source,warnings),selected});continue;}
-    try{out.push({...item,selected,...await clipAsset(item,c.source)});}
-    catch(error){warnings.push(tx('bg_clip_1_no_se_pudo_guardar_2',[item.title,error.message]));out.push({...item,selected:false});}
+    checkWork();await browser.storage.local.set({operation:tx('bg_guardando_recursos_incrustados_1_de_2',[done+1,total]),operationProgress:{stage:'resources',unit:'resources',completed:done,total}});
+    if(item.type==='pen')out.push({...await penPackage(item,c.source,warnings),selected});
+    else try{out.push({...item,selected,...await clipAsset(item,c.source)});}
+    catch(error){checkWork();warnings.push(tx('bg_clip_1_no_se_pudo_guardar_2',[item.title,error.message]));out.push({...item,selected:false});}
+    checkWork();
+    done++;
+    await browser.storage.local.set({operationProgress:{stage:'resources',unit:'resources',completed:done,total}});
   }
   return out;
 }
@@ -373,7 +377,7 @@ async function prepare(message,ownedCapture=null) {
   let c=ownedCapture||capture;
   if(!c)throw new Error(tx('bg_primero_captura_una_pagina_frase_o_image'));
   if(message.token&&c.token!==message.token)throw new Error(tx('bg_la_pestana_cambio_antes_de_preparar_la_n'));
-  if(!c.id&&(c.reader||c.kind==='pdf'||!AnacoObDetection.usable(c)))throw new Error(tx('bg_primero_extrae_el_documento_detectado'));
+  if(!c.id&&(c.reader||c.kind==='pdf'||c.kind==='video'||!AnacoObDetection.usable(c)))throw new Error(tx('bg_primero_extrae_el_documento_detectado'));
   c={...c,intent:message.intent||'',selected_images:message.images||c.selected_images};
   const work=await beginWork(c,tx('bg_preparando_la_propuesta'));
   try {
@@ -397,6 +401,8 @@ async function prepare(message,ownedCapture=null) {
       await publishCapture(c);
     }
     const conversation=message.conversation||(captureModeCache==='podcast'?'on':'auto');
+    checkWork();
+    await browser.storage.local.set({operation:tx('bg_preparando_la_propuesta'),operationProgress:null});
     const result = await native({action: "draft", id: c.id, intent: message.intent, provider: message.provider,images:selected,note_structure:message.note_structure,conversation},c.reader?.job||c.kind==='video'?7200000:2400000);
     localStorage.removeItem("editor:" + c.id);
     result.capture.source = c.source;
@@ -460,6 +466,31 @@ async function locateImage(message) {
 
 async function reviewData(id) {
   return native({action:'review_data',id});
+}
+
+async function discardPending(message){
+  if(workClaim||pendingDiscard)throw new Error(tx('bg_ya_hay_un_trabajo_en_curso'));
+  pendingDiscard=true;
+  try{
+    const result=await native(message.job?{action:'discard_job',job:message.job}:{action:'discard',id:message.id});
+    const {workSources={},sources={},reviews={},currentCapture}=await browser.storage.local.get(['workSources','sources','reviews','currentCapture']);
+    for(const id of message.job?[message.job]:(result.discarded_jobs||[]))delete workSources[id];
+    const update={workSources};
+    if(!message.job){
+      localStorage.removeItem('editor:'+message.id);
+      for(const [key,value] of tabCaptures)if(value.currentCapture?.id===message.id)tabCaptures.delete(key);
+      if(currentCapture?.id===message.id)Object.assign(update,{currentCapture:null,draftResult:null,editorFields:null,operationError:'',operationDiagnostic:null});
+      const reviewTab=reviews[message.id]||reviewSessions[message.id]?.tabId;
+      delete sources[message.id];delete reviews[message.id];delete reviewSessions[message.id];
+      Object.assign(update,{sources,reviews,reviewSessions:{...reviewSessions}});
+      if(reviewTab)try{
+        const tab=await browser.tabs.get(reviewTab);
+        if(tab.url===browser.runtime.getURL('review.html')+'?capture='+encodeURIComponent(message.id))await browser.tabs.remove(tab.id);
+      }catch{} // A closed review does not prevent discarding the capture.
+    }
+    await browser.storage.local.set(update);
+    return result;
+  }finally{pendingDiscard=false;}
 }
 
 async function finishReview(message,sender) {
@@ -578,8 +609,9 @@ async function importResource(message){
         const text=message.kind==='subtitles'?message.text:await subtitleText(message.url,source,message.frameId||0,diagnostic);
         c=await native({action:"subtitles",url:message.pageUrl,title:message.title,text});
       }catch(error){
+        checkWork();
         if(!message.fallback)throw error;
-        await browser.storage.local.set({operation:tx('bg_los_subtitulos_no_estan_disponibles_recu')});
+        await browser.storage.local.set({operation:tx('bg_los_subtitulos_no_estan_disponibles_recu'),operationProgress:null});
         message={...message,...message.fallback};diagnostic.kind=message.kind;diagnostic.resourceHost=resourceHost(message.url);
       }
     }
@@ -589,17 +621,20 @@ async function importResource(message){
       let parts=[],size=0;
       if(message.kind==='video-hls'){
         const {config}=await native({action:'settings'});
-        ({parts,size}=await AnacoObStream.download(message.url,{load:(url,limit)=>resourceBytes(url,source,message.frameId||0,limit,diagnostic),maxSeconds:config.video_minutes*60,onProgress:(n,total)=>{
-          if(n===1||n===total||n%10===0)browser.storage.local.set({operation:tx('bg_recuperando_video_del_curso_segmento_1_d',[n,total])});
+        ({parts,size}=await AnacoObStream.download(message.url,{load:(url,limit)=>resourceBytes(url,source,message.frameId||0,limit,diagnostic),maxSeconds:config.video_minutes*60,onProgress:async(completed,total)=>{
+          checkWork();
+          await browser.storage.local.set({operation:tx('bg_recuperando_video_del_curso_segmento_1_d',[Math.min(completed+1,total),total]),operationProgress:{stage:'download',unit:'segments',completed,total}});
         }}));
       }else{
         ({parts,size}=await resourceBytes(message.url,source,message.frameId||0,100000000,diagnostic));
       }
       const begin=await native({action:"upload_begin",name:message.name||(message.kind==="pdf"?"documento.pdf":"video.mp4"),size,url:message.pageUrl||message.url});
+      await browser.storage.local.set({operation:tx('bg_transfiriendo_archivo'),operationProgress:null});
       await uploadParts(begin.upload,parts);
       await browser.storage.local.set({operation:message.kind==='pdf'?tx('bg_leyendo_las_paginas_del_pdf'):tx('bg_preparando_el_archivo_de_audio'),operationProgress:null});
       c=await native({action:"upload_finish",upload:begin.upload,pages:message.pages||""});
     }
+    checkWork();
     const adopted=await adoptMedia(c,source);
     await endWork(work);return adopted;
   }catch(error){await browser.storage.local.set({operationDiagnostic:diagnostic});await endWork(work,error);throw error;}
@@ -633,7 +668,7 @@ async function extractReader(message){
     const done=new Set(begin.done);
     for(let i=0;i<pages.length;i++){
       if(done.has(i+1))continue;
-      await browser.storage.local.set({operation:tx('bg_extrayendo_pagina_1_de_2',[i+1,pages.length])});
+      await browser.storage.local.set({operation:tx('bg_extrayendo_pagina_1_de_2',[i+1,pages.length]),operationProgress:{stage:'capture',unit:'pages',completed:done.size,total:pages.length}});
       const page=pages[i];
       try{
         const [value]=await browser.tabs.executeScript(c.source.tabId,{frameId:page.frameId,matchAboutBlank:true,code:`AnacoObSurfaces.read(${JSON.stringify(page.id)})`});
@@ -646,9 +681,11 @@ async function extractReader(message){
           for(let at=0;at<data.length;at+=524288){const chunk=data.slice(at,at+524288);await native({action:'reader_chunk',job:begin.job,index:i+1,offset,data:chunk});offset+=atob(chunk).length;}
           await native({action:'reader_page_finish',job:begin.job,index:i+1});
         }
+        checkWork();done.add(i+1);
+        await browser.storage.local.set({operationProgress:{stage:'capture',unit:'pages',completed:done.size,total:pages.length}});
       }catch(error){throw new Error(tx('bg_no_se_ha_podido_leer_la_pagina_1_2_3_las',[i+1,pages.length,error.message]));}
     }
-    await browser.storage.local.set({operation:tx('bg_1_2_paginas_recibidas_preparando_el_cont',[pages.length,pages.length])});
+    await browser.storage.local.set({operation:tx('bg_1_2_paginas_recibidas_preparando_el_cont',[pages.length,pages.length]),operationProgress:null});
     const result=await native({action:'reader_finish',job:begin.job});
     return await adoptMedia(result,c.source);
   }catch(error){failure=error;throw error;}
@@ -733,7 +770,9 @@ browser.runtime.onMessage.addListener((message, sender) => {
   })();
   if(message.type==='failWork')return endWork(message.work,new Error(message.error));
   if(message.type==='cancelWork')return cancelWork();
+  if(message.type==='discardPending')return discardPending(message);
   if(message.type==='resumeJob')return (async()=>{
+    if(workClaim||pendingDiscard)throw new Error(tx('bg_ya_hay_un_trabajo_en_curso'));
     const request=await native({action:'resume_job',job:message.job});const {workSources={}}=await browser.storage.local.get('workSources');const info=workSources[message.job]||{title:tx('bg_trabajo_recuperado')};
     const work=await beginWork({...info,source:info.source},tx('bg_reanudando_el_trabajo'),false);
     try{
@@ -775,6 +814,8 @@ browser.runtime.onMessage.addListener((message, sender) => {
   if (message.type === "captureActive") return browser.tabs.query({active:true,currentWindow:true}).then(([tab]) => capture(tab, message.input));
   if (message.type === "capturePdfActive") return browser.tabs.query({active:true,currentWindow:true}).then(([tab]) => capturePdf(tab));
   if (message.type === "resume") return native({action:"load",id:message.id}).then(async c => {
+    if(workClaim||pendingDiscard)throw new Error(tx('bg_ya_hay_un_trabajo_en_curso'));
+    if(c.status==='discarded'||c.status==='saved')throw new Error(tx('bg_captura_ya_no_pendiente'));
     const {sources={}}=await browser.storage.local.get("sources");c.source=sources[c.id];
     await browser.storage.local.set({editorFields:null,operationError:"",pageContext:{...c.source,status:"ready"}});
     await publishCapture(c,c.draft?{capture:c,draft:c.draft,folders:(await native({action:"status"})).folders}:null);

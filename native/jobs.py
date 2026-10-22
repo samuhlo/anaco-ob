@@ -12,6 +12,16 @@ from translation import t
 class Cancelled(UserError):
     def __init__(self):super().__init__(t('Trabajo cancelado. Puedes reanudarlo desde Trabajos recuperables.'))
 
+def running(value):
+    if value.get('status')!='running':return False
+    pid=value.get('pid')
+    if not isinstance(pid,int) or pid<=0:return False
+    try:os.kill(pid,0)
+    except ProcessLookupError:return False
+    except PermissionError:return True
+    except (OSError,ValueError):return False
+    return True
+
 class Job:
     def __init__(self,app,identifier):
         if not re.fullmatch(r'[a-f0-9-]{32,36}',str(identifier)):raise UserError('Trabajo no válido.')
@@ -29,20 +39,34 @@ class Job:
         self.check();self.update(status='running',pid=os.getpid(),action=message.get('action'),request={k:v for k,v in message.items() if k not in ('requestId','data','capture')})
     def cancel(self):
         self.load();(self.directory/'cancel').touch(mode=0o600);return {'cancel_requested':True}
+    def assert_inactive(self):
+        if running(self.load()):raise UserError('El trabajo sigue en curso. Cancélalo antes de descartarlo.')
+    def discard(self):
+        self.assert_inactive();self.update(status='discarded');return {'discarded':True}
     def resume(self):
-        value=self.load();(self.directory/'cancel').unlink(missing_ok=True)
+        value=self.load()
+        if value.get('status') in ('complete','discarded'):raise UserError('Este trabajo ya no está pendiente.')
         if value.get('action') not in ('upload_finish','draft','video_url'):raise UserError('Repite la extracción desde la página original; sus páginas recibidas se conservan.')
+        (self.directory/'cancel').unlink(missing_ok=True)
         self.update(status='pending');return value['request']
+
+def capture_jobs(app,identifier):
+    result=[]
+    for path in (app.state/'jobs').glob('*/job.json'):
+        try:
+            value=json.loads(path.read_text())
+            if value.get('vault')==str(app.vault()) and value.get('action')=='draft' and value.get('request',{}).get('id')==identifier and value.get('status') not in ('complete','discarded'):
+                result.append(Job(app,path.parent.name))
+        except (OSError,ValueError):continue
+    return result
 
 def pending(app):
     result=[]
     for path in (app.state/'jobs').glob('*/job.json'):
         try:
             value=json.loads(path.read_text())
-            if value.get('vault')!=str(app.vault()) or value.get('status') in ('complete',):continue
-            if value.get('status')=='running':
-                try:os.kill(value.get('pid',0),0)
-                except (OSError,ValueError):value['status']='interrupted'
+            if value.get('vault')!=str(app.vault()) or value.get('status') in ('complete','discarded'):continue
+            if value.get('status')=='running' and not running(value):value['status']='interrupted'
             if value.get('action') in ('upload_finish','draft','video_url'):
                 result.append({k:value.get(k) for k in ('id','action','status','updated')})
         except (OSError,ValueError):continue

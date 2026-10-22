@@ -31,3 +31,15 @@ test('HLS uses the same selected transport for manifests and segments with remai
  assert.equal(result.size,4);assert.deepEqual(calls.map(c=>c[1]),[2000000,5,3]);
  await assert.rejects(stream.download('https://player.example/video.m3u8',{maxBytes:4,load}),/100 MB/);
 });
+
+test('HLS counts only downloaded segments and a failed segment never completes the phase',async()=>{
+ const updates=[];
+ const load=async url=>{
+  if(url.endsWith('.m3u8')){const bytes=new TextEncoder().encode('#EXTM3U\n#EXTINF:2,\na.ts\n#EXTINF:2,\nb.ts\n#EXT-X-ENDLIST');return {parts:[bytes],size:bytes.length};}
+  assert.equal(updates.at(-1)[0],url.endsWith('a.ts')?0:1);
+  if(url.endsWith('b.ts'))throw new Error('interrupted');
+  return {parts:[new Uint8Array(2)],size:2};
+ };
+ await assert.rejects(stream.download('https://player.example/video.m3u8',{load,onProgress:async(done,total)=>{await Promise.resolve();updates.push([done,total]);}}),/interrupted/);
+ assert.deepEqual(updates,[[0,2],[1,2]]);
+});

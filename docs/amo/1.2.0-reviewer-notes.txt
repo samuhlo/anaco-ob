@@ -1,0 +1,38 @@
+Anaco 1.2.0 — Notes to Reviewer
+
+Changes since 1.1.0:
+- A simpler sidebar and explicit choice of text, PDF, video or reader on mixed-content pages; persistent dismissal of pending captures and interrupted jobs.
+- YouTube extraction obtains the full available subtitles or falls back to local speech transcription. The video description, comments and partially played browser captions are not treated as a complete transcript.
+- Phase-specific progress and more reliable cancellation and recovery.
+- The local companion reads long podcast transcripts in two concurrent stretches, using a separately configurable Codex reading model (GPT-6 Luna by default); the final note uses GPT-6.1 Sol by default. Both default to medium reasoning. Equivalent captures can reuse completed readings. Large vault instruction documents are compacted once and cached; failed or incomplete compilation falls back to the originals. Transcript, quote and relationship-evidence checks remain in place.
+
+The requested permissions, extension ID, Native Messaging host name and data categories are unchanged. There are no servers operated by Anaco, analytics or telemetry. Captured content, selected vault instructions and relevant candidate-note excerpts reach an AI provider only when the user chooses an AI mode. Manual mode needs no AI account. The extension does not download or execute remote JavaScript; downloads of media and offline demos are user-selected note resources, not extension code.
+
+Local companion:
+The extension communicates with org.samuh.anaco_ob using Native Messaging. The companion source is in native/ and anaco_ob/ in the attached matching source archive and at https://github.com/samuhlo/anaco-ob (MIT). Install or update the companion to 1.2.0 for this add-on. The welcome page provides commands that the user runs in a terminal; the extension itself does not install or execute programs. Speech transcription uses local Faster Whisper; it does not upload audio to a transcription API.
+
+Account-free testing on Linux:
+1. Extract anaco-ob-1.2.0-sources.zip and open a terminal in its root. Python 3.12 or newer is suitable.
+2. Run: python3 -m venv .review-venv
+3. Run: .review-venv/bin/python -m pip install .
+4. Create an empty test vault folder and run: .review-venv/bin/anaco-ob install --vault /absolute/path/to/test-vault
+5. In the extension Options, switch the interface language to English if desired, select Manual capture / no AI and save. In Vault profile, scan the vault, use the automatic proposal without AI, review it and confirm the profile.
+6. Open a normal article page, open Anaco, prepare a manual note, review/edit it and save. Check the Markdown file in the test vault. Pending captures can be discarded from the sidebar.
+On Windows, use the executables under .review-venv\Scripts\ instead of .review-venv/bin/. The installer registers Native Messaging for Firefox and Zen on Linux, macOS and Windows. AI testing is optional and requires the reviewer's own Codex login, API credentials or a local compatible model; no account credentials are embedded or supplied.
+
+Build and sources:
+The attached source archive includes the exact first-party source, package-lock.json, native companion and AMO_BUILD.md. First-party extension JavaScript is not bundled, transpiled or obfuscated. extension/i18n-catalog.js is generated from extension/_locales/*/messages.json by python3 scripts/i18n.py build. Rebuild with npm ci, npm run vendor, python3 scripts/i18n.py build and npm run build. Compare extracted ZIP entries, as archive timestamps may differ.
+
+Unmodified third-party distributions, with exact pinned versions:
+- extension/vendor/marked.js: marked 18.1.1, lib/marked.umd.js. Distribution: https://registry.npmjs.org/marked/-/marked-18.1.1.tgz ; readable source: https://github.com/markedjs/marked/tree/v18.1.1/src
+- extension/vendor/purify.js: DOMPurify 3.4.17, dist/purify.min.js. Distribution: https://github.com/cure53/DOMPurify/blob/3.4.17/dist/purify.min.js ; readable distribution: https://github.com/cure53/DOMPurify/blob/3.4.17/dist/purify.js ; source: https://github.com/cure53/DOMPurify/tree/3.4.17/src
+scripts/vendor.mjs copies these distributions and their licenses from npm without modification. Rendered Markdown is sanitized with DOMPurify.
+
+Permission purposes:
+- activeTab, tabs and webNavigation: detect content and frames of the active tab when Anaco is opened.
+- Optional <all_urls>, requested per site at runtime: access cross-origin frames, images and media the user selects.
+- menus: capture quote/image context-menu items.
+- storage: local sidebar state, editing state and pending captures.
+- nativeMessaging: communicate with the local companion that processes captures and writes reviewed notes into the selected vault.
+
+Privacy policy: https://github.com/samuhlo/anaco-ob/blob/main/PRIVACY.md

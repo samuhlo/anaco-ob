@@ -37,6 +37,46 @@ test('generation continues while tab detection changes and its result stays with
  assert.equal(data.currentCapture.id,'draft-1');assert.equal(data.draftResult.draft.body,'Summary');
 });
 
+test('dismissing a pending capture clears its editor, review and tab cache, preserving unrelated captures',async()=>{
+ const {ctx,data}=app(),removed=[],editors=[],calls=[];
+ const c={...capture(1),id:'pending-1',source:{tabId:1,url:tab(1).url}};
+ ctx.c=c;ctx.other={...capture(2),id:'pending-2',source:{tabId:2,url:tab(2).url}};
+ ctx.localStorage={removeItem:key=>editors.push(key)};
+ ctx.browser.tabs.get=async id=>({id,url:'moz-extension://test/review.html?capture=pending-1'});
+ ctx.browser.tabs.remove=async id=>removed.push(id);
+ ctx.native=async m=>{calls.push(m);return {discarded:true,discarded_jobs:['draft-job']};};
+ await vm.runInContext('publishCapture(c);publishCapture(other)',ctx);
+ Object.assign(data,{currentCapture:c,draftResult:{draft:{}},editorFields:{body:'draft'},sources:{'pending-1':{},'pending-2':{}},reviews:{'pending-1':23,'pending-2':24},workSources:{'draft-job':{},'other-job':{}}});
+ await vm.runInContext('discardPending({id:"pending-1"})',ctx);
+ assert.equal(calls[0].action,'discard');assert.equal(data.currentCapture,null);assert.equal(data.draftResult,null);assert.equal(data.editorFields,null);
+ assert.deepEqual(removed,[23]);assert.deepEqual(editors,['editor:pending-1']);
+ assert.deepEqual(Object.keys(data.sources),['pending-2']);assert.deepEqual(Object.keys(data.reviews),['pending-2']);assert.deepEqual(Object.keys(data.workSources),['other-job']);
+ assert.equal(vm.runInContext('tabCaptures.has("1:https://course.example/page-1")',ctx),false);
+ assert.equal(vm.runInContext('tabCaptures.get("2:https://course.example/page-2").currentCapture.id',ctx),'pending-2');
+});
+
+test('dismissing a failed job preserves the current capture and blocks competing work until done',async()=>{
+ const {ctx,data}=app();let finish;const calls=[];ctx.owner=capture(1);data.currentCapture=ctx.owner;
+ data.workSources={'failed-job':{},'other-job':{}};
+ ctx.native=m=>{calls.push(m);return new Promise(resolve=>{finish=resolve;});};
+ const dismiss=vm.runInContext('discardPending({job:"failed-job"})',ctx);
+ await assert.rejects(vm.runInContext('beginWork(owner,"Preparing")',ctx),/en curso/);
+ await assert.rejects(vm.runInContext('discardPending({job:"other-job"})',ctx),/en curso/);
+ finish({discarded:true});await dismiss;
+ assert.equal(calls[0].action,'discard_job');assert.equal(data.currentCapture,ctx.owner);assert.deepEqual(Object.keys(data.workSources),['other-job']);
+ ctx.native=async()=>{throw new Error('native failed');};
+ await assert.rejects(vm.runInContext('discardPending({job:"other-job"})',ctx),/native failed/);
+ assert.deepEqual(Object.keys(data.workSources),['other-job']);assert.equal(vm.runInContext('pendingDiscard',ctx),false);
+});
+
+test('a pending capture cannot be dismissed while generation is active',async()=>{
+ const {ctx,data}=app();ctx.owner=capture(1);let calls=0;
+ await vm.runInContext('beginWork(owner,"Preparing")',ctx);
+ ctx.native=async()=>{calls++;};
+ await assert.rejects(vm.runInContext('discardPending({id:"pending-1"})',ctx),/en curso/);
+ assert.equal(calls,0);assert.equal(data.operation,'Preparing');
+});
+
 test('unavailable subtitle tracks fall back to the already authorized audio resource',async()=>{
  const {ctx,data}=app();ctx.btoa=btoa;
  data.currentCapture={...capture(1),source:{tabId:1,url:tab(1).url,windowId:1}};
@@ -63,6 +103,48 @@ test('resource extraction rejects a click belonging to an older tab',async()=>{
  ctx.request={kind:'pdf',url:'https://course.example/old.pdf',token:'old-page'};
  await assert.rejects(vm.runInContext('importResource(request)',ctx),/pestaña cambió/);
  assert.equal(data.operation,undefined);
+});
+
+test('an unextracted platform video cannot prepare a note from page metadata',async()=>{
+ const {ctx,data}=app();
+ data.currentCapture={...capture(1),kind:'video',contentReady:true};
+ await assert.rejects(vm.runInContext('prepare({})',ctx),/Primero extrae/);
+ assert.equal(data.operation,undefined);
+});
+
+test('native progress retains counts, clears legacy phase data and cannot overwrite cancellation',async()=>{
+ const {ctx,data}=app();let receive;const sent=[];
+ ctx.browser.runtime.connectNative=()=>({onMessage:{addListener(fn){receive=fn;}},onDisconnect:{addListener(){}},postMessage(m){sent.push(m);}});
+ ctx.browser.runtime.sendNativeMessage=async()=>({ok:true});
+ ctx.owner={...capture(1),source:{tabId:1,url:tab(1).url}};
+ await new Promise(resolve=>setImmediate(resolve));
+ await vm.runInContext('beginWork(owner,"Preparing")',ctx);
+ const pending=vm.runInContext('native({action:"draft"})',ctx);
+ const requestId=sent[0].requestId;
+ receive({requestId,progress:{stage:'reading',unit:'stretches',completed:1,total:7,message:'Reading 2/7'}});
+ assert.equal(data.operationProgress.completed,1);assert.equal(data.operationProgress.total,7);
+ receive({requestId,progress:'Legacy synthesis'});
+ assert.equal(data.operation,'Legacy synthesis');assert.equal(data.operationProgress,null);
+ await vm.runInContext('cancelWork()',ctx);
+ const operation=data.operation;
+ receive({requestId,progress:{stage:'reading',unit:'stretches',completed:2,total:7,message:'Late reading'}});
+ assert.equal(data.operation,operation);assert.equal(data.operationProgress.stage,'cancel');
+ const rejected=assert.rejects(pending,/cancelled/);receive({requestId,ok:false,error:'cancelled'});await rejected;
+});
+
+test('cancelling a subtitle request does not start its audio fallback',async()=>{
+ const {ctx,data}=app();let fail;const calls=[];
+ ctx.browser.runtime.sendNativeMessage=async()=>({ok:true});
+ ctx.native=async message=>{calls.push(message.action);return {};};
+ ctx.subtitleText=()=>new Promise((resolve,reject)=>{fail=reject;});
+ data.currentCapture={...capture(1),source:{tabId:1,url:tab(1).url}};
+ ctx.request={kind:'subtitle-url',url:'https://media.example/captions.vtt',fallback:{kind:'video-platform',url:'https://www.youtube.com/watch?v=abcdefghijk'}};
+ const pending=vm.runInContext('importResource(request)',ctx);
+ const rejected=assert.rejects(pending,/cancelado/i);
+ await new Promise(resolve=>setImmediate(resolve));
+ await vm.runInContext('cancelWork()',ctx);fail(new Error('request stopped'));
+ await rejected;
+ assert.ok(!calls.includes('video_url'));assert.equal(data.operation,'');
 });
 
 test('automatic reader mutations do not clear or rebuild the current capture',async()=>{

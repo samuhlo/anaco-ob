@@ -82,16 +82,19 @@ class ReaderTest(core_tests.unittest.TestCase):
     def test_failed_batch_keeps_previous_reading_without_claiming_completion(self):
         reader, job = self.book(18)
         c = reader.finish({'job': job})
-        calls = []
+        calls = [];events=[];self.app.progress=events.append
         with patch.object(self.app, 'codex_generate', side_effect=self.fake_generation(calls, fail_at=13)):
             with self.assertRaisesRegex(UserError, 'interrumpida'):
                 self.app.draft(c['id'], provider='codex')
         self.assertNotIn('analyzed_pages', self.app.load(c['id'])['reader'])
+        self.assertEqual([p['completed'] for p in events],[0,6,12])
+        events.clear()
         calls = []
         with patch.object(self.app, 'codex_generate', side_effect=self.fake_generation(calls)):
             self.app.draft(c['id'], provider='codex')
         self.assertEqual([pages for scope, pages, _ in calls if scope == 'batch'], [[13, 14, 15, 16, 17, 18]])
         self.assertEqual(self.app.load(c['id'])['reader']['analyzed_pages'], 18)
+        self.assertEqual(events[-2]['completed'],18);self.assertEqual(events[-1]['stage'],'synthesis')
 
     def test_cross_vault_job_and_changed_snapshot_are_rejected(self):
         reader, job = self.book(1)

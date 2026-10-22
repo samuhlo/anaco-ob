@@ -8,10 +8,12 @@ globalThis.AnacoObCapture = async (input = {}) => {
   const bookRoot=document.querySelector('.pdfViewer,.pdf2htmlEX,.book-content,.flipbook,[data-reader],.reveal .slides,#page-container');
   const courseRoot = document.querySelector('#wiki_page_show .show-content,.user_content,#region-main .no-overflow,#region-main .content');
   const providerHost=/(^|\.)contentcontroller\.com$/.test(location.hostname);
+  const platformPage=AnacoObMedia.platformURL(location.href);
   const root = bookRoot || courseRoot || document.querySelector("article") || document.querySelector("main,[role=main]") || document.body;
-  const readerHint=Boolean(bookRoot||providerHost||(!document.querySelector('article')&&root.querySelector('canvas')));
+  // Player canvases (ambient light, previews, overlays) are not book pages.
+  const readerHint=!platformPage&&Boolean(bookRoot||providerHost||(!document.querySelector('article')&&!root.querySelector('video,audio')&&root.querySelector('canvas')));
   // Course mode and nested frames never receive input.embeds; their capture is unchanged.
-  const embeds=input.embeds===true&&!readerHint&&!input.kind?AnacoObEmbeds.collect(root,{visible:AnacoObSurfaces.visible,absolute}):[];
+  const embeds=input.embeds===true&&!readerHint&&!platformPage&&!input.kind?AnacoObEmbeds.collect(root,{visible:AnacoObSurfaces.visible,absolute}):[];
   const clone = root.cloneNode(true);
   // Remove hidden course pages before converting the clone to Markdown.
   const originals=[...root.querySelectorAll('*')], copies=[...clone.querySelectorAll('*')];
@@ -73,21 +75,24 @@ globalThis.AnacoObCapture = async (input = {}) => {
     const aria_description=(img.getAttribute('aria-describedby')||'').split(/\s+/).map(id=>document.getElementById(id)?.textContent?.trim()||'').filter(Boolean).join(' ');
     return {imageId,thumbnail,url:absolute(img.currentSrc || img.src),alt:img.alt||"",figcaption,aria_description,aria_label:img.getAttribute('aria-label')||'',title:img.title||'',width:img.naturalWidth,height:img.naturalHeight};
   }
-  const images = readerHint?[]:[...root.querySelectorAll("img")].filter(img=>AnacoObSurfaces.visible(img)&&!img.closest(ignored)&&!/\b(logo|avatar|profile picture)\b/i.test(img.alt||'')).map(describeImage)
+  const images = readerHint||platformPage?[]:[...root.querySelectorAll("img")].filter(img=>AnacoObSurfaces.visible(img)&&!img.closest(ignored)&&!/\b(logo|avatar|profile picture)\b/i.test(img.alt||'')).map(describeImage)
     .filter(img => img.url && !seen.has(img.url) && seen.add(img.url) && (img.width >= 100 || img.height >= 100));
-  const inventory=AnacoObSurfaces.inventory(root);
+  const inventory=readerHint?AnacoObSurfaces.inventory(root):{pages:[],overflow:false};
   if(readerHint)globalThis.AnacoObReaderRoot=root;
-  const rendered=readerHint?{images:[],canvas:inventory.pages.filter(p=>p.type==='canvas').length,svg:inventory.pages.filter(p=>p.type==='svg').length,backgrounds:inventory.pages.filter(p=>p.type==='background').length,blocked:0,limited:false,failures:[]}:await AnacoObSurfaces.collect(root,images);
+  const rendered=readerHint||platformPage?{images:[],canvas:inventory.pages.filter(p=>p.type==='canvas').length,svg:inventory.pages.filter(p=>p.type==='svg').length,backgrounds:inventory.pages.filter(p=>p.type==='background').length,blocked:0,limited:false,failures:[]}:await AnacoObSurfaces.collect(root,images);
   const rasterizedSVG=new Set(rendered.images.filter(i=>i.data).map(i=>i.imageId));
   // Converted SVG <img> replaces its original unsupported SVG resource.
   const convertedNodes=[...root.querySelectorAll('img')].filter(n=>rasterizedSVG.has(n.dataset.anacoObImage));
   for(const node of convertedNodes){const index=images.findIndex(i=>i.url===(node.currentSrc||node.src));if(index>=0)images.splice(index,1);}
   images.push(...rendered.images);
-  let kind = input.kind || "article";
+  let kind = input.kind || (platformPage?"video":"article");
   let text = md(clone).replace(/\n{3,}/g, "\n\n").trim();
   codeBlocks.forEach((block,index)=>{text=text.replace(codeToken+':'+index,()=>block);});
   let context = "";
   let selectedImages = images;
+  // Titles, comments and recommendations are not the video's transcript.
+  // Only extraction may make a platform video ready for note preparation.
+  if(platformPage&&!input.kind)text="";
   if (kind === "quote") { text = quote; context = (contextNode?.textContent || "").trim().slice(0,5000); selectedImages = []; }
   if (kind === "image") {
     const target = [...document.images].find(img => (img.currentSrc || img.src) === input.src);
@@ -132,7 +137,9 @@ globalThis.AnacoObCapture = async (input = {}) => {
   }
   for(const video of document.querySelectorAll('video,audio')){
     if(video.closest('[data-anaco-ob-embed]'))continue;
-    let src=absolute(video.currentSrc||video.src||video.querySelector('source')?.src);
+    // Platform extraction uses the public page URL, not internal blob/ad players.
+    if(platformPage&&videos.some(v=>v.url===platformPage))continue;
+    let src=platformPage||absolute(video.currentSrc||video.src||video.querySelector('source')?.src);
     const tracks=[...video.querySelectorAll('track')].map(track=>({url:absolute(track.src),language:track.srclang,label:track.label})).filter(track=>track.url);
     let cues='';for(const track of video.textTracks||[]){try{if(track.cues?.length)cues+=[...track.cues].map(c=>`${new Date(c.startTime*1000).toISOString().slice(11,23)} --> ${new Date(c.endTime*1000).toISOString().slice(11,23)}\n${c.text}\n`).join('\n');}catch{}}
     // MediaSource players often expose blob: while the actual source was loaded
@@ -146,7 +153,7 @@ globalThis.AnacoObCapture = async (input = {}) => {
       unavailableReason:extractable?'':dash?tx('capture_este_reproductor_usa_dash_todavia_no_se_'):tx('capture_el_reproductor_esta_presente_pero_todavi'),
       duration:Number.isFinite(video.duration)?video.duration:null,poster:absolute(video.poster)});
   }
-  if(/(?:youtube\.com\/watch|youtu\.be\/|vimeo\.com\/\d+)/i.test(location.href))addVideo({url:location.href,title:document.title,tracks:[]});
+  if(platformPage)addVideo({url:platformPage,title:document.title,tracks:[],extractable:true});
   const drive=location.href.match(/drive\.google\.com\/file\/d\/([^/?#]+)/);
   if(drive){addVideo({url:location.href,download:'https://drive.google.com/uc?export=download&id='+encodeURIComponent(drive[1]),title:document.title,tracks:[]});const index=videos.findIndex(v=>v.download);if(index>0)videos.unshift(...videos.splice(index,1));}
   if(document.contentType==='application/pdf')addDocument(location.href,document.title);
@@ -163,7 +170,7 @@ globalThis.AnacoObCapture = async (input = {}) => {
   if(rendered.limited)warnings.push(tx('capture_la_captura_visual_del_lector_ha_alcanzad'));
   if(rendered.blocked)warnings.push(tx('capture_el_navegador_impide_leer_1_superficies',[rendered.blocked]));
   const contentReady=!loginPage && (kind==='quote'?Boolean(text.trim()):kind==='image'?Boolean(selectedImages[0]?.url):
-    (!courseShell && text.replace(/https?:\/\/\S+/g,'').length>=120 && text.split(/\s+/).length>=18) || (!courseShell&&selectedImages.length>0));
+    (!platformPage&&!courseShell && text.replace(/https?:\/\/\S+/g,'').length>=120 && text.split(/\s+/).length>=18) || (!platformPage&&!courseShell&&selectedImages.length>0));
   if (root === document.body && kind === "article") warnings.push(tx('capture_no_se_detecto_un_articulo_principal_revi'));
   const untouchedMedia=[...document.querySelectorAll('video,iframe')].filter(n=>!embeds.length||!(n.closest('[data-anaco-ob-embed]')||AnacoObEmbeds.embedFrame(n.src)||!AnacoObSurfaces.visible(n)));
   for(const node of root.querySelectorAll('[data-anaco-ob-embed]'))delete node.dataset.anacoObEmbed;

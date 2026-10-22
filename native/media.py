@@ -104,6 +104,10 @@ def link_times(text,url,duration=None):
         # A range [49:00–55:41] opens the video where it starts.
         return f"[{match.group(1)}{match.group(2) or ''}](https://www.youtube.com/watch?v={video}&t={seconds}s)"
     time=r'(?:\d{1,2}:)?\d{1,2}:[0-5]\d'
+    mark=time+r'(?:\s*[–-]\s*'+time+r')?'
+    # A thematic paragraph may cite several moments; each needs its own target.
+    text=re.sub(r'(?<![\[!\w])\[('+mark+r'(?:\s*;\s*'+mark+r')+)\](?!\()',
+                lambda m:'; '.join('['+part.strip()+']' for part in m.group(1).split(';')),text)
     return re.sub(r'(?<![\[!\w])\[('+time+r')(\s*[–-]\s*'+time+r')?\](?!\()',replace,text)
 
 
@@ -210,13 +214,18 @@ class Media:
         match=re.search(r"^Pages:\s+(\d+)",info,re.M)
         if not match:raise UserError("No se pudo obtener el número de páginas del PDF.")
         total=int(match[1]);cfg=self.app.config();pages=page_range(ranges,total,cfg["pdf_page_limit"])
-        texts={p:self.run(["pdftotext","-f",str(p),"-l",str(p),"-layout",str(path),"-"]).decode(errors="replace").strip() for p in pages}
+        texts={}
+        for index,p in enumerate(pages):
+            self.app.progress({'stage':'pdf-text','unit':'pages','completed':index,'total':len(pages),'message':t('Extrayendo texto de la página {page} del PDF…',page=p)})
+            texts[p]=self.run(["pdftotext","-f",str(p),"-l",str(p),"-layout",str(path),"-"]).decode(errors="replace").strip()
+        self.app.progress({'stage':'pdf-text','unit':'pages','completed':len(pages),'total':len(pages),'message':t('Texto del PDF extraído.')})
         budget=min(cfg["pdf_visual_pages"],len(pages))
         priorities=sorted(pages,key=lambda p:(bool(re.search(r"figura|diagram|figure|gr[aá]fic|esquema|table",texts[p],re.I)),len(texts[p])<100),reverse=True)
         # Ensure both ends are considered; the remaining pages favor diagrams/scans.
         visual=list(dict.fromkeys([pages[0],pages[-1]]+priorities))[:budget]
         images=[];warnings=[]
-        for p in sorted(visual):
+        for index,p in enumerate(sorted(visual)):
+            self.app.progress({'stage':'pdf-images','unit':'pages','completed':index,'total':len(visual),'message':t('Preparando la imagen de la página {page} del PDF…',page=p)})
             prefix=path.parent/f"page-{p}"
             self.run(["pdftoppm","-f",str(p),"-l",str(p),"-scale-to","1600","-jpeg","-jpegopt","quality=82","-singlefile",str(path),str(prefix)])
             raw=prefix.with_suffix(".jpg").read_bytes()
@@ -224,6 +233,7 @@ class Media:
             if len(texts[p])<40 and shutil.which("tesseract"):
                 try:texts[p]=self.run(["tesseract",str(prefix.with_suffix('.jpg')),"stdout"],timeout=60).decode(errors="replace").strip()
                 except UserError:pass
+        self.app.progress({'stage':'pdf-images','unit':'pages','completed':len(visual),'total':len(visual),'message':t('Imágenes del PDF preparadas.')})
         if len(pages)<total:warnings.append(t("PDF de {total} páginas. Se han procesado las páginas {pages}; no es un resumen del documento completo.",total=total,pages=','.join(map(str,pages))))
         missing=[p for p in pages if len(texts[p])<40 and p not in visual]
         if missing:warnings.append(t("Hay páginas sin texto extraíble y sin captura visual: {pages}. Selecciona un rango menor para analizarlas.",pages=", ".join(map(str,missing))))
@@ -268,13 +278,15 @@ class Media:
         if not result["segments"]:raise UserError("No se ha detectado voz en el archivo.")
         images=[]
         if any(s.get("codec_type")=="video" for s in info.get("streams",[])):
-            self.app.progress({'stage':'frames','message':t('Transcripción terminada. Extrayendo fotogramas…')})
-            for n,second in enumerate([duration*.15,duration*.5,duration*.85][:self.app.config()["video_frames"]]):
-                output=path.parent/f"frame-{n}.jpg"
+            points=[duration*.15,duration*.5,duration*.85][:self.app.config()["video_frames"]]
+            for index,second in enumerate(points):
+                self.app.progress({'stage':'frames','unit':'frames','completed':index,'total':len(points),'message':t('Transcripción terminada. Extrayendo fotogramas…')})
+                output=path.parent/f"frame-{index}.jpg"
                 try:
                     self.run(["ffmpeg","-v","error","-y","-ss",str(second),"-i",str(path),"-frames:v","1","-vf","scale=1280:-2",str(output)])
                     if output.exists():images.append({"data":base64.b64encode(output.read_bytes()).decode(),"alt":n("Fotograma en {time}",time=stamp(second)),"timestamp":second})
                 except UserError:self.app.check_cancel()
+            if points:self.app.progress({'stage':'frames','unit':'frames','completed':len(points),'total':len(points),'message':t('Fotogramas procesados.')})
         return self.transcript_capture(result["segments"],title,url,n("Transcripción local con Whisper {model}",model=self.app.config()["asr_model"]),images,{"duration_seconds":duration,"language":result.get("language"),"coverage":n("Audio del archivo completo")},chapters,author)
 
     def video_url(self,message):
