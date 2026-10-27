@@ -122,7 +122,7 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 
 ## // 06_ INICIO_RÁPIDO
 
-Instala la extensión en Zen o Firefox. Hasta que esté publicada en addons.mozilla.org: `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal** → `extension/manifest.json`. Al instalarla se abre la bienvenida, que explica por qué hace falta el servicio local, te da la línea para instalarlo en tu sistema, detecta sola cuándo responde y te deja elegir el vault y la IA. Si algo falta más adelante, el panel lleva de vuelta a ese paso.
+Instala [Anaco desde Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/) en Zen o Firefox. Al instalarla se abre la bienvenida, que explica por qué hace falta el servicio local, te da la línea para instalarlo en tu sistema, detecta sola cuándo responde y te deja elegir el vault y la IA. Si algo falta más adelante, el panel lleva de vuelta a ese paso.
 
 <p align="center">
   <img src="docs/amo/4-bienvenida.png" alt="Dos pasos de la bienvenida: por qué Anaco necesita una pieza en tu ordenador, y la línea de instalación con su botón de copiar mientras espera al servicio" width="820" />
@@ -181,7 +181,7 @@ docs/          # Historial, validación, notas técnicas y capturas
 
 ## // 08_ TESTS · DOCS · ESTADO · LICENCIA
 
-- **Estado:** 1.2.0 preparada para subir a addons.mozilla.org. Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
+- **Estado:** 1.2.0 disponible en [Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/). Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
 - **Docs:** [guía de prueba](PRUEBA.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md), [contrato editorial de la IA](skills/anaco-ob/SKILL.md) y [publicación en AMO](docs/amo/README.md).
 - **Licencia:** [MIT](LICENSE).
 
