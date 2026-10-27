@@ -1,6 +1,6 @@
 <div align="center">
   <br />
-  <img src="extension/logo.svg" alt="Logo de Anaco: «Anac» con la O sustituida por un cristal facetado amarillo" height="56" />
+  <img src="docs/brand/logo-firma.svg" alt="Logo de Anaco: «ANAC» y una O dentro de una piedra amarilla, con la firma «second brain»" height="84" />
   <h1><code>./ANACO.sh</code></h1>
 
 **Captura artículos, cursos, PDF y vídeos desde el navegador y los convierte en notas revisadas para tu vault de Obsidian, con su procedencia, sus recursos y relaciones que puedes comprobar.**
