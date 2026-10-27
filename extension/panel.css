@@ -3,7 +3,7 @@
 .panel-page .panel-header{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:12px;padding:0;margin:2px 0 20px}
 .panel-page .panel-header:before,.panel-page .panel-header:after{display:none}
 .panel-identity{display:flex;flex-direction:column;gap:6px;min-width:0}
-.panel-page .brand img{height:27px;max-width:100%}
+.panel-page .brand img{height:32px;max-width:100%}
 .service-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);line-height:1.4;overflow-wrap:anywhere}
 .service-status:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--line-strong);flex-shrink:0}
 #connection.service-status[data-state=ready]:before{background:var(--ok)}
