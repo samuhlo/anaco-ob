@@ -127,3 +127,9 @@ El panel cambia entre **Esta página** y **Varios enlaces** con un selector. La 
 La cola muestra estado, progreso y recuento con una sola acción principal según el momento: continuar, revisar los pendientes, reintentar los fallidos o preparar otros enlaces. Las acciones poco frecuentes pasan al menú **Más**. Cada fila lleva un punto de estado (amarillo por revisar, verde guardada, rojo con acción pendiente), el dominio en lugar de la dirección completa y los iconos ↗ y × para abrir el origen o quitarla.
 
 La búsqueda de enlaces de un curso pasa a ser **Varios enlaces → Desde un curso**, con selección en una sola barra, filas compactas que indican el tipo de cada enlace y **Añadir N a la cola**. La revisión en cola muestra **Nota N de M** con una barra de progreso en la cabecera. Panel, revisión, opciones y bienvenida comparten cuatro niveles de botón, chips de estado y la marca ↗ para lo que abre otra pestaña. Se describen en `docs/TECNICO.md`.
+
+### Correcciones del panel vinculado · misma 1.2.3
+
+Pulsar una captura de **Capturas pendientes** vuelve a mostrarla en el panel: desde la 1.2.1 el panel seguía mostrando la captura de su pestaña fijada. Ahora la reanudación vincula el panel a la captura, aunque su pestaña ya esté cerrada.
+
+Capturar una selección ya no se pierde cuando la página tarda en leerla: la detección automática que lanza el panel al vincularse la sustituía por el artículo completo. Un trabajo cancelado o interrumpido con el panel abierto despliega **Capturas pendientes**, donde remite el aviso. El estado tardío de una revisión que ya se cerró no vuelve a mostrar el asistente.
