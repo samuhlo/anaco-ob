@@ -75,6 +75,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: python -m unittest discover -s tests -p test_processes.py -v
       - run: python -m unittest discover -s tests -p test_transcription_progress.py -v
+      - run: python -m unittest discover -s tests -p test_launcher_paths.py -v
 
   bootstrap:
     # The one-line install shown on the welcome page, from this checkout, on each system.

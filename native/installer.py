@@ -7,6 +7,8 @@ import json
 import os
 from pathlib import Path
 import shutil
+import shlex
+import re
 import sys
 
 HOST_NAME = "org.samuh.anaco_ob"
@@ -55,11 +57,11 @@ def launcher(state, platform=None):
     host = Path(__file__).resolve().with_name("host.py")
     state = Path(state).resolve()
     if system(platform) == "win32":
-        path = state / "native-host.bat"
-        path.write_text(f'@echo off\r\nset "ANACO_OB_STATE={state}"\r\n"{sys.executable}" "{host}" %*\r\n')
+        from windows_launcher import launcher as windows_launcher
+        return windows_launcher(state, sys.executable, host)
     else:
         path = state / "native-host"
-        quote = lambda value: '"' + str(value).replace('"', '\\"') + '"'
+        quote = lambda value: shlex.quote(str(value))
         path.write_text(f"#!/bin/sh\nexport ANACO_OB_STATE={quote(state)}\nexec {quote(sys.executable)} {quote(host)} \"$@\"\n")
         path.chmod(0o700)
     return path
@@ -102,7 +104,9 @@ def uninstall(state, platform=None, home=None, registry=None, purge=False):
         targets = [state / f"{HOST_NAME}.json"]
     else:
         targets = [home / folder / f"{HOST_NAME}.json" for folder in FOLDERS[kind]]
-    for target in targets + [state / "native-host", state / "native-host.bat"]:
+    executables = [path for path in state.glob('native-host-*.exe')
+                   if re.fullmatch(r'native-host-[a-f0-9]{16}\.exe', path.name)]
+    for target in targets + [state / "native-host", state / "native-host.bat"] + executables:
         if target.exists():
             target.unlink()
             removed.append(str(target))

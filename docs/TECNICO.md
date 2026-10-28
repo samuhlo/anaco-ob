@@ -39,7 +39,7 @@ El paquete `anaco-ob` (`pyproject.toml`) incluye los módulos de `native/` y el 
 | :--- | :--- | :--- |
 | **Linux** | `$XDG_DATA_HOME/anaco-ob` o `~/.local/share/anaco-ob` | `~/.mozilla/native-messaging-hosts/` y `~/.config/zen/native-messaging-hosts/` |
 | **macOS** | `~/Library/Application Support/anaco-ob` | `~/Library/Application Support/Mozilla/NativeMessagingHosts/` y `…/zen/NativeMessagingHosts/` |
-| **Windows** | `%APPDATA%\anaco-ob` | `HKCU\Software\Mozilla\NativeMessagingHosts\org.samuh.anaco_ob` y lanzador `.bat` |
+| **Windows** | `%APPDATA%\anaco-ob` | `HKCU\Software\Mozilla\NativeMessagingHosts\org.samuh.anaco_ob` y lanzador `.exe` |
 
 La bienvenida ofrece una sola línea: `scripts/install.sh` (Linux y macOS) o `scripts/install.ps1` (Windows). Instalan `uv` si falta, que trae su propio Python, después el paquete desde el zip del repositorio (sin git) con `uv tool install --python 3.12`, lo añaden al PATH y ejecutan `anaco-ob install`. `ANACO_OB_SOURCE` cambia el origen del paquete. La extensión no puede ejecutar programas: la página espera consultando `settings` cada 3 s, que responde aunque falte el vault.
 
@@ -90,3 +90,11 @@ Las consultas de trabajos usan información de creación del proceso para distin
 Los comandos se ejecutan bajo un propietario del árbol de procesos: sesión/grupo en POSIX y Job Object con cierre terminante en Windows. En Windows el proceso se crea suspendido, se asigna al Job Object y después se reanuda, evitando que cree hijos antes de quedar vinculado. Cancelar, agotar el tiempo o cerrar el contexto elimina también los descendientes, incluso si su padre ya terminó.
 
 La salida JSONL del transcriptor se lee mediante un hilo y una cola acotada, compatibles con tuberías de Windows. La cancelación y el plazo se comprueban en el hilo principal. Solo se publican campos de progreso permitidos; el texto de la transcripción permanece en el resultado privado. La CI ejecuta procesos reales y tuberías en Linux, macOS y Windows con Python 3.11 y 3.13, sin necesitar Whisper.
+
+## Rutas de los lanzadores
+
+El lanzador POSIX escapa cada argumento con `shlex.quote`, de modo que dólares, acentos graves y comillas de una ruta no se ejecutan como shell. En Windows el instalador genera un ejecutable .NET pequeño, con rutas Unicode como datos y handles binarios de stdin/stdout/stderr heredados directamente por Python mediante CreateProcess. No se crean lectores de texto ni se insertan marcas de codificación. No intervienen cmd.exe ni PowerShell en la comunicación con el navegador. Las rutas pueden contener `%` y `!` sin expansión.
+
+Windows PowerShell y .NET Framework se usan únicamente para compilar ese ejecutable durante la instalación. Su nombre incluye un hash de su fuente y rutas: una reinstalación idéntica lo reutiliza y una actualización crea otro nombre para no reemplazar un ejecutable abierto. El manifiesto apunta al ejecutable correspondiente y `doctor` comprueba ese destino. La desinstalación retira los ejecutables con el nombre generado y el lanzador antiguo `.bat`.
+
+La CI prueba bytes 0–255, mensajes persistentes antes de cerrar stdin, espacios, Unicode y metacaracteres a través del lanzador real. Las pruebas y el smoke instalado poseen el árbol completo del lanzador para que un timeout no deje hijos reteniendo pipes.

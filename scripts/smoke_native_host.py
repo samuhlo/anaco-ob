@@ -19,10 +19,14 @@ def registered_manifest():
 
 
 def main(manifest_path=None):
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'native'))
+    from processes import ManagedProcess
     manifest = json.loads(Path(manifest_path or registered_manifest()).read_text())
     message = json.dumps({"requestId": "smoke", "action": "settings"}).encode()
-    process = subprocess.run([manifest["path"]], input=struct.pack("=I", len(message)) + message,
-                             capture_output=True, timeout=60, shell=manifest["path"].endswith(".bat"))
+    with ManagedProcess([manifest['path']], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                        shell=manifest['path'].endswith('.bat')) as child:
+        stdout, stderr = child.communicate(input=struct.pack('=I', len(message)) + message, timeout=60)
+        process = subprocess.CompletedProcess(child.args, child.returncode, stdout, stderr)
     size = struct.unpack("=I", process.stdout[:4])[0]
     reply = json.loads(process.stdout[4:4 + size])
     assert reply.get("ok") and reply.get("requestId") == "smoke", (reply, process.stderr[-500:])
