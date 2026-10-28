@@ -5,8 +5,8 @@
   "batch_auto": {
     "message": "Detectar automáticamente"
   },
-  "batch_back_page": {
-    "message": "Volver a la página"
+  "batch_back_queue": {
+    "message": "← Volver a la cola actual"
   },
   "batch_busy": {
     "message": "Hay un trabajo en curso. Espera a que termine o pausa la cola antes de preparar otro contenido."
@@ -21,7 +21,10 @@
     "message": "Autoriza el uso del contenedor para mantener la sesión de esta pestaña."
   },
   "batch_help": {
-    "message": "Pega hasta 100 enlaces, uno por línea. Se usa la sesión de la pestaña actual; los enlaces explorados conservan la del curso. Las notas quedarán pendientes de revisión."
+    "message": "Hasta 100. Se abren de uno en uno en segundo plano, con la sesión y el contenedor de esta pestaña. Nada se guarda sin tu revisión."
+  },
+  "batch_intent": {
+    "message": "¿Para qué los guardas? (opcional)"
   },
   "batch_invalid_url": {
     "message": "Enlace no válido (usa http o https, sin contraseñas): $1"
@@ -32,8 +35,14 @@
   "batch_mode": {
     "message": "Contenido de los enlaces"
   },
+  "batch_more": {
+    "message": "Más"
+  },
   "batch_new_list": {
     "message": "Preparar otros enlaces"
+  },
+  "batch_new_replaces": {
+    "message": "Sustituye a la cola actual. Lo ya preparado sigue en Capturas pendientes y las notas guardadas no cambian."
   },
   "batch_no_content": {
     "message": "No se ha encontrado el contenido solicitado. Abre el origen y comprueba que la clase está cargada y que has iniciado sesión."
@@ -41,8 +50,8 @@
   "batch_note": {
     "message": "Texto de la página"
   },
-  "batch_open": {
-    "message": "Abrir origen"
+  "batch_open_title": {
+    "message": "Abrir el origen: $1"
   },
   "batch_pause": {
     "message": "Pausar después del actual"
@@ -61,6 +70,12 @@
   },
   "batch_permissions_domains": {
     "message": "Falta permiso para: $1. Pulsa Autorizar y reintentar."
+  },
+  "batch_progress": {
+    "message": "Avance de la cola"
+  },
+  "batch_queue_title": {
+    "message": "Cola de enlaces"
   },
   "batch_reader": {
     "message": "Libro del visor"
@@ -87,22 +102,37 @@
     "message": "Autorizar y reintentar fallidos"
   },
   "batch_review": {
-    "message": "Revisar nota"
+    "message": "Revisar nota ↗"
+  },
+  "batch_review_next": {
+    "message": "Revisar pendientes ($1) ↗"
   },
   "batch_settings": {
-    "message": "Se usarán la IA, la intención y la organización elegidas en el panel. Las imágenes y recursos opcionales se pueden añadir en una captura individual."
+    "message": "La IA y el modo de captura se eligen en Ajustes de captura, más abajo. Las imágenes opcionales se añaden en una captura individual."
+  },
+  "batch_source_course": {
+    "message": "Desde un curso"
+  },
+  "batch_source_label": {
+    "message": "Origen de los enlaces"
+  },
+  "batch_source_paste": {
+    "message": "Pegar enlaces"
   },
   "batch_start": {
     "message": "Preparar enlaces"
   },
+  "batch_start_count": {
+    "message": "Preparar $1 enlaces"
+  },
   "batch_status_complete": {
-    "message": "Cola terminada"
+    "message": "Terminada"
   },
   "batch_status_discarded": {
     "message": "Descartada"
   },
   "batch_status_failed": {
-    "message": "Necesita atención"
+    "message": "Necesita acción"
   },
   "batch_status_paused": {
     "message": "En pausa"
@@ -114,25 +144,28 @@
     "message": "Pendiente"
   },
   "batch_status_ready": {
-    "message": "Preparada · pendiente de revisión"
+    "message": "Por revisar"
   },
   "batch_status_running": {
     "message": "Preparando"
   },
   "batch_status_saved": {
-    "message": "Revisada y guardada"
+    "message": "Guardada"
   },
-  "batch_summary": {
-    "message": "$1 · $2 de $3 preparadas · $4 revisadas"
+  "batch_summary_failed": {
+    "message": "Con error: $1"
   },
-  "batch_title": {
-    "message": "Preparar varios enlaces"
+  "batch_summary_ready": {
+    "message": "Preparadas: $1 de $2"
+  },
+  "batch_summary_saved": {
+    "message": "Guardadas: $1"
   },
   "batch_url_limit": {
     "message": "Pega entre 1 y 100 enlaces, separados por líneas."
   },
   "batch_urls": {
-    "message": "Enlaces de clases o páginas"
+    "message": "Enlaces, uno por línea"
   },
   "batch_video": {
     "message": "Vídeo o audio de la clase"
@@ -571,6 +604,18 @@
   },
   "media_video_1": {
     "message": "Vídeo $1"
+  },
+  "mode_batch": {
+    "message": "Varios enlaces"
+  },
+  "mode_busy_page": {
+    "message": "Pausa la cola o espera a que termine para volver a la página."
+  },
+  "mode_label": {
+    "message": "Qué quieres capturar"
+  },
+  "mode_page": {
+    "message": "Esta página"
   },
   "options_99_recursos_anaco_perfil_json": {
     "message": "99_Recursos/anaco/perfil.json"

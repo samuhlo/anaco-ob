@@ -5,8 +5,8 @@
   "batch_auto": {
     "message": "Detect automatically"
   },
-  "batch_back_page": {
-    "message": "Back to the page"
+  "batch_back_queue": {
+    "message": "← Back to the current queue"
   },
   "batch_busy": {
     "message": "Work is in progress. Wait for it to finish or pause the queue before preparing other content."
@@ -21,7 +21,10 @@
     "message": "Authorize container use to keep this tab’s session."
   },
   "batch_help": {
-    "message": "Paste up to 100 links, one per line. Uses the current tab’s session; explored links keep the course’s session. Notes remain pending review."
+    "message": "Up to 100. They open one at a time in the background, with this tab’s session and container. Nothing is saved without your review."
+  },
+  "batch_intent": {
+    "message": "Why are you saving them? (optional)"
   },
   "batch_invalid_url": {
     "message": "Invalid link (use http or https, without passwords): $1"
@@ -32,8 +35,14 @@
   "batch_mode": {
     "message": "Link content"
   },
+  "batch_more": {
+    "message": "More"
+  },
   "batch_new_list": {
     "message": "Prepare more links"
+  },
+  "batch_new_replaces": {
+    "message": "Replaces the current queue. Anything already prepared stays in Pending captures, and saved notes don’t change."
   },
   "batch_no_content": {
     "message": "The requested content was not found. Open the source and check that the lesson has loaded and you are signed in."
@@ -41,8 +50,8 @@
   "batch_note": {
     "message": "Page text"
   },
-  "batch_open": {
-    "message": "Open source"
+  "batch_open_title": {
+    "message": "Open the source: $1"
   },
   "batch_pause": {
     "message": "Pause after current item"
@@ -61,6 +70,12 @@
   },
   "batch_permissions_domains": {
     "message": "Permission needed for: $1. Click Authorize and retry."
+  },
+  "batch_progress": {
+    "message": "Queue progress"
+  },
+  "batch_queue_title": {
+    "message": "Link queue"
   },
   "batch_reader": {
     "message": "Viewer book"
@@ -87,22 +102,37 @@
     "message": "Authorize and retry failed links"
   },
   "batch_review": {
-    "message": "Review note"
+    "message": "Review note ↗"
+  },
+  "batch_review_next": {
+    "message": "Review pending ($1) ↗"
   },
   "batch_settings": {
-    "message": "Uses the AI, intent, and note organization selected in the panel. Optional images and embeds can be added in an individual capture."
+    "message": "The AI and capture mode are chosen in Capture settings, below. Optional images are added in an individual capture."
+  },
+  "batch_source_course": {
+    "message": "From a course"
+  },
+  "batch_source_label": {
+    "message": "Where the links come from"
+  },
+  "batch_source_paste": {
+    "message": "Paste links"
   },
   "batch_start": {
     "message": "Prepare links"
   },
+  "batch_start_count": {
+    "message": "Prepare $1 links"
+  },
   "batch_status_complete": {
-    "message": "Queue finished"
+    "message": "Finished"
   },
   "batch_status_discarded": {
     "message": "Discarded"
   },
   "batch_status_failed": {
-    "message": "Needs attention"
+    "message": "Needs action"
   },
   "batch_status_paused": {
     "message": "Paused"
@@ -114,25 +144,28 @@
     "message": "Pending"
   },
   "batch_status_ready": {
-    "message": "Ready · awaiting review"
+    "message": "To review"
   },
   "batch_status_running": {
     "message": "Preparing"
   },
   "batch_status_saved": {
-    "message": "Reviewed and saved"
+    "message": "Saved"
   },
-  "batch_summary": {
-    "message": "$1 · $2 of $3 ready · $4 reviewed"
+  "batch_summary_failed": {
+    "message": "With errors: $1"
   },
-  "batch_title": {
-    "message": "Prepare multiple links"
+  "batch_summary_ready": {
+    "message": "Ready: $1 of $2"
+  },
+  "batch_summary_saved": {
+    "message": "Saved: $1"
   },
   "batch_url_limit": {
     "message": "Paste between 1 and 100 links, separated by newlines."
   },
   "batch_urls": {
-    "message": "Lesson or page links"
+    "message": "Links, one per line"
   },
   "batch_video": {
     "message": "Lesson video or audio"
@@ -571,6 +604,18 @@
   },
   "media_video_1": {
     "message": "Video $1"
+  },
+  "mode_batch": {
+    "message": "Several links"
+  },
+  "mode_busy_page": {
+    "message": "Pause the queue or wait for it to finish to return to the page."
+  },
+  "mode_label": {
+    "message": "What to capture"
+  },
+  "mode_page": {
+    "message": "This page"
   },
   "options_99_recursos_anaco_perfil_json": {
     "message": "99_Resources/anaco/profile.json"

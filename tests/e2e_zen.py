@@ -643,7 +643,15 @@ def main():
             assert own['currentCapture']['source']['tabId']==original['tabId'],own
             # Click the real form, accepting its optional permission prompt.
             batch_urls=[url.replace('article.html','mod/url/view.php?case=delayed'),url.replace('article.html','mod/url/view.php?case=launch')] if args.batch_video else [url.replace('article.html','batch-private'),url.replace('article.html','batch-login'),url]
+            # The list has its own intent: a page intent never leaks into it.
+            field('intent').send_keys('PAGE ONLY INTENT')
+            field('modeBatch').click()
+            wait.until(lambda d:d.find_element(By.ID,'batchURLs').is_displayed())
+            assert not driver.find_element(By.ID,'captureCard').is_displayed()
+            assert driver.find_element(By.ID,'advancedCapture').is_displayed()
             field('batchURLs').send_keys('\n'.join(batch_urls))
+            assert field('batchStart').text==f'Preparar {len(batch_urls)} enlaces'
+            field('batchIntent').send_keys('BATCH INTENT')
             Select(field('provider')).select_by_value('manual')
             field('batchStart').click()
             driver.set_context('chrome')
@@ -657,9 +665,11 @@ def main():
                 return driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("batchQueue").then(s=>done(s.batchQueue));')
             wait.until(lambda d:queued())
             assert queued()['status']=='running'
+            assert queued()['options']['intent']=='BATCH INTENT',queued()['options']
             wait.until(lambda d:'is-batch' in d.find_element(By.TAG_NAME,'body').get_attribute('class'))
-            assert not driver.find_element(By.ID,'captureWorkspace').is_displayed()
+            assert not driver.find_element(By.ID,'captureCard').is_displayed() and not driver.find_element(By.ID,'pendingSection').is_displayed()
             assert not driver.find_element(By.ID,'batchForm').is_displayed()
+            assert driver.find_element(By.ID,'modePage').get_attribute('disabled')
             # Unload the panel completely: the background still owns the queue.
             driver.get('about:blank');time.sleep(2);driver.get(panel)
             wait.until(lambda d:'CONECTADO' in d.find_element(By.ID,'connection').text.upper())
@@ -677,18 +687,17 @@ def main():
                 assert retried['options']['mode']=='video'
                 assert all(i['status']=='ready' and i['captureId']!=old and old in i['previousCaptureIds'] for i,old in zip(retried['items'],previous_ids)),retried
                 assert not any(r['path'].startswith('/handbook.pdf') for r in session_requests),session_requests
-                driver.execute_script('document.getElementById("batchSection").open=true;document.getElementById("batchSummary").scrollIntoView()')
-                assert not driver.find_element(By.ID,'captureWorkspace').is_displayed()
+                assert not driver.find_element(By.ID,'captureCard').is_displayed()
                 driver.save_screenshot(str(out/'video-queue.png'))
-                driver.find_element(By.ID,'batchBack').click()
-                wait.until(lambda d:d.find_element(By.ID,'captureWorkspace').is_displayed())
-                assert not driver.find_element(By.ID,'batchSection').get_attribute('open')
-                driver.find_element(By.CSS_SELECTOR,'#batchSection>summary').click()
-                wait.until(lambda d:not d.find_element(By.ID,'captureWorkspace').is_displayed())
+                field('modePage').click()
+                wait.until(lambda d:d.find_element(By.ID,'captureCard').is_displayed())
+                assert not driver.find_element(By.ID,'batchSection').is_displayed()
+                field('modeBatch').click()
+                wait.until(lambda d:d.find_element(By.ID,'batchQueue').is_displayed() and not d.find_element(By.ID,'captureCard').is_displayed())
                 # Remove individual results, empty the list, and immediately add another one.
                 driver.find_elements(By.CSS_SELECTOR,'.batch-remove')[0].click()
                 wait.until(lambda d:len(queued()['items'])==1)
-                driver.find_element(By.ID,'batchClear').click()
+                field('batchClear').click()
                 wait.until(lambda d:queued() is None and d.find_element(By.ID,'batchURLs').is_displayed())
                 field('batchURLs').send_keys(batch_urls[0]);field('batchStart').click()
                 wait.until(lambda d:queued() and queued()['status']=='running')
@@ -708,7 +717,7 @@ def main():
                 assert confirmation['post']['method']=='POST' and confirmation['post']['body']=='uuid=test-token'
                 assert 'at=test-session-token' in confirmation['post']['url']
                 assert all(confirmation[k] is None for k in ['wrongFile','wrongAction','wrongOrigin','login']),confirmation
-                report={'passed':True,'late_iframe_video':True,'moodle_launch_link':True,'handbook_not_downloaded':True,'authenticated_subtitles':True,'video_notes':len(captures),'reprocess_as_video':True,'previous_drafts_preserved':True,'batch_focus_and_return':True,'remove_clear_replace_queue':True,'drive_confirmation_guards':True}
+                report={'passed':True,'late_iframe_video':True,'moodle_launch_link':True,'handbook_not_downloaded':True,'authenticated_subtitles':True,'video_notes':len(captures),'reprocess_as_video':True,'previous_drafts_preserved':True,'batch_focus_and_return':True,'mode_switch':True,'remove_clear_replace_queue':True,'drive_confirmation_guards':True}
                 (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
             assert [i['status'] for i in result['items']]==['ready','failed','ready'],result
             assert 'sesión' in result['items'][1]['error'],result
@@ -719,14 +728,19 @@ def main():
             assert not reviews,reviews
             own=message({'type':'panelCapture','windowId':original['windowId']})
             assert own['currentCapture']['source']['tabId']==original['tabId']
-            driver.execute_script('document.getElementById("batchSection").open=true');driver.set_window_size(390,1100)
+            driver.set_window_size(390,1100)
             driver.execute_script('document.getElementById("batchSection").scrollIntoView()')
             assert driver.execute_script('return document.documentElement.scrollWidth<=innerWidth')
+            # One primary action per state, and rows name pages instead of raw addresses.
+            primaries=[b for b in driver.find_elements(By.CSS_SELECTOR,'#batchSection button.primary') if b.is_displayed()]
+            assert [b.get_attribute('id') for b in primaries]==['batchReviewNext'],[b.get_attribute('id') for b in primaries]
+            assert primaries[0].text=='Revisar pendientes (2) ↗'
+            assert not any(t.text.startswith('http') for t in driver.find_elements(By.CSS_SELECTOR,'.batch-items li>strong'))
+            assert driver.find_element(By.CSS_SELECTOR,'.batch-items li[data-state="failed"] .batch-error').value_of_css_property('color')!=driver.find_element(By.CSS_SELECTOR,'.batch-items li[data-state="failed"]>strong').value_of_css_property('color')
             driver.save_screenshot(str(out/'queue.png'))
             # Opening a result is explicit and uses the usual review.
             handles=set(driver.window_handles)
-            review=message({'type':'openReview','id':result['items'][0]['captureId']})
-            assert review['tabId']
+            field('batchReviewNext').click()
             review_handle=wait.until(lambda d:next(iter(set(d.window_handles)-handles),None))
             driver.switch_to.window(review_handle)
             wait.until(lambda d:d.find_element(By.ID,'saveReview').is_enabled())
@@ -741,8 +755,8 @@ def main():
             driver.find_element(By.ID,'saveReview').click()
             wait.until(lambda d:d.current_url==panel)
             wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'.batch-items li[data-state="saved"]'))==2)
-            assert 'Revisada y guardada' in driver.find_element(By.ID,'batchItems').text
-            assert driver.execute_script("""return getComputedStyle(document.querySelector('.batch-items li[data-state="saved"]')).backgroundColor !== "rgba(0, 0, 0, 0)";""")
+            assert 'Guardada' in driver.find_element(By.ID,'batchItems').text
+            assert driver.execute_script("""const probe=document.body.appendChild(Object.assign(document.createElement('i'),{style:'background:var(--ok)'}));const ok=getComputedStyle(probe).backgroundColor;probe.remove();return getComputedStyle(document.querySelector('.batch-items li[data-state="saved"] .batch-dot')).backgroundColor===ok;""")
             driver.save_screenshot(str(out/'reviewed-queue.png'))
             # Regenerate a saved source: deletion outside Anaco must unblock the open review.
             old=message({'type':'native','message':{'action':'load','id':result['items'][0]['captureId']}})
@@ -761,7 +775,7 @@ def main():
             driver.find_element(By.ID,'saveReview').click()
             wait.until(lambda d:duplicate_handle not in d.window_handles)
             driver.switch_to.window(panel_handle);assert target.is_file()
-            report={'passed':True,'pinned_source':True,'authenticated_session':True,'continues_without_panel':True,'no_automatic_review_tabs':True,'login_page_rejected':True,'ready':2,'failed':1,'narrow_panel_no_overflow':True,'save_advances_in_same_tab':True,'last_save_returns_to_queue':True,'saved_rows_highlighted':True,'deleted_note_can_be_regenerated_and_saved':True}
+            report={'passed':True,'pinned_source':True,'authenticated_session':True,'continues_without_panel':True,'no_automatic_review_tabs':True,'login_page_rejected':True,'ready':2,'failed':1,'narrow_panel_no_overflow':True,'save_advances_in_same_tab':True,'last_save_returns_to_queue':True,'saved_rows_marked_done':True,'single_primary_action':True,'batch_own_intent':True,'deleted_note_can_be_regenerated_and_saved':True}
             (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
 
         def source_script(tab_id,code):
