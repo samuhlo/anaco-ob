@@ -82,3 +82,11 @@ Las nuevas transcripciones usan `fingerprint_version: 2`: la huella representa t
 Cada cola guarda su vault de origen y lo comprueba al continuar, reintentar, reprocesar y antes de cada enlace. La extensión bloquea cambios de configuración y perfil mientras hay una operación o cola activa; una cola pausada puede conservarse al cambiar de vault, pero solo continúa en el original. Las solicitudes del trabajo llevan `expected_vault`, que el servicio valida antes de actuar. Cada solicitud usa una instantánea de configuración para que un cambio externo durante el procesamiento no mueva su contenido a otro vault.
 
 Las subidas, incluidos adjuntos, guardan el vault en sus metadatos y lo comprueban antes de aceptar fragmentos o finalizar. Una subida antigua sin esa propiedad exige volver a importar y conserva los archivos: un trabajo creado al reintentar no demuestra a qué vault pertenecía la subida original. Las colas antiguas sin vault requieren conservar los enlaces y crear una nueva cola; sus capturas preparadas no se eliminan. Cambiar de vault también invalida la selección del perfil anterior.
+
+## Procesos y progreso multiplataforma
+
+Las consultas de trabajos usan información de creación del proceso para distinguir reutilización de PID cuando el sistema permite obtenerla. En Windows se consulta un handle con permisos de lectura y sincronización; nunca se usa una señal para comprobar si sigue vivo. Los trabajos antiguos sin identidad conservan una comprobación prudente de actividad.
+
+Los comandos se ejecutan bajo un propietario del árbol de procesos: sesión/grupo en POSIX y Job Object con cierre terminante en Windows. En Windows el proceso se crea suspendido, se asigna al Job Object y después se reanuda, evitando que cree hijos antes de quedar vinculado. Cancelar, agotar el tiempo o cerrar el contexto elimina también los descendientes, incluso si su padre ya terminó.
+
+La salida JSONL del transcriptor se lee mediante un hilo y una cola acotada, compatibles con tuberías de Windows. La cancelación y el plazo se comprueban en el hilo principal. Solo se publican campos de progreso permitidos; el texto de la transcripción permanece en el resultado privado. La CI ejecuta procesos reales y tuberías en Linux, macOS y Windows con Python 3.11 y 3.13, sin necesitar Whisper.

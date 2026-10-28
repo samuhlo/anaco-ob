@@ -10,7 +10,8 @@ import subprocess
 import sys
 import uuid
 import os
-import selectors
+import queue
+import threading
 import tempfile
 import time
 import hashlib
@@ -28,39 +29,90 @@ def media_venv(app):
     development = ROOT / ".media-venv"
     return development if development.is_dir() else app.state / "media-venv"
 
-def run_progress(command,progress,timeout=1800,check=lambda:None):
-    """Consume private worker JSONL, forwarding progress metadata only."""
+def run_progress(command, progress, timeout=1800, check=lambda: None):
+    """Read worker JSONL through a bounded queue, including Windows pipe handles."""
+    from processes import ManagedProcess
     with tempfile.TemporaryFile() as errors:
-        try:process=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=errors)
-        except FileNotFoundError as exc:raise UserError('No encuentro el motor local de transcripción.') from exc
-        result=None;buffer=b'';deadline=time.monotonic()+timeout
         try:
-            with selectors.DefaultSelector() as selector:
-                selector.register(process.stdout,selectors.EVENT_READ)
-                while selector.get_map():
-                    check()
-                    if time.monotonic()>deadline:raise UserError('La transcripción local superó el tiempo máximo. Prueba Whisper tiny o un fragmento más corto.')
-                    for key,_ in selector.select(min(0.5,max(0,deadline-time.monotonic()))):
-                        chunk=os.read(key.fileobj.fileno(),65536)
-                        if not chunk:selector.unregister(key.fileobj);continue
-                        buffer+=chunk
-                        if len(buffer)>16000000:raise UserError('La respuesta del motor local es demasiado grande.')
-                        while b'\n' in buffer:
-                            line,buffer=buffer.split(b'\n',1)
-                            try:value=json.loads(line)
-                            except ValueError:raise UserError('El motor local no devolvió una respuesta válida.')
-                            if value.get('event')=='progress':
-                                update={k:v for k,v in value.items() if k in ('stage','message','engine','processed_seconds','total_seconds','elapsed_seconds')}
-                                # The worker writes Spanish; its texts are translated here.
-                                if isinstance(update.get('message'),str):update['message']=t(update['message'])
-                                progress(update)
-                            elif value.get('event')=='result':result=value.get('result')
-                process.wait(timeout=max(.1,deadline-time.monotonic()))
-            if process.returncode or not isinstance(result,dict):raise UserError('No se pudo completar la transcripción local. Prueba Whisper tiny o importa subtítulos.')
+            managed = ManagedProcess(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=errors)
+        except FileNotFoundError as exc:
+            raise UserError('No encuentro el motor local de transcripción.') from exc
+        process = managed.process
+        messages = queue.Queue(maxsize=8)
+        stopped = threading.Event()
+        def deliver(value):
+            while not stopped.is_set():
+                try:
+                    messages.put(value, timeout=.1)
+                    return
+                except queue.Full:
+                    pass
+        def read_output():
+            try:
+                while not stopped.is_set():
+                    chunk = os.read(process.stdout.fileno(), 65536)
+                    if not chunk:
+                        break
+                    deliver(chunk)
+            except OSError as exc:
+                deliver(exc)
+            finally:
+                deliver(None)
+        reader = threading.Thread(target=read_output, name='anaco-worker-output', daemon=True)
+        reader.start()
+        result, buffer = None, b''
+        deadline = time.monotonic() + timeout
+        def consume(line):
+            nonlocal result
+            try:
+                value = json.loads(line)
+            except (ValueError, UnicodeError) as exc:
+                raise UserError('El motor local no devolvió una respuesta válida.') from exc
+            if not isinstance(value, dict):
+                raise UserError('El motor local no devolvió una respuesta válida.')
+            if value.get('event') == 'progress':
+                update = {k: v for k, v in value.items() if k in
+                          ('stage', 'message', 'engine', 'processed_seconds', 'total_seconds', 'elapsed_seconds')}
+                if isinstance(update.get('message'), str):
+                    update['message'] = t(update['message'])
+                progress(update)
+            elif value.get('event') == 'result':
+                result = value.get('result')
+        try:
+            eof = False
+            while not eof or process.poll() is None:
+                check()
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise UserError('La transcripción local superó el tiempo máximo. Prueba Whisper tiny o un fragmento más corto.')
+                if eof:
+                    stopped.wait(min(.1, remaining))
+                    continue
+                try:
+                    chunk = messages.get(timeout=min(.1, remaining))
+                except queue.Empty:
+                    continue
+                if chunk is None:
+                    eof = True
+                    if buffer.strip():
+                        consume(buffer)
+                    continue
+                if isinstance(chunk, OSError):
+                    raise UserError('El motor local no devolvió una respuesta válida.') from chunk
+                buffer += chunk
+                if len(buffer) > 16000000:
+                    raise UserError('La respuesta del motor local es demasiado grande.')
+                while b'\n' in buffer:
+                    line, buffer = buffer.split(b'\n', 1)
+                    consume(line)
+            if process.returncode or not isinstance(result, dict):
+                raise UserError('No se pudo completar la transcripción local. Prueba Whisper tiny o importa subtítulos.')
             return result
         finally:
-            if process.poll() is None:process.kill();process.wait()
-            process.stdout.close()
+            stopped.set()
+            managed.stop()
+            reader.join(timeout=5)
+            managed.close_pipes()
 
 
 def run(command, timeout=120,cancel=None):
