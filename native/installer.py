@@ -65,7 +65,7 @@ def launcher(state, platform=None):
         path = state / "native-host.bat"
         # cmd.exe must never parse literal installation paths (% and ! expand
         # even inside quotes). Keep the batch ASCII and launch through the
-        # Unicode ProcessStartInfo API with inherited binary stdin/stdout.
+        # Unicode ProcessStartInfo API with explicit binary stream forwarding.
         literal = lambda value: "'" + str(value).replace("'", "''") + "'"
         script = (
             "$ErrorActionPreference='Stop';"
@@ -73,9 +73,17 @@ def launcher(state, platform=None):
             f"$info.FileName={literal(sys.executable)};"
             f"$info.Arguments={literal(subprocess.list2cmdline([str(host)]))};"
             "$info.UseShellExecute=$false;$info.CreateNoWindow=$true;"
+            "$info.RedirectStandardInput=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;"
             f"$info.EnvironmentVariables['ANACO_OB_STATE']={literal(state)};"
             "$child=[System.Diagnostics.Process]::Start($info);"
-            "$child.WaitForExit();exit $child.ExitCode"
+            "$inputCopy=[Console]::OpenStandardInput().CopyToAsync($child.StandardInput.BaseStream);"
+            "$outputCopy=$child.StandardOutput.BaseStream.CopyToAsync([Console]::OpenStandardOutput());"
+            "$errorCopy=$child.StandardError.BaseStream.CopyToAsync([Console]::OpenStandardError());"
+            "$inputClosed=$false;"
+            "while(-not $child.HasExited){"
+            "if(-not $inputClosed -and $inputCopy.IsCompleted){$child.StandardInput.Close();$inputClosed=$true;}"
+            "$null=$child.WaitForExit(50);}"
+            "$outputCopy.GetAwaiter().GetResult();$errorCopy.GetAwaiter().GetResult();exit $child.ExitCode"
         )
         encoded = base64.b64encode(script.encode('utf-16-le')).decode('ascii')
         path.write_bytes(('@echo off\r\nsetlocal DisableDelayedExpansion\r\n'

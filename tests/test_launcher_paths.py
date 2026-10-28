@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'native'))
 import installer
+from processes import ManagedProcess
 
 
 class LauncherPathsTest(unittest.TestCase):
@@ -31,8 +32,10 @@ class LauncherPathsTest(unittest.TestCase):
                 launcher = installer.launcher(state)
             payload = bytes(range(256)) * 8
             command = [os.environ['COMSPEC'], '/d', '/v:on', '/c', str(launcher)] if delayed else [str(launcher)]
-            result = subprocess.run(command, input=payload, capture_output=True,
-                                    shell=os.name == 'nt' and not delayed, cwd=root, timeout=30)
+            with ManagedProcess(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                shell=os.name == 'nt' and not delayed, cwd=root) as process:
+                stdout, stderr = process.communicate(input=payload, timeout=30)
+                result = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
             self.assertEqual(result.returncode, 0, result.stderr.decode(errors='replace'))
             self.assertEqual(result.stdout, payload)
             self.assertEqual(json.loads(observed.read_text(encoding='utf-8')), str(state.resolve()))
