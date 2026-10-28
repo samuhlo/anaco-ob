@@ -16,7 +16,7 @@ import time
 import hashlib
 from urllib.parse import parse_qs, urlsplit
 from urllib.request import Request, urlopen
-from core import UserError, ROOT, clean, json_dump, normalized_url
+from core import UserError, ROOT, clean, json_dump, normalized_url, capture_fingerprint
 from translation import n, t
 
 MAX_FILE = 100_000_000
@@ -256,6 +256,11 @@ class Media:
         c=self.app.stage({"kind":"video","url":url,"title":title,"author":author or "","text":text[:150000],"images":images or [],"warnings":warnings},allow_local=True)
         # [DATA] stage() bounds ordinary captures; a long conversation is read later by stretches.
         stored=self.app.load(c["id"]);stored["text"]=text[:MAX_TRANSCRIPT];stored["media"]={"type":"video","method":method,**(metadata or {})}
+        stored['fingerprint_version'] = 2
+        full_fingerprint = capture_fingerprint(stored)
+        if full_fingerprint != stored['fingerprint']:
+            stored['legacy_fingerprint'] = stored['fingerprint']
+        stored['fingerprint'] = full_fingerprint
         if chapters:stored["media"]["chapters"]=chapters
         self.app.store(stored)
         return self.app.public(stored)

@@ -70,3 +70,9 @@ La extensión está en español (principal y respaldo) e inglés. Los textos viv
 - **Estados:** `.chip` con `data-tone`: `run` (amarillo, pendiente o en curso), `ok` (verde, hecho), `error` (rojo, necesita acción); sin `data-tone`, neutro. El amarillo de acento no indica «hecho».
 - **Enlaces que salen:** «↗» marca siempre lo que abre otra pestaña o página.
 - **Logo:** la interfaz usa `logo.svg` sin la firma «second brain», que a 26–36 px no se lee; el README y la ficha de Mozilla usan `docs/brand/logo-firma.svg`. El icono es la piedra con una «A».
+
+## Integridad de capturas largas
+
+La captura manual conserva íntegramente el cuerpo hasta el límite de edición de 100.000 caracteres, incluido su encabezado. Si lo supera, la preparación se rechaza con un mensaje y la captura permanece pendiente; se puede importar un rango menor o pedir un resumen con IA. La entrada de texto ordinaria conserva su límite de 160.000 caracteres y ahora avisa si se ha limitado. El límite de generación asistida continúa en 80.000 caracteres.
+
+Las nuevas transcripciones usan `fingerprint_version: 2`: la huella representa todo el texto conservado, hasta 400.000 caracteres, no solo los primeros 150.000. La huella anterior se conserva como referencia de compatibilidad; solo permite reconocer un guardado antiguo si su captura conservada coincide íntegramente. Una coincidencia de prefijo por sí sola no se acepta. No se reescriben capturas antiguas ni intenciones de guardado interrumpido. La detección adicional por URL y las protecciones contra colisiones de archivos siguen vigentes.
