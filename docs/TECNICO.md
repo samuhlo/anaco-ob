@@ -90,3 +90,9 @@ Las consultas de trabajos usan información de creación del proceso para distin
 Los comandos se ejecutan bajo un propietario del árbol de procesos: sesión/grupo en POSIX y Job Object con cierre terminante en Windows. En Windows el proceso se crea suspendido, se asigna al Job Object y después se reanuda, evitando que cree hijos antes de quedar vinculado. Cancelar, agotar el tiempo o cerrar el contexto elimina también los descendientes, incluso si su padre ya terminó.
 
 La salida JSONL del transcriptor se lee mediante un hilo y una cola acotada, compatibles con tuberías de Windows. La cancelación y el plazo se comprueban en el hilo principal. Solo se publican campos de progreso permitidos; el texto de la transcripción permanece en el resultado privado. La CI ejecuta procesos reales y tuberías en Linux, macOS y Windows con Python 3.11 y 3.13, sin necesitar Whisper.
+
+## Rutas de los lanzadores
+
+El lanzador POSIX escapa cada argumento con `shlex.quote`, de modo que dólares, acentos graves y comillas de una ruta no se ejecutan como shell. El lanzador Windows mantiene un `.bat` ASCII con expansión retardada desactivada y usa PowerShell sin perfil para arrancar Python mediante `ProcessStartInfo`, pasando rutas Unicode como datos y heredando stdin/stdout binarios. No utiliza una tubería de PowerShell para transportar mensajes.
+
+Windows no admite `%` ni `!` en la carpeta de datos que contiene el `.bat`: `cmd.exe` puede expandirlos antes de entrar en el script. El instalador lo rechaza antes de escribir el lanzador y permite elegir otra carpeta con `anaco-ob --state RUTA install`. Las rutas de Python y del módulo host sí se transportan literalmente, incluidos esos caracteres. La CI añade una transferencia binaria a través del lanzador real en los tres sistemas, con rutas de prueba que incluyen espacios, Unicode y metacaracteres.

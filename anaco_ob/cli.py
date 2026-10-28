@@ -82,7 +82,10 @@ def main(argv=None):
     commands.add_parser("install-media", help="Instala la transcripción local con Whisper").set_defaults(run=install_media)
     commands.add_parser("host", help="Arranca el servicio (lo usa el navegador)").set_defaults(run=host)
     args = parser.parse_args(argv)
-    return args.run(args) or 0
+    try:
+        return args.run(args) or 0
+    except ValueError as exc:
+        parser.error(str(exc))
 
 
 if __name__ == "__main__":

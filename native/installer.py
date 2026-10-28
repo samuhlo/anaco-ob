@@ -4,9 +4,12 @@ Writes a launcher and the Native Messaging manifests for the current user only.
 Never touches browser profiles or vault notes.
 """
 import json
+import base64
 import os
 from pathlib import Path
 import shutil
+import shlex
+import subprocess
 import sys
 
 HOST_NAME = "org.samuh.anaco_ob"
@@ -55,11 +58,33 @@ def launcher(state, platform=None):
     host = Path(__file__).resolve().with_name("host.py")
     state = Path(state).resolve()
     if system(platform) == "win32":
+        # The browser starts the batch through cmd.exe before our script runs.
+        # Expansion in the entry-point path cannot be escaped by the script.
+        if any(char in str(state) for char in '%!\r\n'):
+            raise ValueError('La carpeta de datos de Windows no puede contener % ni !. Elige otra con anaco-ob --state RUTA install.')
         path = state / "native-host.bat"
-        path.write_text(f'@echo off\r\nset "ANACO_OB_STATE={state}"\r\n"{sys.executable}" "{host}" %*\r\n')
+        # cmd.exe must never parse literal installation paths (% and ! expand
+        # even inside quotes). Keep the batch ASCII and launch through the
+        # Unicode ProcessStartInfo API with inherited binary stdin/stdout.
+        literal = lambda value: "'" + str(value).replace("'", "''") + "'"
+        script = (
+            "$ErrorActionPreference='Stop';"
+            "$info=New-Object System.Diagnostics.ProcessStartInfo;"
+            f"$info.FileName={literal(sys.executable)};"
+            f"$info.Arguments={literal(subprocess.list2cmdline([str(host)]))};"
+            "$info.UseShellExecute=$false;$info.CreateNoWindow=$true;"
+            f"$info.EnvironmentVariables['ANACO_OB_STATE']={literal(state)};"
+            "$child=[System.Diagnostics.Process]::Start($info);"
+            "$child.WaitForExit();exit $child.ExitCode"
+        )
+        encoded = base64.b64encode(script.encode('utf-16-le')).decode('ascii')
+        path.write_bytes(('@echo off\r\nsetlocal DisableDelayedExpansion\r\n'
+                          '"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" '
+                          '-NoLogo -NoProfile -NonInteractive -EncodedCommand ' + encoded +
+                          '\r\nexit /b %errorlevel%\r\n').encode('ascii'))
     else:
         path = state / "native-host"
-        quote = lambda value: '"' + str(value).replace('"', '\\"') + '"'
+        quote = lambda value: shlex.quote(str(value))
         path.write_text(f"#!/bin/sh\nexport ANACO_OB_STATE={quote(state)}\nexec {quote(sys.executable)} {quote(host)} \"$@\"\n")
         path.chmod(0o700)
     return path

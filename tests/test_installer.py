@@ -1,4 +1,5 @@
 import json
+import base64
 import os
 from pathlib import Path
 import sys
@@ -46,7 +47,7 @@ class InstallerTest(unittest.TestCase):
     def test_linux_registers_firefox_and_zen(self):
         result = install(self.state, platform="linux", home=self.home)
         launcher = self.state / "native-host"
-        self.assertIn('exec "', launcher.read_text())
+        self.assertIn('exec ', launcher.read_text())
         if os.name != "nt":
             self.assertTrue(launcher.stat().st_mode & 0o100)
         for folder in (".mozilla/native-messaging-hosts", ".config/zen/native-messaging-hosts"):
@@ -62,7 +63,8 @@ class InstallerTest(unittest.TestCase):
         registry = FakeRegistry()
         result = install(self.state, platform="win32", home=self.home, registry=registry)
         launcher = self.state / "native-host.bat"
-        self.assertIn("ANACO_OB_STATE", launcher.read_text())
+        payload = launcher.read_text().split('-EncodedCommand ', 1)[1].splitlines()[0]
+        self.assertIn('ANACO_OB_STATE', base64.b64decode(payload).decode('utf-16-le'))
         manifest = self.state / f"{HOST_NAME}.json"
         self.check_manifest(manifest, launcher)
         self.assertEqual(Path(registry.values[rf"Software\Mozilla\NativeMessagingHosts\{HOST_NAME}"]).resolve(), manifest.resolve())
