@@ -10,47 +10,87 @@ from processes import ManagedProcess
 
 SOURCE = r'''
 using System;
-using System.IO;
-using System.Diagnostics;
-using System.Threading.Tasks;
+using System.Text;
+using System.Runtime.InteropServices;
 
 public static class AnacoNativeHost {
-    private static async Task Pump(Stream source, Stream destination, bool closeDestination) {
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct StartupInfo {
+        public int size;
+        public string reserved, desktop, title;
+        public int x, y, width, height, charsX, charsY, fill, flags;
+        public short show, reservedSize;
+        public IntPtr reservedData, input, output, error;
+    }
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ProcessInfo {
+        public IntPtr process, thread;
+        public uint processId, threadId;
+    }
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool CreateProcess(string application, StringBuilder command,
+        IntPtr processAttributes, IntPtr threadAttributes, bool inheritHandles, uint flags,
+        IntPtr environment, string directory, ref StartupInfo startup, out ProcessInfo process);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr GetStdHandle(int which);
+    [DllImport("kernel32.dll")]
+    private static extern IntPtr GetCurrentProcess();
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool DuplicateHandle(IntPtr owner, IntPtr source, IntPtr target,
+        out IntPtr duplicate, uint access, bool inherit, uint options);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr CreateFile(string path, uint access, uint sharing,
+        IntPtr attributes, uint creation, uint flags, IntPtr template);
+    [DllImport("kernel32.dll")]
+    private static extern bool CloseHandle(IntPtr handle);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern uint WaitForSingleObject(IntPtr handle, uint timeout);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool GetExitCodeProcess(IntPtr handle, out uint code);
+
+    private static IntPtr InheritableStandardHandle(int which) {
+        IntPtr source = GetStdHandle(which);
+        bool temporary = false;
+        if (source == IntPtr.Zero || source == new IntPtr(-1)) {
+            if (which != -12) throw new InvalidOperationException();
+            source = CreateFile("NUL", 0x40000000, 3, IntPtr.Zero, 3, 0, IntPtr.Zero);
+            temporary = true;
+        }
         try {
-            byte[] buffer = new byte[8192];
-            int count;
-            while ((count = await source.ReadAsync(buffer, 0, buffer.Length)) != 0) {
-                await destination.WriteAsync(buffer, 0, count);
-                await destination.FlushAsync();
-            }
+            IntPtr copy;
+            if (!DuplicateHandle(GetCurrentProcess(), source, GetCurrentProcess(),
+                                 out copy, 0, true, 2)) throw new InvalidOperationException();
+            return copy;
         } finally {
-            if (closeDestination) destination.Close();
+            if (temporary) CloseHandle(source);
         }
     }
 
     public static int Main() {
+        StartupInfo startup = new StartupInfo();
+        ProcessInfo child = new ProcessInfo();
         try {
-            var info = new ProcessStartInfo();
-            info.FileName = __PYTHON__;
-            info.Arguments = __ARGUMENTS__;
-            info.UseShellExecute = false;
-            info.CreateNoWindow = true;
-            info.RedirectStandardInput = true;
-            info.RedirectStandardOutput = true;
-            info.RedirectStandardError = true;
-            info.EnvironmentVariables["ANACO_OB_STATE"] = __STATE__;
-            using (var child = Process.Start(info)) {
-                // Background tasks avoid a synchronous pipe read blocking startup.
-                Task.Run(() => Pump(Console.OpenStandardInput(), child.StandardInput.BaseStream, true));
-                var output = Task.Run(() => Pump(child.StandardOutput.BaseStream, Console.OpenStandardOutput(), false));
-                var errors = Task.Run(() => Pump(child.StandardError.BaseStream, Console.OpenStandardError(), false));
-                child.WaitForExit();
-                Task.WaitAll(output, errors);
-                return child.ExitCode;
-            }
+            Environment.SetEnvironmentVariable("ANACO_OB_STATE", __STATE__);
+            startup.size = Marshal.SizeOf(typeof(StartupInfo));
+            startup.flags = 0x100; // STARTF_USESTDHANDLES
+            startup.input = InheritableStandardHandle(-10);
+            startup.output = InheritableStandardHandle(-11);
+            startup.error = InheritableStandardHandle(-12);
+            // Inherit binary handles directly: no StreamWriter, encoding or BOM.
+            if (!CreateProcess(__PYTHON__, new StringBuilder(__ARGUMENTS__),
+                IntPtr.Zero, IntPtr.Zero, true, 0x08000000, IntPtr.Zero, null,
+                ref startup, out child)) throw new InvalidOperationException();
+            if (WaitForSingleObject(child.process, 0xffffffff) != 0) throw new InvalidOperationException();
+            uint code;
+            if (!GetExitCodeProcess(child.process, out code)) throw new InvalidOperationException();
+            return unchecked((int)code);
         } catch {
-            Console.Error.WriteLine("Anaco native launcher failed.");
+            try { Console.Error.WriteLine("Anaco native launcher failed."); } catch { }
             return 1;
+        } finally {
+            foreach (IntPtr handle in new IntPtr[] {startup.input, startup.output, startup.error, child.thread, child.process}) {
+                if (handle != IntPtr.Zero) CloseHandle(handle);
+            }
         }
     }
 }
@@ -61,7 +101,7 @@ def source_for(python, host, state):
     literal = lambda value: '@"' + str(value).replace('"', '""') + '"'
     # Replace placeholders once, so a placeholder inside a path stays literal.
     import re
-    values = {'__PYTHON__': python, '__ARGUMENTS__': subprocess.list2cmdline([str(host)]), '__STATE__': state}
+    values = {'__PYTHON__': python, '__ARGUMENTS__': subprocess.list2cmdline([str(python), str(host)]), '__STATE__': state}
     return re.sub(r'__PYTHON__|__ARGUMENTS__|__STATE__', lambda m: literal(values[m[0]]), SOURCE)
 
 

@@ -93,7 +93,7 @@ La salida JSONL del transcriptor se lee mediante un hilo y una cola acotada, com
 
 ## Rutas de los lanzadores
 
-El lanzador POSIX escapa cada argumento con `shlex.quote`, de modo que dólares, acentos graves y comillas de una ruta no se ejecutan como shell. En Windows el instalador genera un ejecutable .NET pequeño, con rutas Unicode como datos y copias asíncronas de stdin/stdout/stderr binarios, vaciando cada mensaje y cerrando la entrada al llegar a EOF. No intervienen cmd.exe ni PowerShell en la comunicación con el navegador. Las rutas pueden contener `%` y `!` sin expansión.
+El lanzador POSIX escapa cada argumento con `shlex.quote`, de modo que dólares, acentos graves y comillas de una ruta no se ejecutan como shell. En Windows el instalador genera un ejecutable .NET pequeño, con rutas Unicode como datos y handles binarios de stdin/stdout/stderr heredados directamente por Python mediante CreateProcess. No se crean lectores de texto ni se insertan marcas de codificación. No intervienen cmd.exe ni PowerShell en la comunicación con el navegador. Las rutas pueden contener `%` y `!` sin expansión.
 
 Windows PowerShell y .NET Framework se usan únicamente para compilar ese ejecutable durante la instalación. Su nombre incluye un hash de su fuente y rutas: una reinstalación idéntica lo reutiliza y una actualización crea otro nombre para no reemplazar un ejecutable abierto. El manifiesto apunta al ejecutable correspondiente y `doctor` comprueba ese destino. La desinstalación retira los ejecutables con el nombre generado y el lanzador antiguo `.bat`.
 
