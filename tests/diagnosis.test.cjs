@@ -7,6 +7,21 @@ const ctx = vm.createContext({});
 vm.runInContext(I18N+fs.readFileSync('extension/diagnosis.js','utf8')+';globalThis.diagnosis=AnacoObDiagnosis;',ctx);
 const diagnosis=ctx.diagnosis;
 
+test('damaged records have a separate notice and never imply the service is offline',()=>{
+  const reply={version:'1',ai:{ready:true},storage_health:{captures:{count:1,records:[{id:'a'.repeat(32),code:'invalid_json',text:'PRIVATE SOURCE'}]},jobs:{count:0,records:[]}}};
+  assert.deepEqual([...diagnosis.status(reply,'1')],[]);
+  const recovery=diagnosis.storage(reply);
+  assert.equal(recovery.count,1);assert.match(recovery.text,/originales/);
+  assert.match(recovery.records[0],/invalid_json/);
+  assert.doesNotMatch(JSON.stringify(recovery),/PRIVATE/);
+  assert.equal(diagnosis.storage({storage_health:{captures:{count:0}}}),null);
+});
+test('recovery details are bounded and reject arbitrary identifiers or codes',()=>{
+  const recovery=diagnosis.storage({storage_health:{jobs:{count:30,records:Array.from({length:30},()=>({id:'PRIVATE NAME',code:'PRIVATE CONTENT'}))}}});
+  assert.equal(recovery.records.length,20);
+  assert.doesNotMatch(JSON.stringify(recovery),/PRIVATE/);
+});
+
 test('a missing native host is told apart from a failing service and a missing vault',()=>{
   assert.equal(diagnosis.connection(new Error('No such native application org.samuh.anaco_ob')).kind,'missing');
   assert.equal(diagnosis.connection(new Error('No se pudo conectar con el servicio local. Ejecuta scripts/install.py.')).kind,'missing');

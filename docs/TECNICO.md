@@ -98,3 +98,9 @@ El lanzador POSIX escapa cada argumento con `shlex.quote`, de modo que dólares,
 Windows PowerShell y .NET Framework se usan únicamente para compilar ese ejecutable durante la instalación. Su nombre incluye un hash de su fuente y rutas: una reinstalación idéntica lo reutiliza y una actualización crea otro nombre para no reemplazar un ejecutable abierto. El manifiesto apunta al ejecutable correspondiente y `doctor` comprueba ese destino. La desinstalación retira los ejecutables con el nombre generado y el lanzador antiguo `.bat`.
 
 La CI prueba bytes 0–255, mensajes persistentes antes de cerrar stdin, espacios, Unicode y metacaracteres a través del lanzador real. Las pruebas y el smoke instalado poseen el árbol completo del lanzador para que un timeout no deje hijos reteniendo pipes.
+
+## Registros locales dañados
+
+La lectura de capturas y trabajos valida su estructura y tamaño por archivo. Un JSON truncado, un identificador incoherente, un error de lectura o un enlace simbólico se excluye de la lista utilizable sin modificar su archivo original ni impedir el acceso a los demás. `status.storage_health` devuelve el número de incidencias y hasta veinte identificadores y códigos por categoría; no contiene texto de fuentes, claves ni rutas personales. El panel distingue este aviso de una desconexión y permite seguir trabajando. Si el archivo se restaura, vuelve a aparecer en la siguiente consulta sin migraciones ni reinicios.
+
+La carga directa de un registro inválido devuelve un error identificable. Una configuración ilegible impide continuar y conserva `config.json`; no se sustituye por valores predeterminados ni se sobrescribe al guardar otras opciones. Los límites de lectura son 32 MB por captura/trabajo y 1 MB para configuración.
