@@ -142,10 +142,10 @@ button.danger,.danger{color:var(--error)}
 button.danger:hover{border-color:var(--error)}
 button.icon.danger{color:var(--muted)}button.icon.danger:hover{color:var(--error)}
 /* Segmented control: switches a mode or a view, never runs an action. */
-.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;background:var(--panel-soft);border:1px solid var(--line);border-radius:999px;padding:3px;margin:0 0 14px}
-.seg>button{min-height:30px;border:0;background:none;box-shadow:none;padding:4px 8px;font-size:var(--fs-small);color:var(--muted);border-radius:999px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;background:color-mix(in srgb,var(--text) 5%,transparent);border:1px solid var(--line);border-radius:999px;padding:3px;margin:0 0 14px}
+.seg>button{min-height:30px;border:0;background:none;box-shadow:none;transition:none;padding:4px 8px;font-size:var(--fs-small);color:var(--muted);border-radius:999px}
 .seg>button:hover{color:var(--text);box-shadow:none}
-.seg>button[aria-pressed=true]{background:var(--panel);color:var(--text);font-weight:600;box-shadow:0 1px 3px #1c1b2018}
+.seg>button[aria-pressed=true]{background:var(--panel);color:var(--text);font-weight:600;box-shadow:0 0 0 1px var(--line-strong),0 1px 3px #1c1b2018}
 /* Status chip: yellow is pending or running, green done, red needs action. */
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-meta);font-weight:600;line-height:1.5;padding:1px 9px;border-radius:999px;white-space:nowrap;background:var(--panel-soft);color:var(--muted);border:1px solid var(--line)}
 .chip:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}

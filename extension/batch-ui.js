@@ -17,9 +17,7 @@ globalThis.AnacoObBatchUI={busy:false};
     await browser.tabs.create({url:item.url,...(queue.cookieStoreId&&queue.cookieStoreId!=='firefox-default'?{cookieStoreId:queue.cookieStoreId}:{})});
   }
   function setView(next){
-    view=next;
-    if(view==='batch'&&!structureTouched)$('batchStructure').value=$('noteStructure').value||'single';
-    render().catch(showError);
+    view=next;render().catch(showError);
   }
   function setSource(next){
     source=next;
@@ -81,6 +79,8 @@ globalThis.AnacoObBatchUI={busy:false};
     if(!manualImport&&items.length&&(busy||pageQueueId!==queue.id))view='batch';
     if(manualImport)view='page';
     const batch=view==='batch',composing=!items.length||newList;
+    // The panel's organization is only a default until the list chooses its own.
+    if(!structureTouched)$('batchStructure').value=$('noteStructure').value||'single';
     document.body.classList.toggle('is-batch',batch);
     $('modeSwitch').hidden=manualImport;
     $('modePage').setAttribute('aria-pressed',String(!batch));$('modeBatch').setAttribute('aria-pressed',String(batch));

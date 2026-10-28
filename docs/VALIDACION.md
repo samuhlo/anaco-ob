@@ -1046,3 +1046,11 @@ Se confirmó un registro histórico cuyo archivo ya no existía y una captura re
 - Revisión visual a 390 px, incluida la lectura de un árbol con cinco niveles. Capturas en `.test-artifacts/zen-course-links/course-tree.png` y `all-relations.png`.
 - El curso privado de AWS suministrado por el usuario no se ha explorado con su sesión real: la comprobación HTTP sin una sesión disponible devuelve 401. La versión local permite explorarlo desde su navegador; no se afirma haber verificado su inventario real.
 - El adaptador sigue la [API de módulos de Canvas](https://developerdocs.instructure.com/services/canvas/resources/modules) y su [paginación mediante Link](https://developerdocs.instructure.com/services/canvas/basics/file.pagination). Si faltan ítems inline, lee su endpoint paginado.
+
+### Interfaz unificada · misma 1.2.3
+
+- `npm test`: 119 correctas. `python3 -m unittest discover -s tests`: 209 correctas. `npm run lint`: 0 errores (los 2 avisos son los de `strict_min_version` del manifiesto, sin cambios). `scripts/i18n.py check`: sin problemas.
+- Zen real, correctos: `--batch` (intención propia de la cola, una sola acción principal, filas sin URL cruda, guardadas en verde), `--batch --batch-video` (selector de modo y menú «Más»), `--course-links` (única principal «Añadir 5 a la cola»), `--panel-ux`, `--split-review`, `--welcome` y `--options`.
+- `--panel-ux` publicaba su captura sin la pestaña fijada del panel y fallaba desde la 1.2.1; ahora la publica en esa pestaña.
+- Fallan igual en el commit anterior a este trabajo (`a2982c6`), en la misma comprobación: `--pending` (título tras descartar), `--workflow` (inicio del trabajo de preparación) y `--languages` (espera «LOCAL SERVICE CONNECTED», que el panel ya no muestra). `--review-menu` falla de forma intermitente en los dos commits, al pulsar una nota del asistente cuando el panel pierde su pestaña vinculada. No se han corregido aquí.
+- Revisión visual a 300–390 px de la cola, el árbol del curso, la revisión en cola y el panel de captura, y del panel en tema claro y oscuro.

@@ -119,3 +119,11 @@ La detección de duplicados comprueba la existencia del archivo registrado. Un r
 Añade selección y desmarcado masivos de las conexiones disponibles de la nota activa, sin reactivar evidencias desactualizadas.
 
 Añade un explorador de cursos con catálogo Canvas/AWS Academy, paginación, jerarquía de módulos y secciones, lectura de páginas internas y selección por ramas o enlaces. Mantiene la sesión y el contenedor, conserva el progreso al cerrar el panel y permite detener o reanudar. El contenido bloqueado no se selecciona; los límites o errores se muestran sin ocultar los resultados encontrados. La selección rellena la cola para revisión antes de procesarla. También se evita confundir el `about:blank` transitorio de una pestaña recién creada con un dominio sin permiso.
+
+### Interfaz unificada · misma 1.2.3
+
+El panel cambia entre **Esta página** y **Varios enlaces** con un selector. La cola deja de ocupar un desplegable sobre la captura y tiene su propia intención y organización: antes heredaba sin mostrarla la intención escrita para la página actual. Los ajustes de captura siguen visibles en los dos modos.
+
+La cola muestra estado, progreso y recuento con una sola acción principal según el momento: continuar, revisar los pendientes, reintentar los fallidos o preparar otros enlaces. Las acciones poco frecuentes pasan al menú **Más**. Cada fila lleva un punto de estado (amarillo por revisar, verde guardada, rojo con acción pendiente), el dominio en lugar de la dirección completa y los iconos ↗ y × para abrir el origen o quitarla.
+
+La búsqueda de enlaces de un curso pasa a ser **Varios enlaces → Desde un curso**, con selección en una sola barra, filas compactas que indican el tipo de cada enlace y **Añadir N a la cola**. La revisión en cola muestra **Nota N de M** con una barra de progreso en la cabecera. Panel, revisión, opciones y bienvenida comparten cuatro niveles de botón, chips de estado y la marca ↗ para lo que abre otra pestaña. Se describen en `docs/TECNICO.md`.
