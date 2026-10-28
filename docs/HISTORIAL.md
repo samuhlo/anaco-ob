@@ -133,3 +133,7 @@ La búsqueda de enlaces de un curso pasa a ser **Varios enlaces → Desde un cur
 Pulsar una captura de **Capturas pendientes** vuelve a mostrarla en el panel: desde la 1.2.1 el panel seguía mostrando la captura de su pestaña fijada. Ahora la reanudación vincula el panel a la captura, aunque su pestaña ya esté cerrada.
 
 Capturar una selección ya no se pierde cuando la página tarda en leerla: la detección automática que lanza el panel al vincularse la sustituía por el artículo completo. Un trabajo cancelado o interrumpido con el panel abierto despliega **Capturas pendientes**, donde remite el aviso. El estado tardío de una revisión que ya se cerró no vuelve a mostrar el asistente.
+
+La IA elegida en **Ajustes de captura** ya no vuelve sola a la predeterminada cuando el panel se actualiza: antes, una nueva detección entre la elección y **Preparar** hacía que la nota se preparase con la IA de Opciones sin avisar. La elección se mantiene hasta que cambian las opciones.
+
+El asistente de revisión acompaña a la pestaña de revisión activa (comportamiento de la 1.2.3, ahora documentado y cubierto por `--review-menu`): con otra pestaña activa, el panel muestra su captura.

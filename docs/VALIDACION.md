@@ -1054,3 +1054,10 @@ Se confirmó un registro histórico cuyo archivo ya no existía y una captura re
 - `--panel-ux` publicaba su captura sin la pestaña fijada del panel y fallaba desde la 1.2.1; ahora la publica en esa pestaña.
 - Fallan igual en el commit anterior a este trabajo (`a2982c6`), en la misma comprobación: `--pending` (título tras descartar), `--workflow` (inicio del trabajo de preparación) y `--languages` (espera «LOCAL SERVICE CONNECTED», que el panel ya no muestra). `--review-menu` falla de forma intermitente en los dos commits, al pulsar una nota del asistente cuando el panel pierde su pestaña vinculada. No se han corregido aquí.
 - Revisión visual a 300–390 px de la cola, el árbol del curso, la revisión en cola y el panel de captura, y del panel en tema claro y oscuro.
+
+### Correcciones del panel vinculado · misma 1.2.3
+
+- `npm test`: 123 correctas, con pruebas nuevas para reanudar una pendiente (con y sin su pestaña), la captura de una selección frente a la detección automática, el estado tardío de una revisión cerrada y la IA elegida tras un `refresh()`. `python3 -m unittest discover -s tests`: 209 correctas. Lint: 0 errores. i18n: sin problemas.
+- Zen real, correctos: `--batch`, `--batch --batch-video`, `--course-links`, `--panel-ux`, `--pending`, `--split-review`, `--welcome`, `--options`, `--languages`, y `--workflow` y `--review-menu` en ejecuciones repetidas (`--workflow` 6 de 6 tras la corrección del proveedor, `--review-menu` 5 de 5 con la barra lateral).
+- Causa del fallo intermitente de `--workflow`, medida con sondas: el borrador se pedía con `provider=manual` 44 ms después de que `refresh()` restableciera el selector, y la IA falsa no llegaba a ejecutarse.
+- `--review-menu` alternaba con una pestaña de panel; al activarla, Zen dejaba la revisión inactiva y el asistente desaparecía, como establece la regla de la 1.2.3.
