@@ -159,24 +159,12 @@ class Media:
     def load_upload(self, identifier):
         directory = self.upload_dir(identifier)
         meta = json.loads((directory / 'meta.json').read_text())
-        migrated = not meta.get('vault')
         if not meta.get('vault'):
-            # Older uploads can be attributed only through their persisted job.
-            owners = set()
-            for path in (self.app.state / 'jobs').glob('*/job.json'):
-                try:
-                    job = json.loads(path.read_text())
-                    if job.get('request', {}).get('upload') == identifier and isinstance(job.get('vault'), str):
-                        owners.add(job['vault'])
-                except (OSError, ValueError, TypeError, AttributeError):
-                    continue
-            if len(owners) != 1:
-                raise UserError('Esta subida antigua no conserva un vault de origen verificable. Se han conservado sus archivos; vuelve a importarla desde el vault correcto.')
-            meta['vault'] = owners.pop()
+            # A retry can create a job in the current vault. That new record is
+            # not proof of ownership of an older, unbound upload.
+            raise UserError('Esta subida antigua no conserva un vault de origen verificable. Se han conservado sus archivos; vuelve a importarla desde el vault correcto.')
         if meta['vault'] != str(self.app.vault()):
             raise UserError('La subida pertenece a otro vault. Selecciona su vault de origen para continuar.')
-        if migrated:
-            json_dump(directory / 'meta.json', meta)
         return directory, meta
 
     def begin(self,message):

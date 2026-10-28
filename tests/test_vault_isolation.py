@@ -55,7 +55,7 @@ class VaultIsolationTest(unittest.TestCase):
             media.finish_asset({'upload': identifier})
         self.assertTrue(media.upload_dir(identifier).exists())
 
-    def test_legacy_upload_requires_evidence_of_its_owner(self):
+    def test_legacy_upload_never_acquires_ownership_from_a_retry_job(self):
         media, identifier, raw = self.upload()
         path = media.upload_dir(identifier) / 'meta.json'
         meta = json.loads(path.read_text())
@@ -66,8 +66,10 @@ class VaultIsolationTest(unittest.TestCase):
         job = Job(self.app, 'a' * 32)
         job.start({'action': 'upload_finish', 'upload': identifier})
         job.update(status='failed')
-        media.chunk({'upload': identifier, 'offset': 0, 'data': base64.b64encode(raw).decode()})
-        self.assertEqual(json.loads(path.read_text())['vault'], str(self.vault))
+        with self.assertRaises(UserError):
+            media.chunk({'upload': identifier, 'offset': 0, 'data': base64.b64encode(raw).decode()})
+        self.assertNotIn('vault', json.loads(path.read_text()))
+        self.assertTrue((media.upload_dir(identifier) / 'data.part').exists())
 
     def test_switching_vault_forgets_the_old_profile_but_same_path_keeps_it(self):
         original = self.app.config()['profile_path']
