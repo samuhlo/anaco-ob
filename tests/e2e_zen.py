@@ -1240,17 +1240,14 @@ def main():
             wait.until(lambda d:'Perfil confirmado' in d.find_element(By.ID,'profileStatus').text)
             driver.get(panel_url);wait.until(lambda d:d.find_element(By.ID,'profileNotice').get_attribute('hidden'))
             before={p for p in vault.rglob('*.md')}
-            # The strip under the logo follows the note: detected, review open, saved.
-            def strip(value):
-                def reached(d):
-                    ratio=d.execute_script('const h=document.getElementById("brandHead");return parseFloat(getComputedStyle(h,"::before").width)/h.getBoundingClientRect().width*100;')
-                    return abs(ratio-value)<3
-                WebDriverWait(driver,10).until(reached)
-            c=capture({});strip(25);Select(field('provider')).select_by_value('manual')
+            # The compact panel header no longer displays the decorative strip.
+            # Check the controls and saved confirmation that the user actually sees.
+            c=capture({});Select(field('provider')).select_by_value('manual')
+            wait.until(lambda d:d.find_element(By.ID,'prepare').is_enabled())
             driver.find_element(By.ID,'prepare').click();review_window=open_review()
-            driver.switch_to.window(panel_handle);strip(75);time.sleep(1.2);driver.save_screenshot(str(out/'panel-strip-review.png'));driver.switch_to.window(review_window)
+            driver.save_screenshot(str(out/'profile-note-review.png'))
             finish_and_return('save',c['source']['tabId'])
-            strip(100)
+            wait.until(lambda d:d.find_element(By.ID,'success').is_displayed())
             created=[p for p in vault.rglob('*.md') if p not in before]
             assert len(created)==1,created
             note=created[0].read_text();(out/'note.md').write_text(note)

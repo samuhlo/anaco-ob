@@ -7,6 +7,10 @@ El material de presentación actualizado (iconos, cuatro imágenes, textos ES/EN
 vista previa) está en [listing/](listing/README.md). Se aplica a la información de
 la ficha sin cambiar el paquete de la extensión.
 
+## Beta de GitHub
+
+La 1.3.1 beta 1 se distribuye por separado como [prerelease de GitHub](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.1-beta.1), con ZIP sin firma para carga temporal, fuentes y SHA-256. No actualiza el canal de AMO. Las instrucciones de instalación fijadas al tag y los límites conocidos están en el [README](../../README.md). Los materiales 1.3.0 de abajo se conservan como referencia de esa entrega.
+
 ## Pasos
 
 1. `npm ci && npm test && npm run lint && npm run build`.

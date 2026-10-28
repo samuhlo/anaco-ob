@@ -1,6 +1,6 @@
 # Plan de estabilización de Anaco
 
-Este plan convierte la [auditoría del 28 de octubre](AUDITORIA_2026-10-28.md) en cambios revisables. El objetivo es proteger datos y credenciales, hacer previsible el guardado y completar las garantías de uso en los sistemas anunciados. Los PRs se abren conforme pasan sus comprobaciones; quedan pendientes de revisión del propietario, sin fusión ni publicación automática.
+Este plan convierte la [auditoría del 28 de octubre](AUDITORIA_2026-10-28.md) en cambios revisables. El objetivo es proteger datos y credenciales, hacer previsible el guardado y completar las garantías de uso en los sistemas anunciados. Las PR #15–#21 se han revisado y fusionado por petición del propietario para la beta 1.3.1. Las entregas restantes siguen planificadas.
 
 ## Entregas
 
@@ -20,21 +20,21 @@ Este plan convierte la [auditoría del 28 de octubre](AUDITORIA_2026-10-28.md) e
 | 11 | Búsqueda incremental de relaciones | A16 | Evitar lecturas repetidas; invalidar al editar/borrar; mantener evidencias literales y aislamiento de vaults; benchmark reproducible de 1.000 y 10.000 notas | 3 |
 | 12 | Verificación de entrega y diagnóstico | Mejoras transversales | E2e de cursos sincronizado con el botón habilitado; matriz funcional por sistema y mínimo Python declarado; artefacto probado verificable; errores con códigos sin datos sensibles | Adaptar a las interfaces finales de 4, 5 y 6 |
 
-Las ramas independientes parten de `main`. Los cambios funcionales se presentan en cadena porque comparten configuración y módulos: **#16 → #17 → #18 → #19 → #20 → #21**. Cada PR muestra solo su propio cambio respecto del anterior. El plan (#15) es independiente. Cuando se fusione una base, ajustar la base del siguiente PR a `main` si GitHub no lo hace automáticamente. Si la fusión usa squash, rebasar el siguiente para retirar los commits ya integrados antes de revisarlo de nuevo. No fusionar estos cambios en orden inverso.
+Las ramas independientes parten de `main`. Los cambios funcionales se revisaron y fusionaron en cadena porque comparten configuración y módulos: **#16 → #17 → #18 → #19 → #20 → #21**. Cada PR muestra solo su propio cambio respecto del anterior. El plan (#15) es independiente. Cuando se fusione una base, ajustar la base del siguiente PR a `main` si GitHub no lo hace automáticamente. Si la fusión usa squash, rebasar el siguiente para retirar los commits ya integrados antes de revisarlo de nuevo. No fusionar estos cambios en orden inverso.
 
 ## Primera tanda
 
-Las entregas 0, 1, 2 y 3 forman el primer corte implementado. Sus PRs están abiertos para revisión; todavía no están fusionados. El resto mantiene el estado de sus entregas, sin marcarlo como resuelto hasta tener su cambio y verificación.
+Las entregas 0, 1, 2 y 3 forman el primer corte implementado. Sus PRs están fusionados en `main` para la beta 1.3.1. El resto mantiene el estado de sus entregas, sin marcarlo como resuelto hasta tener su cambio y verificación.
 
 | Entrega | Estado | PR |
 | --- | --- | --- |
-| Auditoría y plan | Abierto | [#15](https://github.com/samuhlo/anaco-ob/pull/15) |
-| Credenciales y redirecciones | Implementado, pendiente de revisión | [#16](https://github.com/samuhlo/anaco-ob/pull/16) |
-| Integridad de capturas largas | Implementado, pendiente de revisión | [#17](https://github.com/samuhlo/anaco-ob/pull/17) |
-| Aislamiento de vaults | Implementado, pendiente de revisión | [#18](https://github.com/samuhlo/anaco-ob/pull/18) |
-| Procesos portables | Implementado, CI en tres sistemas superada | [#19](https://github.com/samuhlo/anaco-ob/pull/19) |
-| Rutas de lanzadores | Implementado, CI en tres sistemas superada | [#20](https://github.com/samuhlo/anaco-ob/pull/20) |
-| Recuperación de registros dañados | Implementado y probado en Zen, CI del último texto pendiente | [#21](https://github.com/samuhlo/anaco-ob/pull/21) |
+| Auditoría y plan | Fusionado · beta 1.3.1 | [#15](https://github.com/samuhlo/anaco-ob/pull/15) |
+| Credenciales y redirecciones | Fusionado · beta 1.3.1 | [#16](https://github.com/samuhlo/anaco-ob/pull/16) |
+| Integridad de capturas largas | Fusionado · beta 1.3.1 | [#17](https://github.com/samuhlo/anaco-ob/pull/17) |
+| Aislamiento de vaults | Fusionado · beta 1.3.1 | [#18](https://github.com/samuhlo/anaco-ob/pull/18) |
+| Procesos portables | Fusionado · beta 1.3.1 | [#19](https://github.com/samuhlo/anaco-ob/pull/19) |
+| Rutas de lanzadores | Fusionado · beta 1.3.1 | [#20](https://github.com/samuhlo/anaco-ob/pull/20) |
+| Recuperación de registros dañados | Fusionado · beta 1.3.1 | [#21](https://github.com/samuhlo/anaco-ob/pull/21) |
 | Resto de entregas | Planificado | Pendiente |
 
 Validación local de la integración: 231 pruebas Python, 129 JavaScript, i18n correcto, ZIP construido y Mozilla sin errores, con las dos advertencias previas. Zen real supera el flujo de proveedor compatible en #16 y la cola de vídeos en la integración. El endurecimiento final para subidas antiguas se volvió a comprobar con las siete regresiones de aislamiento. Los estados de CI vigentes se consultan en cada PR.
@@ -48,6 +48,10 @@ Decisiones de compatibilidad que requieren atención al revisar: la captura manu
 - **#21, A08:** capturas y trabajos inválidos se excluyen individualmente, con aviso e identificadores acotados, conservando sus originales. Restaurar el archivo recupera su visibilidad. Una configuración ilegible no se reemplaza por defaults.
 
 La integración local ejecuta 251 pruebas Python sin fallos, con una omisión específica de Windows, y supera 131 pruebas JavaScript. Zen `--pending` verifica el archivo dañado conservado, los demás pendientes operables y ausencia de desbordamiento a 240, 300 y 360 px. Los estados remotos definitivos se consultan en cada PR. La siguiente entrega planificada es el plan de publicación e índices revisables (A06 y A15).
+
+## Validación de la beta 1.3.1
+
+Las siete PR están fusionadas; el conjunto supera 251 pruebas Python (una omisión exclusiva de Windows), 131 JavaScript y seis recorridos en Zen. Las fuentes reconstruyen los 50 archivos de la extensión sin diferencias. La instalación y reinstalación empaquetadas conservan configuración y capturas testigo. Detalle y advertencias: [VALIDACION.md](VALIDACION.md).
 
 ## Condiciones de cada PR
 
@@ -63,7 +67,7 @@ La integración local ejecuta 251 pruebas Python sin fallos, con una omisión es
 - Los límites de tamaño deben producir una advertencia o rechazo accionable antes de perder contenido. Una captura almacenada no equivale a una nota íntegra publicada.
 - El proveedor, endpoint y vault efectivos pertenecen a la operación; no deben cambiar por una modificación global posterior.
 - No usar una actualización masiva de dependencias como sustituto de corregir los fallos propios.
-- No cambiar la versión ni crear releases/tags en estas correcciones. Los tags necesarios para la entrega pública se coordinarán cuando se prepare esa publicación.
+- Las correcciones #16–#21 no cambiaron la versión. La entrega conjunta usa 1.3.1 y el tag `v1.3.1-beta.1`, por petición del propietario; los hallazgos pendientes no se consideran resueltos por publicar esta beta.
 
 ## Verificación final del conjunto
 

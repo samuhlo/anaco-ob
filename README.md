@@ -6,8 +6,8 @@
 **Captura artículos, cursos, PDF y vídeos desde el navegador y los convierte en notas revisadas para tu vault de Obsidian, con su procedencia, sus recursos y relaciones que puedes comprobar.**
 <br /><br />
 
-  <img src="https://img.shields.io/badge/STATUS-ACTIVE-FFCA40?style=for-the-badge&labelColor=000000" alt="Status" />
-  <img src="https://img.shields.io/badge/VERSIÓN-1.3.0-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
+  <img src="https://img.shields.io/badge/STATUS-BETA-FFCA40?style=for-the-badge&labelColor=000000" alt="Status" />
+  <img src="https://img.shields.io/badge/VERSIÓN-1.3.1_BETA_1-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
   <img src="https://img.shields.io/badge/LICENCIA-MIT-FFCA40?style=for-the-badge&labelColor=000000" alt="Licencia MIT" />
   <br/>
   <img src="https://img.shields.io/badge/Zen_·_Firefox-0C0011?style=for-the-badge&logo=firefoxbrowser&logoColor=FFCA40&labelColor=000000" alt="Zen y Firefox" />
@@ -19,6 +19,7 @@
   <img src="https://img.shields.io/badge/Whisper_local-0C0011?style=for-the-badge&labelColor=000000" alt="Whisper local" />
   <br/><br/>
 
+[Descargar beta 1.3.1](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.1-beta.1) ·
 [Guía de prueba](PRUEBA.md) ·
 [Historial](docs/HISTORIAL.md) ·
 [Validación](docs/VALIDACION.md) ·
@@ -72,7 +73,7 @@ pestaña → panel: detectar contenido y recursos → elegir imágenes, clips, d
         → guardar en el vault según su perfil → volver al artículo
 ```
 
-La barra de rayitas bajo el logo sigue el avance de la nota: detectada, preparándose, en revisión y guardada.
+El panel muestra el contenido detectado, el progreso de preparación y la confirmación de guardado. La propuesta se abre en una pestaña de revisión.
 
 > _note: nada se escribe en el vault sin pasar por la revisión. las notas existentes solo se amplían con un aporte que apruebas explícitamente._
 
@@ -126,6 +127,26 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 ---
 
 ## // 06_ INICIO_RÁPIDO
+
+### Beta 1.3.1 · primera entrega de estabilización
+
+La [beta 1.3.1](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.1-beta.1) incorpora las PR [#15–#21](docs/PLAN_ESTABILIZACION.md): protege las claves al cambiar de servidor de IA y bloquea redirecciones, conserva las capturas manuales largas y la identidad completa de las transcripciones, mantiene cada cola y subida en su vault de origen, corrige procesos y lanzadores en Windows/macOS/Linux y permite seguir trabajando cuando hay registros dañados.
+
+La extensión y el servicio usan la versión **1.3.1**; el tag **v1.3.1-beta.1** identifica esta prerelease. El ZIP de GitHub **no está firmado por Mozilla**: para probarlo, descomprímelo y carga su `manifest.json` desde `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal**. La carga temporal dura hasta cerrar el navegador. El canal de AMO se instala desde la ficha enlazada debajo.
+
+Actualiza también el servicio a la misma beta. Con [uv](https://docs.astral.sh/uv/) instalado, estas órdenes sirven en Linux, macOS y PowerShell y fijan el código al tag de la entrega:
+
+```sh
+uv tool install --force --python 3.12 "anaco-ob @ https://github.com/samuhlo/anaco-ob/archive/refs/tags/v1.3.1-beta.1.zip"
+anaco-ob install
+anaco-ob doctor
+```
+
+Se conservan configuración, capturas y notas. Las colas antiguas sin vault registrado requieren crear otra cola con sus enlaces; las subidas antiguas requieren volver a importar. Sus archivos se conservan. Si cambias de servidor de IA, introduce de nuevo la clave para ese destino. En Windows, el instalador necesita Windows PowerShell y .NET Framework para generar el lanzador local.
+
+**Límites conocidos de la beta:** siguen pendientes los índices con CRLF y su inclusión en la revisión, la selección explícita del proveedor en herramientas de revisión, la cancelación inmediata de peticiones al proveedor compatible, mejoras de accesibilidad, limpieza de almacenamiento y búsqueda incremental. La bienvenida todavía instala desde `main`; usa las órdenes anteriores para fijar esta beta. Consulta el [plan de estabilización](docs/PLAN_ESTABILIZACION.md) antes de probarla con tu vault habitual.
+
+### Instalación desde Mozilla Add-ons
 
 Instala [Anaco desde Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/) en Zen o Firefox. Al instalarla se abre la bienvenida, que explica por qué hace falta el servicio local, te da la línea para instalarlo en tu sistema, detecta sola cuándo responde y te deja elegir el vault y la IA. Si algo falta más adelante, el panel lleva de vuelta a ese paso.
 
@@ -186,8 +207,8 @@ docs/          # Historial, validación, notas técnicas y capturas
 
 ## // 08_ TESTS · DOCS · ESTADO · LICENCIA
 
-- **Estado:** 1.3.0 preparada para publicación; 1.2.0 disponible en [Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/). Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
-- **Docs:** [guía de prueba](PRUEBA.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md), [contrato editorial de la IA](skills/anaco-ob/SKILL.md) y [publicación en AMO](docs/amo/README.md).
+- **Estado:** [1.3.1 beta 1 en GitHub](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.1-beta.1), con extensión y fuentes verificables. El complemento firmado se distribuye por [Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/). Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
+- **Docs:** [plan de estabilización](docs/PLAN_ESTABILIZACION.md), [guía de prueba](PRUEBA.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md), [contrato editorial de la IA](skills/anaco-ob/SKILL.md) y [publicación en AMO](docs/amo/README.md).
 - **Licencia:** [MIT](LICENSE).
 
 ---

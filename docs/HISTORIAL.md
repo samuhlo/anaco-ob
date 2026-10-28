@@ -152,3 +152,18 @@ Los títulos identifican curso, módulo y sección conocidos; los casos identifi
 La extensión y el servicio local pasan juntos a 1.3.0. No cambia el identificador del complemento ni se añaden permisos respecto a la 1.2.3 local. Frente a la 1.2.0 pública, `cookies` es opcional y se usa para mantener el contenedor de las pestañas, sin leer ni exportar cookies. Detalle del contexto y ejemplos: [CONTEXTO_FUENTES.md](CONTEXTO_FUENTES.md).
 
 Se actualizan dependencias de las herramientas de desarrollo para corregir los avisos de fast-uri, node-forge y shell-quote, sin añadir bibliotecas al complemento.
+
+
+## 1.3.1 beta 1 · 2026-10-28
+
+Primera beta de estabilización tras la auditoría de 1.3.0. Integra las PR #15–#21 en `main`; extensión y servicio usan 1.3.1 y la entrega se identifica con el tag `v1.3.1-beta.1`.
+
+- **Credenciales (A01/A02):** las claves pertenecen al endpoint configurado; cambiarlo exige otra clave y las peticiones de IA rechazan redirecciones.
+- **Capturas (A04/A10):** el cuerpo manual conserva hasta 100.000 caracteres o se rechaza sin perder la fuente; la identidad de transcripciones largas considera todo el texto retenido.
+- **Vaults (A05):** colas, trabajos y subidas conservan su origen y no pueden continuar en otro vault. Las colas y subidas antiguas sin propietario explícito requieren recreación o reimportación, conservando sus archivos.
+- **Procesos e instalación (A03/A11):** consulta de procesos no destructiva, cancelación de descendientes y progreso de transcripción portables; rutas literales en los lanzadores. Windows genera un ejecutable local con Windows PowerShell y .NET Framework.
+- **Recuperación (A08):** un registro dañado no oculta los pendientes sanos. El panel muestra identificadores y códigos de diagnóstico; conserva los originales y avisa explícitamente si la configuración es ilegible.
+
+Distribución como prerelease de GitHub, con ZIP sin firma de Mozilla, fuentes y SHA-256. El README explica la carga temporal y la instalación del servicio fijada al tag. El canal de AMO no se actualiza con esta beta.
+
+Continúan pendientes A06/A15 (índices CRLF y revisión de índices), A07/A09 (proveedor de revisión y cancelación del transporte), A12 (accesibilidad), A13 (retención), A14 (instalador de bienvenida fijado a versión) y A16 (búsqueda incremental). El [plan](PLAN_ESTABILIZACION.md) mantiene su seguimiento.

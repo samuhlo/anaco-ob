@@ -1075,3 +1075,21 @@ Se confirmó un registro histórico cuyo archivo ya no existía y una captura re
 - Herramientas de desarrollo: actualización compatible de fast-uri y node-forge; override de shell-quote 1.12.0 para fx-runner, que fijaba una versión vulnerable. Quedan tres avisos bajos en la cadena deepmerge/addons-linter/web-ext, sin versión parcheada publicada de deepmerge. Estas dependencias no se empaquetan en la extensión.
 
 AMO mantiene 1.2.0 pública al preparar esta entrega. El envío de 1.3.0 requiere la sesión de publicación; generar el ZIP no equivale a publicarlo.
+
+
+## 1.3.1 beta 1 · 2026-10-28 · integración de #15–#21
+
+Se fusionan las siete PR en `main`, en orden de dependencia y con sus CI individuales superadas. Extensión y servicio usan 1.3.1; el tag de distribución beta es `v1.3.1-beta.1`.
+
+- **Servicio:** 251 pruebas ejecutadas, sin fallos; una prueba del lanzador Windows se omite en Linux y se ejecuta en la matriz Windows de CI.
+- **Extensión:** 131 pruebas JavaScript superadas, i18n sin problemas y versiones de manifiesto, paquete npm, lockfile y servicio sincronizadas.
+- **Zen real:** `--pending`, `--openai`, `--batch-video`, `--course-links`, `--workflow` y `--profile` superados, con perfiles, HOME, configuración y vaults temporales. Incluyen recuperación de registros dañados, proveedor simulado, sesión de cursos, borradores anteriores, relaciones, edición/ampliación, cancelación de procesos, recuperación y confirmación del perfil.
+- **Mantenimiento del e2e:** `--profile` esperaba una barra decorativa oculta por el diseño compacto del panel. Ahora comprueba preparación, revisión y confirmación de guardado visibles. El README deja de describir esa barra. El primer intento de `--pending` perdió el contexto del iframe en Zen; la repetición completa pasó sin cambios en el producto.
+- **Paquetes:** las 50 entradas de archivo de la extensión reconstruida desde el ZIP de fuentes coinciden byte a byte. Marked, DOMPurify y el catálogo se regeneran con las dependencias fijadas; no producen diferencias.
+- **Instalación:** el servicio construido desde el ZIP de fuentes se instala con Python 3.12 en un entorno temporal, responde por Native Messaging y conserva configuración y una captura testigo al reinstalar.
+- **Mozilla:** cero errores y dos advertencias previas: versión mínima Android para `data_collection_permissions` y asignación a `innerHTML` en DOMPurify vendorizado.
+- **Dependencias:** `npm audit --omit=dev` sin vulnerabilidades. La auditoría completa muestra tres avisos de severidad baja por `deepmerge` en las herramientas `addons-linter`/`web-ext`, sin avisos moderados, altos ni críticos. No se aplica la degradación incompatible que propone `npm audit fix --force`.
+
+La matriz de CI incluye extensión, servicio Python 3.12/3.13, instalación y bootstrap en Linux/macOS/Windows y procesos/lanzadores en esos tres sistemas con Python 3.11/3.13. El estado del commit de publicación se consulta en [GitHub Actions](https://github.com/samuhlo/anaco-ob/actions/workflows/ci.yml).
+
+Esta beta se publica como prerelease de GitHub con ZIP sin firma de Mozilla, fuentes y SHA-256. Los límites pendientes A06/A07/A09/A12/A13/A14/A15/A16 siguen en el [plan de estabilización](PLAN_ESTABILIZACION.md); estas pruebas no los declaran resueltos ni evalúan calidad editorial con proveedores reales.
