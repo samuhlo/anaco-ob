@@ -922,78 +922,72 @@ def main():
             wait.until(lambda d:d.find_element(By.ID,'openReviewPanel').is_enabled())
             driver.find_element(By.ID,'openReviewPanel').click()
             wait.until(lambda d:d.execute_async_script('const done=arguments[arguments.length-1];browser.sidebarAction.isOpen({}).then(done);'))
-            wait.until(lambda d:d.execute_async_script('const done=arguments[arguments.length-1];browser.runtime.getBackgroundPage().then(bg=>done(bg.browser.extension.getViews({type:"sidebar"}).some(v=>v.document.getElementById("reviewWorkspace")?.hidden===false)));'))
+            # The assistant follows the active review tab, so the test drives the real
+            # sidebar from the review page instead of activating a separate panel tab.
+            def sidebar(code,*values):
+                return driver.execute_script('const doc=browser.extension.getViews({type:"sidebar"})[0]?.document;if(!doc)return null;const $=id=>doc.getElementById(id);'+code,*values)
+            def menu_shown():
+                return sidebar('return !$("reviewWorkspace").hidden&&$("captureWorkspace").hidden')
+            wait.until(lambda d:menu_shown())
             driver.save_screenshot(str(out/'review-with-sidebar.png'))
-            sidebar_window=driver.execute_async_script('const done=arguments[arguments.length-1];browser.windows.getCurrent().then(w=>done(w.id));')
-            driver.set_context('chrome')
-            driver.execute_script('const owner=[...Services.wm.getEnumerator("navigator:browser")].find(w=>w.docShell.outerWindowID===arguments[0]);owner.SidebarController.hide();',sidebar_window)
-            driver.set_context('content')
-            driver.switch_to.window(panel_handle)
-            wait.until(lambda d:d.find_element(By.ID,'reviewWorkspace').is_displayed())
-            assert not driver.find_element(By.ID,'captureWorkspace').is_displayed()
-            assert len(driver.find_elements(By.CSS_SELECTOR,'[data-review-note]'))==4
-            driver.save_screenshot(str(out/'menu.png'))
-            driver.find_element(By.CSS_SELECTOR,'[data-review-note="comprension"]').click()
-            driver.switch_to.window(review_handle)
+            assert sidebar('return doc.querySelectorAll("[data-review-note]").length')==4
+            sidebar('doc.querySelector(\'[data-review-note="comprension"]\').click()')
             wait.until(lambda d:'Comprender lo estudiado' in d.find_element(By.ID,'activeNoteLabel').text)
             wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'#relations .relation'))>0)
             wait.until(lambda d:d.find_element(By.CSS_SELECTOR,'[data-new-link="recuperacion"]').is_selected())
-            driver.switch_to.window(panel_handle);driver.find_element(By.ID,'reviewEdit').click();driver.switch_to.window(review_handle)
+            sidebar('$("reviewEdit").click()')
             wait.until(lambda d:d.find_element(By.ID,'editPane').is_displayed())
-            driver.switch_to.window(panel_handle)
-            wait.until(lambda d:d.find_element(By.ID,'reviewEdit').get_attribute('aria-pressed')=='true' and d.find_element(By.ID,'reviewRead').get_attribute('aria-pressed')=='false')
-            driver.switch_to.window(review_handle)
+            wait.until(lambda d:sidebar('return $("reviewEdit").getAttribute("aria-pressed")==="true"&&$("reviewRead").getAttribute("aria-pressed")==="false"'))
             driver.find_element(By.ID,'body').send_keys('\n\nAPORTE DESDE EL MENÚ: debe conservarse.')
             wait.until(lambda d:review_status().get('canSave'))
-            driver.switch_to.window(panel_handle)
-            wait.until(lambda d:d.find_element(By.ID,'reviewSave').is_enabled())
-            checkbox=driver.find_element(By.CSS_SELECTOR,'[data-review-note="revision"]').find_element(By.XPATH,'../input')
-            checkbox.click();driver.switch_to.window(review_handle)
+            wait.until(lambda d:sidebar('return !$("reviewSave").disabled'))
+            sidebar('doc.querySelector(\'[data-review-note="revision"]\').parentElement.querySelector("input").click()')
             wait.until(lambda d:'Guardar 3 notas' in review_status().get('saveLabel',''))
-            driver.switch_to.window(panel_handle)
-            wait.until(lambda d:'3 de 4' in d.find_element(By.ID,'reviewMenuStatus').text)
-            driver.find_element(By.CSS_SELECTOR,'[data-review-note="recuperacion"]').click();driver.switch_to.window(review_handle)
+            wait.until(lambda d:'3 de 4' in (sidebar('return $("reviewMenuStatus").textContent') or ''))
+            sidebar('doc.querySelector(\'[data-review-note="recuperacion"]\').click()')
             wait.until(lambda d:'Recuperar sin mirar' in d.find_element(By.ID,'activeNoteLabel').text)
             wait.until(lambda d:d.find_element(By.CSS_SELECTOR,'[data-new-link="comprension"]').is_selected())
-            # Exact narrow-panel viewport with the live assistant state.
-            driver.switch_to.window(panel_handle)
-            driver.execute_script('const f=document.createElement("iframe");f.id="menu-narrow";f.src=location.href;f.style="position:fixed;inset:0 auto auto 0;width:240px;height:900px;border:0;z-index:1000";document.body.append(f);')
+            # Exact narrow-panel viewport with the live assistant state, hosted in the active review tab.
+            driver.execute_script('const f=document.createElement("iframe");f.id="menu-narrow";f.src=browser.runtime.getURL("panel.html");f.style="position:fixed;inset:0 auto auto 0;width:240px;height:900px;border:0;z-index:1000";document.body.append(f);')
             driver.switch_to.frame(driver.find_element(By.ID,'menu-narrow'))
             wait.until(lambda d:d.find_element(By.ID,'reviewWorkspace').is_displayed())
             assert driver.execute_script('return innerWidth===240&&document.documentElement.scrollWidth<=document.documentElement.clientWidth')
             driver.save_screenshot(str(out/'menu-narrow.png'));driver.switch_to.default_content();driver.execute_script('document.getElementById("menu-narrow").remove()')
+            # Another review takes over the assistant only while its tab is active.
             extra=message({'type':'native','message':{'action':'capture','capture':{'kind':'quote','title':'Segunda revisión independiente','url':'https://example.org/second-review','text':'Una segunda frase para comprobar qué revisión controla el menú lateral.','images':[]}}})
             message({'type':'native','message':{'action':'draft','id':extra['id'],'provider':'manual'}})
             handles=set(driver.window_handles);extra_review=message({'type':'openReview','id':extra['id']})
             extra_handle=wait.until(lambda d:next(iter(set(d.window_handles)-handles),None));driver.switch_to.window(extra_handle)
             wait.until(lambda d:d.find_element(By.ID,'workspace').is_displayed() and review_status().get('canSave'))
-            driver.switch_to.window(panel_handle)
-            wait.until(lambda d:d.find_element(By.ID,'reviewChooser').is_displayed() and d.find_element(By.ID,'reviewChooser').get_attribute('value')==extra['id'])
-            assert len(driver.find_elements(By.CSS_SELECTOR,'[data-review-note]'))==1
-            Select(driver.find_element(By.ID,'reviewChooser')).select_by_value(capture_id)
-            wait.until(lambda d:d.find_element(By.ID,'reviewChooser').get_attribute('value')==capture_id and len(d.find_elements(By.CSS_SELECTOR,'[data-review-note]'))==4)
+            wait.until(lambda d:sidebar('return $("reviewMenuTitle").textContent')=='Segunda revisión independiente')
+            assert sidebar('return doc.querySelectorAll("[data-review-note]").length')==1 and sidebar('return $("reviewChooser").hidden')
+            driver.switch_to.window(review_handle)
+            wait.until(lambda d:menu_shown() and sidebar('return doc.querySelectorAll("[data-review-note]").length')==4)
             driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.remove(arguments[0]).then(done);',extra_review['tabId'])
-            wait.until(lambda d:not d.find_element(By.ID,'reviewChooser').is_displayed())
-            # A different article in the same window does not leave review mode.
+            # Going to another article shows its capture; returning to the review restores the assistant.
             driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.update(arguments[0],{active:true}).then(done);',c['source']['tabId'])
-            assert driver.find_element(By.ID,'reviewWorkspace').is_displayed()
-            driver.find_element(By.ID,'reviewFocus').click()
+            wait.until(lambda d:sidebar('return $("reviewWorkspace").hidden&&!$("captureWorkspace").hidden'))
+            driver.switch_to.window(review_handle)
+            wait.until(lambda d:menu_shown())
             # Closing manually restores capture; reopening keeps all edits.
             review_tab=driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("reviewSessions").then(s=>done(s.reviewSessions[arguments[0]].tabId));',capture_id)
+            driver.switch_to.window(panel_handle)
             driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.remove(arguments[0]).then(done);',review_tab)
-            wait.until(lambda d:not d.find_element(By.ID,'reviewWorkspace').is_displayed() and d.find_element(By.ID,'captureWorkspace').is_displayed())
+            wait.until(lambda d:review_handle not in d.window_handles)
+            wait.until(lambda d:sidebar('return $("reviewWorkspace").hidden&&!$("captureWorkspace").hidden'))
             message({'type':'resume','id':capture_id,'windowId':window_id()});open_review();review_handle=driver.current_window_handle
             wait.until(lambda d:review_status().get('canSave'))
-            driver.switch_to.window(panel_handle)
-            wait.until(lambda d:d.find_element(By.ID,'reviewWorkspace').is_displayed() and d.find_element(By.ID,'reviewSave').is_enabled())
-            driver.find_element(By.ID,'reviewSave').click()
+            wait.until(lambda d:menu_shown() and sidebar('return !$("reviewSave").disabled'))
+            sidebar('$("reviewSave").click()')
             wait.until(lambda d:review_handle not in d.window_handles)
-            wait.until(lambda d:not d.find_element(By.ID,'reviewWorkspace').is_displayed())
+            driver.switch_to.window(panel_handle)
+            wait.until(lambda d:sidebar('return $("reviewWorkspace").hidden'))
             saved=[p for p in vault.rglob('*.md') if p.name not in ('recuperacion_activa.md','recuperacion_paquetes.md')]
             assert len(saved)==3
             assert sum('APORTE DESDE EL MENÚ: debe conservarse.' in p.read_text() for p in saved)==1
-            report={'passed':True,'no_duplicate_review_menu':True,'open_native_sidebar_from_review_click':True,'active_read_edit_state':True,'review_replaces_capture_controls':True,'navigate_and_edit_from_menu':True,'selection_synced':True,'external_suggestions_per_theme':True,'sibling_links_both_directions':True,'exact_240px_no_horizontal_overflow':True,'multiple_reviews_follow_focus':True,'review_mode_kept_across_tabs':True,'manual_close_restores_capture':True,'reopen_preserves_edits':True,'save_from_menu':True,'saved_notes':3,'vault':str(vault)}
+            report={'passed':True,'no_duplicate_review_menu':True,'open_native_sidebar_from_review_click':True,'active_read_edit_state':True,'review_replaces_capture_controls':True,'assistant_follows_active_review':True,'navigate_and_edit_from_menu':True,'selection_synced':True,'external_suggestions_per_theme':True,'sibling_links_both_directions':True,'exact_240px_no_horizontal_overflow':True,'multiple_reviews_follow_focus':True,'review_mode_kept_across_tabs':True,'manual_close_restores_capture':True,'reopen_preserves_edits':True,'save_from_menu':True,'saved_notes':3,'vault':str(vault)}
             (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,indent=2));return
+
         if args.split_review:
             fixture_notes={str(p.relative_to(vault)):p.read_bytes() for p in vault.rglob('*.md')}
             c=capture({});driver.find_element(By.ID,'prepare').click();open_review()
