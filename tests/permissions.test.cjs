@@ -28,6 +28,7 @@ function panel() {
   const context = vm.createContext({browser,URL,console,setTimeout,clearTimeout,localStorage:{getItem(){return null;}},document:{getElementById:element,querySelectorAll:selector=>selector==='#images input:checked'?selected:[]}});
   vm.runInContext(I18N+fs.readFileSync('extension/media-source.js','utf8')+fs.readFileSync('extension/diagnosis.js','utf8')+fs.readFileSync('extension/panel.js','utf8'),context);
   return {
+    context,element,
     async click(capture,indices=[0],allow=true,button='prepare') {
       // Let initialization finish before setting a capture, like opening a panel.
       await new Promise(resolve=>setImmediate(resolve));
@@ -90,4 +91,12 @@ test('direct and HLS video requests retain the actual player frame',async()=>{
     const request=result.messages.find(m=>m.type==='importResource');assert.equal(request.frameId,99);assert.equal(request.frameURL,'https://player.example.org/lesson');
     assert.equal(request.kind,suffix==='mp4'?'video':'video-hls');
   }
+});
+test('a status refresh keeps the AI chosen in the panel instead of restoring the default',async()=>{
+  const view=panel();
+  await new Promise(resolve=>setTimeout(resolve,20));
+  assert.equal(view.element('provider').value,'manual');
+  view.element('provider').value='codex';
+  await vm.runInContext('refresh()',view.context);
+  assert.equal(view.element('provider').value,'codex');
 });

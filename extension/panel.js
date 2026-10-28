@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 const call = message => browser.runtime.sendMessage({type:"native",message});
 const manualImport=typeof location!=='undefined'&&new URL(location.href).searchParams.get('import')==='1';
 let state = {}, status, locateTimer, serviceError = '';
-let structureInitialized=false;
+let structureInitialized=false,providerInitialized=false;
 let captureFormKey='',captureFormSource='',captureFormId=null,captureTarget='';
 let activeReview=null,preferredReview=null;
 let panelWindowId=null,panelStarted=false,knownJobs=null;
@@ -279,7 +279,7 @@ async function refresh() {
       button.dataset.running=dismiss.dataset.running=String(job.status==='running');
       row.append(label,button,dismiss);$('recoverJobs').append(row);
     }
-    $("provider").value=status.config.provider;$("pending").replaceChildren();
+    if(!providerInitialized){$("provider").value=status.config.provider;providerInitialized=true;}$("pending").replaceChildren();
     for(const c of status.pending){
       const row=document.createElement('div');row.className='pending-row';row.dataset.capture=c.id;
       const b=document.createElement('button');b.className='pending-item pending-resume';b.textContent=c.title+' · '+c.kind;
@@ -337,7 +337,7 @@ async function sync(changes) {
     $("success").replaceChildren(document.createTextNode(tx('panel_nota_guardada')+state.lastResult.relative+" "));
     const link=document.createElement("a");link.href=state.lastResult.obsidian_url;link.textContent=tx('panel_abrir_en_obsidian');$("success").append(link);$("success").hidden=false;
   }
-  if(changes?.settingsRevision){structureInitialized=false;refresh().catch(showError);}
+  if(changes?.settingsRevision){structureInitialized=providerInitialized=false;refresh().catch(showError);}
   else if(changes?.currentCapture&&!state.operation)refresh().catch(showError);
   else if(changes?.operation&&!state.operation)refresh().catch(showError);
 }
