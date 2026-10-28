@@ -76,12 +76,15 @@ def launcher(state, platform=None):
             "$info.RedirectStandardInput=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;"
             f"$info.EnvironmentVariables['ANACO_OB_STATE']={literal(state)};"
             "$child=[System.Diagnostics.Process]::Start($info);"
-            "$inputCopy=[Console]::OpenStandardInput().CopyToAsync($child.StandardInput.BaseStream);"
+            # Buffer size 1 prevents a small native message waiting for EOF or
+            # another 4 KB of input before reaching the persistent Python host.
+            "$inputPipe=New-Object System.IO.FileStream($child.StandardInput.BaseStream.SafeFileHandle,[System.IO.FileAccess]::Write,1,$false);"
+            "$inputCopy=[Console]::OpenStandardInput().CopyToAsync($inputPipe);"
             "$outputCopy=$child.StandardOutput.BaseStream.CopyToAsync([Console]::OpenStandardOutput());"
             "$errorCopy=$child.StandardError.BaseStream.CopyToAsync([Console]::OpenStandardError());"
             "$inputClosed=$false;"
             "while(-not $child.HasExited){"
-            "if(-not $inputClosed -and $inputCopy.IsCompleted){$child.StandardInput.Close();$inputClosed=$true;}"
+            "if(-not $inputClosed -and $inputCopy.IsCompleted){$inputPipe.Dispose();$child.StandardInput.Close();$inputClosed=$true;}"
             "$null=$child.WaitForExit(50);}"
             "$outputCopy.GetAwaiter().GetResult();$errorCopy.GetAwaiter().GetResult();exit $child.ExitCode"
         )
