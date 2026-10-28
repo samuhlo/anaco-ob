@@ -10,8 +10,8 @@ la ficha sin cambiar el paquete de la extensión.
 ## Pasos
 
 1. `npm ci && npm test && npm run lint && npm run build`.
-2. En <https://addons.mozilla.org/developers/> → **Submit a New Add-on** → **On this site**, sube `dist/anaco-ob-<versión>.zip`.
-3. Código fuente: responde **Sí** y adjunta `dist/anaco-ob-1.2.0-sources.zip`. Incluye las traducciones originales y el generador de `i18n-catalog.js`, las dependencias fijadas, el servicio local y [AMO_BUILD.md](../../AMO_BUILD.md) con instrucciones de reconstrucción. Mozilla pide fuentes para herramientas propias de generación: [requisitos oficiales](https://extensionworkshop.com/documentation/publish/source-code-submission/). Las bibliotecas de terceros se copian sin modificar.
+2. En <https://addons.mozilla.org/developers/> → **Anaco** → **Upload New Version**, sube `dist/anaco-ob-<versión>.zip`.
+3. Código fuente: responde **Sí** y adjunta `dist/anaco-ob-1.3.0-sources.zip`. Incluye las traducciones originales y el generador de `i18n-catalog.js`, las dependencias fijadas, el servicio local y [AMO_BUILD.md](../../AMO_BUILD.md) con instrucciones de reconstrucción. Mozilla pide fuentes para herramientas propias de generación: [requisitos oficiales](https://extensionworkshop.com/documentation/publish/source-code-submission/). Las bibliotecas de terceros se copian sin modificar.
 4. Rellena la ficha en español (idioma predeterminado) y añade la traducción al inglés con los textos de abajo.
 5. Sube las capturas de `docs/amo/` (1280×800; también las usa el README del repositorio). Se regeneran con `.venv/bin/python scripts/amo_shots.py`.
 6. Pega las notas para el revisor.
@@ -21,18 +21,18 @@ la ficha sin cambiar el paquete de la extensión.
 Una versión ya enviada no se puede reemplazar ni reutilizar su número. Para la siguiente:
 
 1. Sube la versión en `extension/manifest.json`, `package.json`, `pyproject.toml` y `VERSION` en `native/core.py` (`tests/test_release.py` exige que coincidan) y añade su entrada en `docs/HISTORIAL.md`.
-2. `npm run build` y, en la página del complemento en AMO, **Upload New Version** con el nuevo zip.
+2. `npm run build` y `python3 scripts/release_sources.py` desde el commit de publicación; en la página del complemento en AMO, **Upload New Version** con el nuevo zip.
 3. En **Version notes**, pega las notas de la versión de abajo.
 
-**1.2.0 · materiales listos para subir**
+**1.3.0 · materiales listos para subir**
 
-- Complemento: `dist/anaco-ob-1.2.0.zip`.
-- Código fuente: `dist/anaco-ob-1.2.0-sources.zip` (subir en el campo de fuentes, no como complemento).
-- **Version notes:** copiar [español](1.2.0-version-notes-es.txt) y, para la traducción, [inglés](1.2.0-version-notes-en.txt).
-- **Notes to Reviewer:** copiar [las notas completas en inglés](1.2.0-reviewer-notes.txt).
+- Complemento: `dist/anaco-ob-1.3.0.zip`.
+- Código fuente: `dist/anaco-ob-1.3.0-sources.zip` (subir en el campo de fuentes, no como complemento).
+- **Version notes:** copiar [español](1.3.0-version-notes-es.txt) y, para la traducción, [inglés](1.3.0-version-notes-en.txt).
+- **Notes to Reviewer:** copiar [las notas completas en inglés](1.3.0-reviewer-notes.txt).
 - Construcción reproducible y prueba sin cuenta: [AMO_BUILD.md](../../AMO_BUILD.md).
-- **Servicio local:** actualizar también a 1.2.0. Los instaladores de la bienvenida reinstalan el paquete de `main` y conservan los datos. La actualización de AMO solo cambia la extensión.
-- GitHub: conservar la release como borrador hasta disponer del complemento firmado por Mozilla, como en las versiones anteriores. El código del servicio debe estar en `main` para que el instalador entregue 1.2.0.
+- **Servicio local:** actualizar también a 1.3.0. Los instaladores de la bienvenida reinstalan el paquete de `main` y conservan los datos. La actualización de AMO solo cambia la extensión.
+- GitHub: conservar la release como borrador hasta disponer del complemento firmado por Mozilla, como en las versiones anteriores. El código del servicio debe estar en `main` para que el instalador entregue 1.3.0.
 
 **1.1.0 · notas de la versión**
 
@@ -104,4 +104,4 @@ No servers of its own and no telemetry. Transcription runs on your computer.
 
 ## Notes for the reviewer
 
-Para 1.2.0, pega el contenido de [1.2.0-reviewer-notes.txt](1.2.0-reviewer-notes.txt) en **Notes to Reviewer**. Incluye cambios desde 1.1.0, instalación del servicio desde las fuentes adjuntas, prueba manual sin cuenta de IA, datos y permisos, construcción reproducible y enlaces a las versiones exactas de las bibliotecas de terceros. Adjunta también el ZIP de fuentes.
+Para 1.3.0, pega el contenido de [1.3.0-reviewer-notes.txt](1.3.0-reviewer-notes.txt) en **Notes to Reviewer**. Incluye cambios desde 1.2.0, instalación del servicio desde las fuentes adjuntas, prueba manual sin cuenta de IA, datos y permisos, construcción reproducible y enlaces a las versiones exactas de las bibliotecas de terceros. Adjunta también el ZIP de fuentes.

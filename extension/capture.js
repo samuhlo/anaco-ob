@@ -197,6 +197,12 @@ globalThis.AnacoObCapture = async (input = {}) => {
   if (untouchedMedia.length && kind === "article") warnings.push(tx('capture_se_ha_capturado_el_texto_de_la_pagina_el'));
   if (text.length > 120000) warnings.push(tx('capture_la_pagina_supera_el_limite_de_esta_versi'));
   return {reader:reader?{scope:"detected",pages:inventory.pages,overflow:inventory.overflow,visual_limited:false,pageElements:root.querySelectorAll(".page,.pf,[data-page-number]").length,canvas:rendered.canvas,svg:rendered.svg,backgrounds:rendered.backgrounds}:null,documentType:document.contentType,frameRole:authenticationFrame?"authentication":courseShell?"wrapper":"content",surfaces:{canvas:rendered.canvas,svg:rendered.svg,backgrounds:rendered.backgrounds,blocked:rendered.blocked,limited:rendered.limited,failures:rendered.failures},kind, url: location.href, title: document.querySelector('meta[property="og:title"]')?.content || document.title,
+    source_context: {
+      page_url: location.href, page_title: document.title,
+      description: document.querySelector('meta[name="description"],meta[property="og:description"]')?.content || '',
+      breadcrumbs: [...document.querySelectorAll('[aria-label*="breadcrumb" i],.breadcrumb,.breadcrumbs,#breadcrumbs')].map(n=>n.textContent.trim()).join(' > ').slice(0,4000),
+      headings: [...root.querySelectorAll('h1,h2,h3')].map(n=>n.textContent.trim()).join(' > ').slice(0,6000)
+    },
     author: document.querySelector('meta[name="author"]')?.content || "", text: text.slice(0,120000), context,
     images: selectedImages, warnings,documents,videos,frames,embeds,contentReady,loginPage,linkLauncher,launchLinks:[...new Set(launchLinks)]};
 };

@@ -74,8 +74,14 @@ class Editorial:
             ids.add(key)
             folder=child.get('folder')
             if folder not in folders:raise UserError('Una nota propone una carpeta que no existe.')
+            if profile.study(folder):
+                from provenance import route
+                folder=route(self.app,c,folder,folders)
             typ=profile.note_type(folder,child.get('note_type'),derived=True)
             title=clean(child.get('title'),300).strip();body=clean(child.get('body'),50000).strip()
+            if title and profile.study(folder):
+                from provenance import title as context_title
+                title=context_title(c,title)
             if not title or not body:raise UserError('Una nota derivada no tiene título o contenido.')
             body=re.sub(r'!?\[\[([^\]]+)\]\]',lambda m:m.group(1).split('|')[-1],body)
             pages=child.get('pages') or []

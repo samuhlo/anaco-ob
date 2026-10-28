@@ -745,6 +745,9 @@ async function importResource(message,ownedCapture=null){
       c=await native({action:"upload_finish",upload:begin.upload,pages:message.pages||""});
     }
     checkWork();
+    c=await native({action:'source_context',id:c.id,source_context:{...currentCapture?.source_context,
+      resource_title:currentCapture?.source_context?.resource_title||message.title||c.title,
+      page_url:currentCapture?.source_context?.page_url||currentCapture?.url||source?.url||''}});
     const adopted=await adoptMedia(c,source);
     await endWork(work);return adopted;
   }catch(error){error.diagnostic=diagnostic;await browser.storage.local.set({operationDiagnostic:diagnostic});await endWork(work,error);throw error;}
@@ -797,7 +800,8 @@ async function extractReader(message,ownedCapture=null){
       }catch(error){throw new Error(tx('bg_no_se_ha_podido_leer_la_pagina_1_2_3_las',[i+1,pages.length,error.message]));}
     }
     await browser.storage.local.set({operation:tx('bg_1_2_paginas_recibidas_preparando_el_cont',[pages.length,pages.length]),operationProgress:null});
-    const result=await native({action:'reader_finish',job:begin.job});
+    let result=await native({action:'reader_finish',job:begin.job});
+    result=await native({action:'source_context',id:result.id,source_context:c.source_context});
     return await adoptMedia(result,c.source);
   }catch(error){failure=error;throw error;}
   finally{

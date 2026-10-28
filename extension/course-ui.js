@@ -39,7 +39,13 @@
   $('courseUse').onclick=action(async()=>{
     const urls=[...new Set(chosen().map(n=>n.url))];if(!urls.length||urls.length>100)throw new Error(tx('batch_url_limit'));
     if(discovery.status==='running')await browser.runtime.sendMessage({type:'courseStop'});
-    AnacoObBatchUI.importLinks(urls,discovery.cookieStoreId);
+    const contexts={};
+    for(const node of chosen()){
+      const chain=[node.title],seen=new Set([node.id]);let parent=node.parentId;
+      while(parent&&!seen.has(parent)){seen.add(parent);const n=discovery.nodes.find(v=>v.id===parent);if(!n)break;chain.unshift(n.title);parent=n.parentId;}
+      contexts[node.url]={page_url:discovery.root,resource_title:node.title,catalog:chain.join(' > '),catalog_position:node.sourcePosition==null?'':String(node.sourcePosition)};
+    }
+    AnacoObBatchUI.importLinks(urls,discovery.cookieStoreId,contexts);
   });
   async function render(){
     const {courseDiscovery:next}=await browser.storage.local.get('courseDiscovery');

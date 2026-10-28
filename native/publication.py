@@ -16,6 +16,9 @@ def replace_checked(path,expected,raw):
         if os.path.exists(name):os.unlink(name)
 
 def publish(app,c,rendered,selected,create):
+    from provenance import indexes
+    rendered = dict(rendered); selected = list(selected)
+    indexes(app, c, rendered, selected)
     vault=app.vault();previous=c.get('save_intent',{});previous=previous if isinstance(previous,dict) else {}
     hashes={rendered[k]['relative']:digest(rendered[k]['markdown'].encode()) for k in selected};recovered=set();updates={}
     for key in selected:

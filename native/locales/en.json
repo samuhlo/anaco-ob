@@ -47,7 +47,6 @@
   "Dos notas utilizarían el mismo archivo.": "Two notes would use the same file.",
   "Duración en segundos": "Length in seconds",
   "Ejemplo": "Example",
-  "El adjunto existente no coincide con su contenido.": "The existing attachment does not match its content.",
   "El apartado cambió; vuelve a seleccionarlo.": "The section changed; select it again.",
   "El archivo no tiene una pista de audio para transcribir.": "The file has no audio track to transcribe.",
   "El archivo recibido cambió; vuelve a importarlo para recuperar el contenido completo.": "The received file changed; import it again to recover the full content.",
@@ -89,7 +88,6 @@
   "Elige una nota candidata verificada.": "Choose a verified candidate note.",
   "Elige una nota, varias notas enlazadas o automático.": "Choose one note, several linked notes or automatic.",
   "Escribe aquí tu interpretación o descripción.": "Write your interpretation or description here.",
-  "Esta captura acaba de guardarse en otra ventana.": "This capture has just been saved in another window.",
   "Esta captura pertenece a otro vault. Selecciona su vault de origen en Opciones para recuperarla.": "This capture belongs to another vault. Select its original vault in Options to recover it.",
   "Esta captura se ha descartado.": "This capture has been discarded.",
   "Esta captura ya está guardada o descartada.": "This capture is already saved or discarded.",
@@ -320,7 +318,6 @@
   "Una relación no forma parte de la propuesta verificada.": "A link is not part of the verified proposal.",
   "Una sola nota, según tu elección; los apartados se conservan juntos.": "A single note, as you chose; the sections are kept together.",
   "Usa un rango de páginas como 1-5,8,12.": "Use a page range such as 1-5,8,12.",
-  "Ya existe una nota con ese nombre. Cambia el nombre; no se ha sobrescrito nada.": "A note with that name already exists. Change the name; nothing has been overwritten.",
   "Ya existe una nota o ha cambiado desde la revisión. No se ha sobrescrito nada.": "A note already exists or has changed since the review. Nothing has been overwritten.",
   "[Abrir original](<{url}>)": "[Open original](<{url}>)",
   "el destino predeterminado": "the default destination",
@@ -335,5 +332,6 @@
   "{count} de {total} notas en destinos usan {key}": "{count} of {total} notes in destinations use {key}",
   "{count} documentos de instrucciones y plantillas encontrados": "{count} instruction documents and templates found",
   "{folders} carpetas con {notes} notas; tipos: {types}": "{folders} folders with {notes} notes; types: {types}",
-  "{read}/{total} páginas leídas por lotes": "{read}/{total} pages read in batches"
+  "{read}/{total} páginas leídas por lotes": "{read}/{total} pages read in batches",
+  "El contexto solo puede adjuntarse antes de preparar la nota.": "Source context can only be attached before preparing the note."
 }

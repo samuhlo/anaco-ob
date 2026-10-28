@@ -1,6 +1,6 @@
 # Política de privacidad · Privacy policy
 
-_Última actualización · Last updated: 2026-10-27_
+_Última actualización · Last updated: 2026-10-28_
 
 ## Español
 
@@ -8,7 +8,7 @@ Anaco no tiene servidores propios y no recoge estadísticas, telemetría ni iden
 
 **Qué datos maneja**
 
-- **Contenido de las páginas que capturas.** Cuando abres el panel, la extensión lee la pestaña activa para detectar su contenido: texto, imágenes, PDF, vídeos y recursos incrustados. Solo se envía al servicio local cuando eliges preparar una nota. Incluye el título y la dirección de la página capturada.
+- **Contenido de las páginas que capturas.** Cuando abres el panel, la extensión lee la pestaña activa para detectar su contenido: texto, imágenes, PDF, vídeos y recursos incrustados. Solo se envía al servicio local cuando eliges preparar una nota. Incluye el título y la dirección originales, la descripción, los encabezados, las migas de navegación y el contexto del catálogo o página contenedora disponibles. Estos datos acompañan a la captura si eliges prepararla con IA.
 - **Cola de enlaces y sesión.** Si solicitas preparar varios enlaces, se guardan localmente los enlaces y sus estados, y se abren en segundo plano para leerlos. El permiso opcional `cookies` se usa para abrir las pestañas en el mismo contenedor; Anaco no lee ni exporta las cookies. Los recursos se intentan leer desde la página para conservar la sesión.
 - **Tu vault de Obsidian.** El servicio local lee tu vault para buscar notas relacionadas, escanear su estructura (carpetas, nombres de archivo y metadatos) y guardar las notas que confirmas. El contenido de tus notas no sale de tu ordenador salvo lo que se describe abajo.
 - **Audio y vídeo.** La transcripción se hace en tu ordenador con Whisper. El audio no se envía a ningún servicio de transcripción.
@@ -27,7 +27,7 @@ Cada proveedor trata esos datos según sus propias condiciones. Las descargas qu
 
 **Dónde se guardan**
 
-En tu vault (las notas y sus adjuntos), en la carpeta del servicio local (`~/.local/share/anaco-ob/` en Linux, `~/Library/Application Support/anaco-ob/` en macOS y `%APPDATA%\anaco-ob\` en Windows: configuración, capturas pendientes e historial) y en el almacenamiento local de la extensión. La extensión no funciona en ventanas de navegación privada.
+En tu vault (las notas y sus adjuntos), en la carpeta del servicio local (`~/.local/share/anaco-ob/` en Linux, `~/Library/Application Support/anaco-ob/` en macOS y `%APPDATA%\anaco-ob\` en Windows: configuración, capturas pendientes, historial y copias recuperables de índices actualizados) y en el almacenamiento local de la extensión. La extensión no funciona en ventanas de navegación privada.
 
 **Cómo borrarlos**
 
@@ -43,7 +43,7 @@ Anaco has no servers of its own and collects no analytics, telemetry or usage id
 
 **What data it handles**
 
-- **Content of the pages you capture.** When you open the panel, the extension reads the active tab to detect its content: text, images, PDF, video and embedded resources. It is sent to the local service only when you choose to prepare a note, including the title and address of the captured page.
+- **Content of the pages you capture.** When you open the panel, the extension reads the active tab to detect its content: text, images, PDF, video and embedded resources. It is sent to the local service only when you choose to prepare a note, including its original title and address, description, headings, breadcrumbs and available catalog or containing-page context. This context accompanies the capture if you choose AI preparation.
 - **Link queue and session.** When you request multiple links, their URLs and progress are stored locally and they open in the background for capture. The optional `cookies` permission is used to open tabs in the same container; Anaco does not read or export cookies. Resources are first requested from the page to preserve its session.
 - **Your Obsidian vault.** The local service reads your vault to find related notes, scan its structure (folders, file names and metadata) and save the notes you confirm. The content of your notes stays on your computer except as described below.
 - **Audio and video.** Transcription runs on your computer with Whisper. Audio is not sent to any transcription service.
@@ -62,7 +62,7 @@ Each provider handles that data under its own terms. The downloads you request (
 
 **Where it is stored**
 
-In your vault (notes and attachments), in the local service folder (`~/.local/share/anaco-ob/` on Linux, `~/Library/Application Support/anaco-ob/` on macOS and `%APPDATA%\anaco-ob\` on Windows: settings, pending captures and history) and in the extension's local storage. The extension does not run in private browsing windows.
+In your vault (notes and attachments), in the local service folder (`~/.local/share/anaco-ob/` on Linux, `~/Library/Application Support/anaco-ob/` on macOS and `%APPDATA%\anaco-ob\` on Windows: settings, pending captures, history and recoverable backups of updated indexes) and in the extension's local storage. The extension does not run in private browsing windows.
 
 **How to delete it**
 

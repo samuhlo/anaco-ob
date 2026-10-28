@@ -68,7 +68,7 @@ globalThis.AnacoObCourses=(()=>{
       const existing=url&&byURL.get(url);
       if(existing){local.set(entry.id,existing.id);continue;}
       const id=crypto.randomUUID(),parentId=local.get(entry.parentId)||task.parentId;
-      const node={id,parentId,title:String(entry.title||url||'').slice(0,180),url,kind:entry.kind||'link',locked:Boolean(entry.locked)};
+      const node={id,parentId,sourcePosition:entry.sourcePosition,title:String(entry.title||url||'').slice(0,180),url,kind:entry.kind||'link',locked:Boolean(entry.locked)};
       state.nodes.push(node);local.set(entry.id,id);if(url)byURL.set(url,node);
       if(url&&entry.explore&&!node.locked){
         if(task.depth<state.maxDepth&&AnacoObCourseLinks.crawlable(url,state.root)&&!state.visited.includes(url)&&!state.todo.some(t=>t.url===url))state.todo.push({url,parentId:id,depth:task.depth+1});

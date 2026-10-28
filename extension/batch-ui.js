@@ -1,6 +1,7 @@
 globalThis.AnacoObBatchUI={busy:false};
 (()=>{
   // view: which mode the panel shows. source: how the next list is filled.
+  let importedContexts={};
   let queue=null,signature='',pageQueueId=null,newList=false,previousQueueId=null,importedCookieStoreId=null,view='page',source='paste',structureTouched=false;
   const action=fn=>async()=>{
     $('batchError').hidden=true;
@@ -38,12 +39,12 @@ globalThis.AnacoObBatchUI={busy:false};
     const origins=AnacoObBatchPlan.permissionOrigins(urls);
     // Request immediately in the click, including optional container permission.
     if(!await browser.permissions.request({origins,permissions:['cookies']}))throw new Error(tx('batch_permissions'));
-    await browser.runtime.sendMessage({type:'batchStart',urls:urls.join('\n'),windowId:panelWindowId,mode:$('batchMode').value,cookieStoreId:importedCookieStoreId,
+    await browser.runtime.sendMessage({type:'batchStart',contexts:importedContexts,urls:urls.join('\n'),windowId:panelWindowId,mode:$('batchMode').value,cookieStoreId:importedCookieStoreId,
       provider:$('provider').value,intent:$('batchIntent').value,note_structure:$('batchStructure').value,captureMode:$('captureMode').value});
     $('batchURLs').value='';$('batchURLs').oninput();newList=false;render().catch(showError);
   });
-  AnacoObBatchUI.importLinks=(urls,cookieStoreId)=>{
-    newList=true;importedCookieStoreId=cookieStoreId;$('batchURLs').value=urls.join('\n');$('batchURLs').oninput();
+  AnacoObBatchUI.importLinks=(urls,cookieStoreId,contexts={})=>{
+    importedContexts=contexts;newList=true;importedCookieStoreId=cookieStoreId;$('batchURLs').value=urls.join('\n');$('batchURLs').oninput();
     setSource('paste');view='batch';render().then(()=>$('batchURLs').focus()).catch(showError);
   };
   $('batchCancelNew').onclick=()=>{newList=false;render().catch(showError);};

@@ -1,0 +1,10 @@
+Anaco 1.3.0
+
+• Prepara hasta 100 enlaces en una cola con pausa, reintentos y revisión continua.
+• Explora cursos Canvas/AWS Academy y selecciona módulos o lecciones para la cola.
+• Conserva título y URL originales, página contenedora, curso, módulo y sección disponibles. Distingue quién publica o enseña del sitio que aloja el vídeo; señala la información desconocida.
+• Genera títulos reconocibles y reutiliza carpetas e índices existentes. Actualiza el índice con copia recuperable y detecta reimportaciones individuales aunque cambie el título o la transcripción.
+• Mejora las descargas de Google Drive, incluidos archivos grandes y confirmaciones de descarga.
+• Unifica la interfaz, mantiene el panel vinculado a su origen y permite seleccionar relaciones en bloque.
+
+Actualiza también el servicio local a 1.3.0 desde la bienvenida. La actualización de AMO solo cambia la extensión. El permiso opcional de cookies mantiene el contenedor de las pestañas de la cola; Anaco no lee ni exporta cookies.

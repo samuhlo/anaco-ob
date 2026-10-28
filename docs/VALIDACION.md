@@ -1061,3 +1061,17 @@ Se confirmó un registro histórico cuyo archivo ya no existía y una captura re
 - Zen real, correctos: `--batch`, `--batch --batch-video`, `--course-links`, `--panel-ux`, `--pending`, `--split-review`, `--welcome`, `--options`, `--languages`, y `--workflow` y `--review-menu` en ejecuciones repetidas (`--workflow` 6 de 6 tras la corrección del proveedor, `--review-menu` 5 de 5 con la barra lateral).
 - Causa del fallo intermitente de `--workflow`, medida con sondas: el borrador se pedía con `provider=manual` 44 ms después de que `refresh()` restableciera el selector, y la IA falsa no llegaba a ejecutarse.
 - `--review-menu` alternaba con una pestaña de panel; al activarla, Zen dejaba la revisión inactiva y el asistente desaparecía, como establece la regla de la 1.2.3.
+
+
+## 1.3.0 · 2026-10-28 · preparación de publicación
+
+- Servicio: 213 pruebas `unittest` superadas, incluidas procedencia, cuatro casos representativos, reimportación y recuperación de índices.
+- Extensión: 124 pruebas JavaScript superadas. Catálogo i18n comprobado y dependencias reconstruidas desde el lockfile.
+- Reconstrucción desde `anaco-ob-1.3.0-sources.zip` en un directorio temporal: todas las entradas del complemento coinciden byte a byte con `anaco-ob-1.3.0.zip`.
+- Mozilla addons-linter: 0 errores, 2 advertencias (compatibilidad de una clave de manifiesto con Firefox Android y asignación innerHTML del renderizado saneado).
+- Zen real con vaults temporales: `--batch --batch-video` y `--course-links` superados; extracción de subtítulos con sesión, reproductor tardío, enlace lanzador, cola, selección del catálogo y relaciones masivas.
+- Rutas y duplicados contra el vault de referencia: comprobación de solo lectura; no se modificaron sus notas.
+- Se conserva la limitación de las pruebas de procedencia: generación simulada, sin nueva captura autenticada de AWS Academy ni evaluación nueva de un modelo real.
+- Herramientas de desarrollo: actualización compatible de fast-uri y node-forge; override de shell-quote 1.12.0 para fx-runner, que fijaba una versión vulnerable. Quedan tres avisos bajos en la cadena deepmerge/addons-linter/web-ext, sin versión parcheada publicada de deepmerge. Estas dependencias no se empaquetan en la extensión.
+
+AMO mantiene 1.2.0 pública al preparar esta entrega. El envío de 1.3.0 requiere la sesión de publicación; generar el ZIP no equivale a publicarlo.

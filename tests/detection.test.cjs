@@ -78,3 +78,13 @@ test('a page Anaco cannot read says so instead of pointing to a viewer',()=>{
  const nested=detect.merge([page('https://course.example/lesson',0)],{url:'https://course.example/lesson',title:'Curso'},[{url:'https://player.example/v',needsPermission:true}]);
  assert.match(detect.problem(nested),/visor/);
 });
+
+test('nested media retains container breadcrumbs and resource title separately',()=>{
+ const top=page(tab.url,0,{source_context:{page_url:tab.url,page_title:'AWS Academy Cloud Foundations',breadcrumbs:'Module 2',headings:'Economía'}});
+ const frame=page('https://media.example/player',2,{title:'Section 3',contentReady:true,text:'AWS Organizations',source_context:{headings:'Organizations'}});
+ const c=detect.merge([top,frame],tab,[]);
+ assert.equal(c.source_context.page_title,'AWS Academy Cloud Foundations');
+ assert.equal(c.source_context.resource_title,'Section 3');
+ assert.equal(c.source_context.breadcrumbs,'Module 2');
+ assert.match(c.source_context.headings,/Organizations/);
+});

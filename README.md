@@ -7,7 +7,7 @@
 <br /><br />
 
   <img src="https://img.shields.io/badge/STATUS-ACTIVE-FFCA40?style=for-the-badge&labelColor=000000" alt="Status" />
-  <img src="https://img.shields.io/badge/VERSIÓN-1.2.3-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
+  <img src="https://img.shields.io/badge/VERSIÓN-1.3.0-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
   <img src="https://img.shields.io/badge/LICENCIA-MIT-FFCA40?style=for-the-badge&labelColor=000000" alt="Licencia MIT" />
   <br/>
   <img src="https://img.shields.io/badge/Zen_·_Firefox-0C0011?style=for-the-badge&logo=firefoxbrowser&logoColor=FFCA40&labelColor=000000" alt="Zen y Firefox" />
@@ -96,6 +96,7 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 
 - **Panel vinculado a su origen**: puedes cambiar de pestaña sin que cambie la captura. Para elegir otra página, pulsa el icono de Anaco en ella o **Usar la pestaña actual**. El lateral sigue visible porque Firefox/Zen lo gestiona por ventana.
 - **Enlaces de cursos**: en **Varios enlaces → Desde un curso**, busca en el catálogo de módulos de Canvas/AWS Academy y en las páginas internas enlazadas. El árbol permite elegir módulos completos o lecciones concretas y añadir hasta 100 enlaces a la cola. La búsqueda conserva la sesión del curso y no prepara notas hasta que lo indiques.
+- **Contexto de cursos**: conserva título y URL originales, página contenedora, migas, módulo y sección disponibles. Distingue alojamiento y autor, reutiliza carpetas por origen y actualiza el índice existente con copia recuperable. No inventa números cuando falta información.
 - **Relaciones en bloque**: selecciona o desmarca de una vez las relaciones disponibles de la nota, tanto con notas existentes como entre los temas nuevos.
 - **Varios enlaces**: cambia el panel de **Esta página** a **Varios enlaces** y pega hasta 100 enlaces, uno por línea, con su propia intención y organización. Se procesan de uno en uno en pestañas de segundo plano con la sesión y el contenedor actuales. La cola muestra el progreso y una sola acción principal según el momento: continuar, revisar los pendientes o reintentar los fallidos; las acciones poco frecuentes están en **Más**. Puedes pausar después del enlace actual y abrir cada nota para revisarla. Al reiniciar el navegador, la cola espera a que pulses **Continuar cola**.
 - **Cursos y visores**: lee marcos anidados con permisos por dominio, lectores HTML con páginas dibujadas y PDF del visor. El modo **Curso** conserva la detección clásica.
@@ -185,7 +186,7 @@ docs/          # Historial, validación, notas técnicas y capturas
 
 ## // 08_ TESTS · DOCS · ESTADO · LICENCIA
 
-- **Estado:** 1.2.3 preparada para pruebas locales; 1.2.0 disponible en [Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/). Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
+- **Estado:** 1.3.0 preparada para publicación; 1.2.0 disponible en [Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/). Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
 - **Docs:** [guía de prueba](PRUEBA.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md), [contrato editorial de la IA](skills/anaco-ob/SKILL.md) y [publicación en AMO](docs/amo/README.md).
 - **Licencia:** [MIT](LICENSE).
 

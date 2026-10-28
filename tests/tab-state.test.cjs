@@ -85,6 +85,7 @@ test('unavailable subtitle tracks fall back to the already authorized audio reso
  ctx.fetch=async url=>url.endsWith('.vtt')?new Response('Forbidden',{status:403}):new Response(new Uint8Array([1,2,3]));
  ctx.native=async message=>{
   calls.push(message);
+  if(message.action==='source_context')return {id:message.id,kind:'video',url:tab(1).url,images:[],warnings:[],text:'Recovered transcript',source_context:message.source_context};
   if(message.action==='upload_begin')return {upload:'test-upload'};
   if(message.action==='upload_finish')return {id:'video-1',kind:'video',url:tab(1).url,images:[],warnings:[],text:'Recovered transcript'};
   return {};
@@ -94,6 +95,7 @@ test('unavailable subtitle tracks fall back to the already authorized audio reso
  assert.equal(data.currentCapture.id,'video-1');
  assert.equal(data.currentCapture.source.tabId,1);
  assert.ok(calls.some(m=>m.action==='upload_finish'));
+ assert.ok(calls.some(m=>m.action==='source_context'&&m.id==='video-1'&&m.source_context.page_url===tab(1).url));
  assert.ok(!calls.some(m=>m.action==='subtitles'));
  assert.equal(data.operation,'');
 });

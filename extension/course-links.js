@@ -32,7 +32,7 @@ globalThis.AnacoObCourseLinks=(()=>{
         const id='item-'+item.id,header=item.type==='SubHeader';
         const href=header?null:url(item.html_url||(item.type==='Page'&&item.page_url?base+'/pages/'+item.page_url:item.external_url),base);
         if(!header&&!href)continue;
-        nodes.push({id,parentId:stack.at(-1).id,title:item.title||href,kind:header?'module':item.type==='Page'?'page':item.type==='File'?'file':'link',url:href,
+        nodes.push({id,sourcePosition:item.position,parentId:stack.at(-1).id,title:item.title||href,kind:header?'module':item.type==='Page'?'page':item.type==='File'?'file':'link',url:href,
           locked:locked||Boolean(item.content_details?.locked_for_user||item.locked_for_user),explore:!header&&item.type==='Page'});
         stack.push({id,indent});
       }

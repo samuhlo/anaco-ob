@@ -17,6 +17,8 @@ const AnacoObDetection = (() => {
     const reader=readerPages.length?{scope:'detected',overflow:readerPages.some(p=>p.reader.overflow),pages:readerPages.flatMap(p=>(p.reader.pages||[]).map(page=>({...page,frameId:p.frameId}))),frames:[...new Set(readerPages.map(p=>p.frameId))]}:null;
     const base = top || {kind:'article',title:tab.title || tx('bg_pagina_actual'),text:'',images:[],warnings:[]};
     const result = {...base, reader, url:tab.url, title: chosen[0]?.title || base.title,
+      source_context: {...base.source_context, resource_title: chosen[0]?.title || base.title,
+        headings: pages.map(p=>p.source_context?.headings||'').filter(Boolean).join(' > ').slice(0,10000)},
       text: chosen.map(p => p.text).filter(Boolean).join('\n\n').slice(0,120000),
       images: reader?[]:unique(chosen.flatMap(p => (p.images || []).map(i => ({...i, frameId:p.frameId})))),
       documents: unique(pages.flatMap(p => (p.documents || []).map(d=>({...d,frameId:p.frameId,frameURL:p.url})))),

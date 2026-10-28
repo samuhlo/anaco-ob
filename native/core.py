@@ -24,7 +24,7 @@ DEFAULT_VAULT = Path.home() / "Second_Brain"
 from installer import default_state
 from translation import n, set_language, set_note_language, t, writing_rule
 # Must match extension/manifest.json: the panel compares them to spot an outdated service.
-VERSION = "1.2.3"
+VERSION = "1.3.0"
 STATE = Path(os.environ.get("ANACO_OB_STATE") or os.environ.get("ZEN_BRAIN_STATE") or default_state())
 STOP = set("para como este esta esto estas estos sobre desde entre donde cuando porque pero una uno unos unas del los las por con sin que sus son ser mas muy hay the and for with from that this into your you have has not".split())
 
@@ -161,6 +161,11 @@ def schema(note_types):
     from editorial import RELATION_KINDS
     relation['properties']['kind']={'type':'string','enum':list(RELATION_KINDS)};relation['required'].append('kind')
     properties = {k: {"type": "string"} for k in ("title", "context", "body", "folder")}
+    import provenance
+    properties["provenance"] = {"type": "array", "items": {"type": "object", "properties": {
+        "field": {"type": "string", "enum": list(provenance.FIELDS)},
+        "value": {"type": "string"}, "evidence": {"type": "string"}},
+        "required": ["field", "value", "evidence"], "additionalProperties": False}}
     properties["tags"] = {"type": "array", "items": {"type": "string"}}
     properties["relations"] = {"type": "array", "items": relation}
     properties["quotes"] = {"type": "array", "items": {"type": "object", "properties": {"text": {"type": "string"}, "speaker": {"type": "string"}},
@@ -366,6 +371,8 @@ class App:
              "context": clean(capture.get("context"), 10000), "intent": clean(capture.get("intent"), 2000),
              "images": images, "warnings": [clean(x, 500) for x in capture.get("warnings", [])[:15]],
              "created": dt.datetime.now().astimezone().isoformat(), "status": "pending"}
+        from provenance import sanitize
+        c["source_context"] = {"original_url": source, **sanitize(capture.get("source_context"))}
         if isinstance(capture.get("reader"),dict):
             c["reader"]={"scope":"loaded","visual_limited":bool(capture["reader"].get("visual_limited"))}
         from embeds import stage as stage_embeds
@@ -565,6 +572,12 @@ class App:
                       "folder": self.vault_profile().default_destination(folders),
                       "tags": ["fuente"], "relations": [],
                       "body": "## "+self.vault_profile().section("summary")+"\n\n" + (c["text"] if c["kind"] in ("article","pdf","video") else n("Escribe aquí tu interpretación o descripción."))}
+        from provenance import resolve, title as context_title, route
+        c['provenance'] = resolve(c, result.get('provenance', []))
+        result['folder'] = route(self, c, result['folder'], folders)
+        result['title'] = context_title(c, result['title'])
+        if c['provenance'].get('origen') and not result.get('note_type') and 'apunte' in self.vault_profile().types_for(result['folder']):
+            result['note_type'] = 'apunte'
         recommended=list(c["selected_images"])
         described=set()
         for item in result.get("image_captions",[]):
@@ -624,14 +637,28 @@ class App:
 
     def duplicate(self, c):
         row = self.db.execute("SELECT path FROM saves WHERE fingerprint=?", (c["fingerprint"],)).fetchone()
-        if not row:
+        if row and safe_path(self.vault(), row[0]).is_file():
+            return row[0]
+        if c.get('kind') not in ('video', 'pdf', 'article') or c.get('update_targets') or c.get('bundle'):
             return None
-        path = safe_path(self.vault(), row[0])
-        try:
-            path.stat()
-        except FileNotFoundError:
-            return None
-        return row[0]
+        from vault_scan import frontmatter
+        intent = c.get('save_intent', {})
+        recovering = intent.get('hashes', {}) if isinstance(intent, dict) else {}
+        for folder in self.folders():
+            for candidate in (self.vault() / folder).glob('*.md'):
+                if candidate.is_symlink():
+                    continue
+                relative = candidate.relative_to(self.vault()).as_posix()
+                if relative in recovering:
+                    continue
+                saved_url = frontmatter(read_note(candidate)).get('fuente_url')
+                try:
+                    same = isinstance(saved_url, str) and normalized_url(saved_url) == c.get('url')
+                except UserError:
+                    same = False
+                if same:
+                    return relative
+        return None
 
     def render(self, c, fields):
         original = c["draft"]
@@ -692,6 +719,8 @@ class App:
                                   "source_format": original.get("source_format") or ("video" if c["kind"]=="video" else "documento" if c["kind"] in ("image","pdf") else "articulo"),
                                   "assisted": assisted, "model": clean(fields.get('revision_model') or original["model"] or original.get('connection_model'),80) if assisted else "",
                                   "relations": related})
+        from provenance import properties
+        fm.update(properties(c))
         # Source tags are mandatory even when a vault profile overrides or omits tags.
         if c["kind"] == "video":
             tags = fm.get("tags", [])
@@ -764,40 +793,9 @@ class App:
         if c["status"] == "saved" or self.duplicate(c):
             raise UserError("Esta captura ya está guardada; no se ha sobrescrito nada.")
         rendered = self.render(c, fields)
-        destination = safe_path(self.vault(), rendered["relative"])
-        if destination.exists():
-            raise UserError("Ya existe una nota con ese nombre. Cambia el nombre; no se ha sobrescrito nada.")
-        # Record intent first; interrupted operations remain recoverable in the local queue.
-        c["save_intent"] = rendered["relative"]
-        self.store(c)
-        self.db.execute("BEGIN IMMEDIATE")
-        created_assets = []
-        note_created = False
-        try:
-            if self.duplicate(c):
-                raise UserError("Esta captura acaba de guardarse en otra ventana.")
-            for rel, raw in rendered["assets"]:
-                path = safe_path(self.vault(), rel)
-                path.parent.mkdir(parents=True, exist_ok=True)
-                if path.exists():
-                    if path.read_bytes() != raw:
-                        raise UserError("El adjunto existente no coincide con su contenido.")
-                else:
-                    write_new_atomic(path, raw)
-                    created_assets.append(path)
-            # Revalidate after parent/attachment creation, before the final write.
-            destination = safe_path(self.vault(), rendered["relative"])
-            write_new_atomic(destination, rendered["markdown"].encode("utf-8"))
-            note_created = True
-            self.db.execute("INSERT INTO saves VALUES (?, ?, ?) ON CONFLICT(fingerprint) DO UPDATE SET path=excluded.path, created=excluded.created", (c["fingerprint"], rendered["relative"], dt.datetime.now().isoformat()))
-            self.db.commit()
-        except Exception:
-            self.db.rollback()
-            if note_created:
-                destination.unlink(missing_ok=True)
-            for asset in created_assets:
-                asset.unlink(missing_ok=True)
-            raise
+        from publication import publish
+        publish(self, c, {'source': rendered}, ['source'], write_new_atomic)
+        destination = safe_path(self.vault(), rendered['relative'])
         c.update({"status": "saved", "saved_path": rendered["relative"]})
         self.store(c)
         return {"path": str(destination), "relative": rendered["relative"],
@@ -810,6 +808,14 @@ class App:
         except Exception:
             set_note_language("es")
         action = message.get("action")
+        if action == 'source_context':
+            from provenance import sanitize
+            c = self.load(message['id'])
+            if c['status'] != 'pending':
+                raise UserError('El contexto solo puede adjuntarse antes de preparar la nota.')
+            c['source_context'] = {**c.get('source_context', {}), **sanitize(message.get('source_context'))}
+            self.store(c)
+            return self.public(c)
         if action in ('cancel_job','resume_job','finish_job','discard_job'):
             from jobs import Job
             job=Job(self,message['job'])

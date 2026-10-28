@@ -1,4 +1,4 @@
-# Rebuilding Anaco 1.2.3
+# Rebuilding Anaco 1.3.0
 
 The source archive contains the browser extension, its local Native Messaging
 companion and build inputs. It excludes development environments, personal test
@@ -26,7 +26,7 @@ npm run lint
 npm run build
 ```
 
-The result is `dist/anaco-ob-1.2.3.zip`. Compare the names and bytes of its
+The result is `dist/anaco-ob-1.3.0.zip`. Compare the names and bytes of its
 uncompressed entries with the submitted add-on. ZIP timestamps may differ.
 No signing key or environment secret is required.
 
@@ -35,7 +35,14 @@ of marked 18.1.1 and DOMPurify 3.4.17 into `extension/vendor/`.
 `scripts/i18n.py build` generates `extension/i18n-catalog.js` from the translation
 JSON files. There is no first-party JavaScript bundler, transpiler, minifier or
 obfuscator. Third-party source links and account-free testing instructions are
-in `docs/amo/1.2.0-reviewer-notes.txt`.
+in `docs/amo/1.3.0-reviewer-notes.txt`.
+
+## Source archive
+
+From the release checkout, run `python3 scripts/release_sources.py`. It packages
+version-controlled build inputs and tests only, excluding local environments,
+browser profiles, captures and credentials. The working tree must match the release
+commit; untracked local presentation assets are not included.
 
 ## Local companion
 

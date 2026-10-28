@@ -482,3 +482,12 @@ En la revisión, **Seleccionar todas las relaciones** y **Desmarcar todas** afec
 5. En **Desde un curso**, cuando ya hay resultados, la única acción principal es **Añadir N a la cola**; **Buscar de nuevo** queda como secundaria.
 
 Pruebas reproducibles: `.venv/bin/python tests/e2e_zen.py --batch`, `--batch --batch-video`, `--course-links` y `--panel-ux`.
+
+
+## Publicación 1.3.0: contexto y actualización
+
+Actualizar extensión y servicio a 1.3.0. En una clase enlazada desde un curso, comprobar en la revisión que se conservan título y URL originales, página contenedora, curso, unidad/módulo y sección conocidos. Drive identifica alojamiento, no autor. Comparar una clase de la profesora, una sección de AWS, un caso de estudio y una captura sin contexto suficiente; esta última no debe recibir curso ni sección por el tema.
+
+Guardar una nota en un vault de pruebas con su índice existente: debe añadirse el enlace sin reemplazar el contenido anterior. Revisar la copia recuperable en `update-backups/<captura>/` del estado local. Volver a capturar la misma URL con un título o transcripción diferentes debe detectar la nota individual existente. No usar este chequeo para impedir las colecciones o ampliaciones solicitadas explícitamente.
+
+Paquetes y textos para AMO: [docs/amo/README.md](docs/amo/README.md). Ejemplos de títulos, propiedades y destinos: [docs/CONTEXTO_FUENTES.md](docs/CONTEXTO_FUENTES.md).

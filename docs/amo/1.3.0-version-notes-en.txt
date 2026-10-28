@@ -1,0 +1,10 @@
+Anaco 1.3.0
+
+• Prepare up to 100 links in a queue with pause, retries and continuous review.
+• Explore Canvas/AWS Academy courses and select modules or lessons for the queue.
+• Keep original titles and URLs, containing pages, courses, modules and sections when available. Distinguish authors or instructors from video hosting sites and make missing context explicit.
+• Produce recognizable titles and reuse existing folders and indexes. Index updates have recoverable backups; individual reimports are detected even after title or transcript changes.
+• Improve Google Drive downloads, including large files and download confirmations.
+• Unify the interface, keep the sidebar bound to its source and select relationships in bulk.
+
+Update the local companion to 1.3.0 from the welcome page as well. AMO updates only the extension. The optional cookies permission keeps queued tabs in their original container; Anaco does not read or export cookies.

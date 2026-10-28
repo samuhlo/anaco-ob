@@ -137,3 +137,18 @@ Capturar una selección ya no se pierde cuando la página tarda en leerla: la de
 La IA elegida en **Ajustes de captura** ya no vuelve sola a la predeterminada cuando el panel se actualiza: antes, una nueva detección entre la elección y **Preparar** hacía que la nota se preparase con la IA de Opciones sin avisar. La elección se mantiene hasta que cambian las opciones.
 
 El asistente de revisión acompaña a la pestaña de revisión activa (comportamiento de la 1.2.3, ahora documentado y cubierto por `--review-menu`): con otra pestaña activa, el panel muestra su captura.
+
+
+## 1.3.0 · 2026-10-28
+
+Reúne para publicación los cambios probados localmente en 1.2.1–1.2.3: preparación secuencial de hasta 100 enlaces, explorador de cursos Canvas/AWS Academy, revisión continua, correcciones de Google Drive, selección masiva de relaciones, panel vinculado a su origen e interfaz unificada.
+
+**Contexto de las fuentes:** el catálogo transmite su jerarquía y posición original a la cola; la captura conserva página contenedora, título, descripción, migas y encabezados disponibles. Esa procedencia sobrevive a la extracción de subtítulos, vídeo, PDF y lectores. El alojamiento se distingue del autor u origen.
+
+Los títulos identifican curso, módulo y sección conocidos; los casos identifican situación y análisis. Las propiedades distinguen módulo académico, módulo del curso, unidad, sección y tipo de recurso. La información incierta queda señalada, sin deducir pertenencia por el tema ni inventar números de sección u orden de lectura.
+
+**Integración con el vault:** reutiliza destinos existentes cuando sus metadatos ofrecen una coincidencia única; conserva la búsqueda de relaciones con evidencia. Al guardar añade la nota al índice más cercano con copia recuperable y comprobación de cambios concurrentes. La reimportación individual detecta URLs existentes aunque cambien título, transcripción o ruta. Conserva los flujos explícitos de nuevas colecciones y ampliaciones.
+
+La extensión y el servicio local pasan juntos a 1.3.0. No cambia el identificador del complemento ni se añaden permisos respecto a la 1.2.3 local. Frente a la 1.2.0 pública, `cookies` es opcional y se usa para mantener el contenedor de las pestañas, sin leer ni exportar cookies. Detalle del contexto y ejemplos: [CONTEXTO_FUENTES.md](CONTEXTO_FUENTES.md).
+
+Se actualizan dependencias de las herramientas de desarrollo para corregir los avisos de fast-uri, node-forge y shell-quote, sin añadir bibliotecas al complemento.

@@ -28,7 +28,7 @@ globalThis.AnacoObBatch=(()=>{
     if(running||workClaim||pendingDiscard)throw new Error(tx('batch_busy'));
     queue={id:crypto.randomUUID(),status:'running',windowId:source.windowId,cookieStoreId,
       options:{provider:message.provider,intent:message.intent||'',note_structure:message.note_structure||'single',mode:message.mode||'auto',captureMode:message.captureMode||'auto'},
-      items:urls.map(url=>({id:crypto.randomUUID(),url,status:'pending',title:'',error:''}))};
+      items:urls.map(url=>({id:crypto.randomUUID(),url,source_context:message.contexts?.[url]||{},status:'pending',title:'',error:''}))};
     launch();return true;
   }
   async function resume(id,windowId){
@@ -80,6 +80,7 @@ globalThis.AnacoObBatch=(()=>{
         const url=last.launchLinks[0],origin=AnacoObDetection.origin(url);
         if(origin&&url!==tab.url&&!visited.has(url)&&launches<3){
           if(!await browser.permissions.contains({origins:[origin]})){throw permissionError(item,[origin]);}
+          item.source_context={...last.source_context,...item.source_context};
           visited.add(tab.url);visited.add(url);launches++;stableKey='';stableCount=0;
           await browser.tabs.update(tab.id,{url});await delay();continue;
         }
@@ -113,7 +114,7 @@ globalThis.AnacoObBatch=(()=>{
         const properties={url:item.url,active:false,windowId:queue.windowId};
         if(queue.cookieStoreId&&queue.cookieStoreId!=='firefox-default')properties.cookieStoreId=queue.cookieStoreId;
         tab=await browser.tabs.create(properties);item.tabId=tab.id;
-        c=await read(item,tab.id);loadedURL=c.source.url;item.title=c.title;
+        c=await read(item,tab.id);c.source_context={...c.source_context,...item.source_context};loadedURL=c.source.url;item.title=c.title;
         await persist();check();
         const plan=AnacoObBatchPlan.plan(c,queue.options.mode);
         item.selectedKind=plan.request?.kind||plan.kind;
