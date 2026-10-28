@@ -159,6 +159,15 @@ def image_bytes(image):
     return raw, ext
 
 
+def capture_fingerprint(capture):
+    """Identity of all retained source content, independent of its UI preview."""
+    identity = [capture['vault'], capture['kind'], capture['url'], capture['text'],
+                [hashlib.sha256(image_bytes(image)[0]).hexdigest() for image in capture['images']]]
+    if capture.get('embeds'):
+        identity.append([[embed['url'], embed['selected']] for embed in capture['embeds']])
+    return hashlib.sha256(json.dumps(identity, ensure_ascii=False).encode()).hexdigest()
+
+
 def write_new_atomic(path, data):
     """Publish a completed file exclusively; interruption cannot publish half a note."""
     temporary = None
@@ -397,6 +406,8 @@ class App:
              "context": clean(capture.get("context"), 10000), "intent": clean(capture.get("intent"), 2000),
              "images": images, "warnings": [clean(x, 500) for x in capture.get("warnings", [])[:15]],
              "created": dt.datetime.now().astimezone().isoformat(), "status": "pending"}
+        if len(str(capture.get('text') or '').replace('\x00', '')) > len(text):
+            c['warnings'].append(t('El texto de la fuente supera 160.000 caracteres; solo se ha capturado el comienzo. Captura un rango menor para conservar el resto.'))
         from provenance import sanitize
         c["source_context"] = {"original_url": source, **sanitize(capture.get("source_context"))}
         if isinstance(capture.get("reader"),dict):
@@ -404,9 +415,7 @@ class App:
         from embeds import stage as stage_embeds
         embeds=stage_embeds(self,capture.get("embeds"))
         if embeds:c["embeds"]=embeds
-        identity=[str(self.vault()), kind, url, text,[hashlib.sha256(image_bytes(i)[0]).hexdigest() for i in images]]
-        if embeds:identity.append([[e["url"],e["selected"]] for e in embeds])
-        c["fingerprint"] = hashlib.sha256(json.dumps(identity, ensure_ascii=False).encode()).hexdigest()
+        c['fingerprint'] = capture_fingerprint(c)
         self.store(c)
         return self.public(c)
 
@@ -598,6 +607,8 @@ class App:
                       "folder": self.vault_profile().default_destination(folders),
                       "tags": ["fuente"], "relations": [],
                       "body": "## "+self.vault_profile().section("summary")+"\n\n" + (c["text"] if c["kind"] in ("article","pdf","video") else n("Escribe aquí tu interpretación o descripción."))}
+            if len(result['body']) > 100000:
+                raise UserError('La captura manual supera el límite de edición de 100.000 caracteres. Sigue pendiente: importa un rango más corto o elige IA para elaborar un resumen.')
         from provenance import resolve, title as context_title, route
         c['provenance'] = resolve(c, result.get('provenance', []))
         result['folder'] = route(self, c, result['folder'], folders)
@@ -628,7 +639,7 @@ class App:
         from editorial import Editorial
         editorial=Editorial(self)
         valid=editorial.validate_relations(c,result.get('relations',[]),candidates)
-        body = clean(result["body"], 80000)
+        body = clean(result['body'], 100000 if provider == 'manual' else 80000)
         # Links are represented separately and added only after explicit selection.
         body = re.sub(r"!?\[\[([^\]]+)\]\]", lambda m: m.group(1).split("|")[-1], body)
         reused_model=next((c["images"][i].get("caption_model") for i in recommended if c["images"][i].get("caption_model")),"")
@@ -665,6 +676,21 @@ class App:
         row = self.db.execute("SELECT path FROM saves WHERE fingerprint=?", (c["fingerprint"],)).fetchone()
         if row and safe_path(self.vault(), row[0]).is_file():
             return row[0]
+        legacy = c.get('legacy_fingerprint')
+        if legacy and legacy != c['fingerprint'] and not c.get('bundle') and not c.get('update_targets'):
+            old = self.db.execute('SELECT path FROM saves WHERE fingerprint=?', (legacy,)).fetchone()
+            if old and safe_path(self.vault(), old[0]).is_file():
+                # A legacy prefix is not evidence of equality. Verify the full
+                # retained source before accepting its saved history entry.
+                for path in (self.state / 'captures').glob('*.json'):
+                    try:
+                        saved = json.loads(path.read_text())
+                        if (saved.get('status') == 'saved' and saved.get('vault') == c['vault']
+                                and saved.get('fingerprint') == legacy
+                                and capture_fingerprint(saved) == capture_fingerprint(c)):
+                            return old[0]
+                    except (OSError, ValueError, KeyError, TypeError, UserError):
+                        continue
         if c.get('kind') not in ('video', 'pdf', 'article') or c.get('update_targets') or c.get('bundle'):
             return None
         from vault_scan import frontmatter
