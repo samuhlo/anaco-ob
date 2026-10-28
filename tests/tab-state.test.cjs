@@ -12,7 +12,7 @@ function app(){
  return {ctx,data};
 }
 const tab=id=>({id,url:`https://course.example/page-${id}`,windowId:1,title:`Page ${id}`});
-const capture=id=>({kind:'article',url:tab(id).url,title:`Page ${id}`,text:'Readable article body.',contentReady:true,images:[],documents:[],videos:[],warnings:[]});
+const capture=id=>({vault:'/vault/A',kind:'article',url:tab(id).url,title:`Page ${id}`,text:'Readable article body.',contentReady:true,images:[],documents:[],videos:[],warnings:[]});
 test('a late detection cannot replace the newly selected tab',async()=>{
  const {ctx,data}=app();let release;
  ctx.delayed=new Promise(resolve=>{release=resolve;});ctx.answer=capture(2);

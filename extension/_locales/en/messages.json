@@ -29,6 +29,9 @@
   "batch_invalid_url": {
     "message": "Invalid link (use http or https, without passwords): $1"
   },
+  "batch_legacy_vault_unknown": {
+    "message": "This older queue has no recorded original vault. Keep its links, clear the queue and create a new one from the correct vault. Prepared captures remain in Pending."
+  },
   "batch_login": {
     "message": "This page requires sign-in. Open the source, sign in, and retry."
   },
@@ -167,6 +170,9 @@
   "batch_urls": {
     "message": "Links, one per line"
   },
+  "batch_vault_changed": {
+    "message": "This queue belongs to vault $1. Select it again in Options to continue."
+  },
   "batch_video": {
     "message": "Lesson video or audio"
   },
@@ -196,6 +202,9 @@
   },
   "bg_clip_1_no_se_pudo_guardar_2": {
     "message": "Clip «$1»: could not be saved ($2)."
+  },
+  "bg_configure_work_active": {
+    "message": "Wait for the current work to finish or pause the queue before changing settings or the profile."
   },
   "bg_contenido_incrustado": {
     "message": "Embedded content"

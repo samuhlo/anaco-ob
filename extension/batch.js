@@ -13,6 +13,13 @@ globalThis.AnacoObBatch=(()=>{
   function permissionError(item,urls){item.requiredOrigins=AnacoObBatchPlan.permissionOrigins(urls);const error=new Error(tx('batch_permissions_domains',[item.requiredOrigins.map(u=>new URL(u).hostname).join(', ')]));error.code='permission';return error;}
   const check=()=>{if(abortCurrent)throw new Error(tx('batch_paused'));};
   const delay=()=>new Promise(resolve=>setTimeout(resolve,1000));
+  async function assertVault(){
+    if(!queue?.vault)throw new Error(tx('batch_legacy_vault_unknown'));
+    const owner=queue;
+    const {config}=await native({action:'settings'});
+    if(queue!==owner)throw new Error(tx('batch_busy'));
+    if(config.vault!==owner.vault)throw new Error(tx('batch_vault_changed',[owner.vault]));
+  }
   async function start(message){
     await initialized;
     if(running||workClaim||pendingDiscard)throw new Error(tx('batch_busy'));
@@ -24,9 +31,10 @@ globalThis.AnacoObBatch=(()=>{
     if(!source)throw new Error(tx('batch_no_content'));
     const cookieStoreId=message.cookieStoreId||source.cookieStoreId;
     if(cookieStoreId&&cookieStoreId!=='firefox-default'&&!await browser.permissions.contains({permissions:['cookies']}))throw new Error(tx('batch_container_permission'));
+    const {config}=await native({action:'settings'});
     // Recheck after asynchronous permission/context lookups before claiming the queue.
     if(running||workClaim||pendingDiscard)throw new Error(tx('batch_busy'));
-    queue={id:crypto.randomUUID(),status:'running',windowId:source.windowId,cookieStoreId,
+    queue={id:crypto.randomUUID(),status:'running',windowId:source.windowId,cookieStoreId,vault:config.vault,
       options:{provider:message.provider,intent:message.intent||'',note_structure:message.note_structure||'single',mode:message.mode||'auto',captureMode:message.captureMode||'auto'},
       items:urls.map(url=>({id:crypto.randomUUID(),url,source_context:message.contexts?.[url]||{},status:'pending',title:'',error:''}))};
     launch();return true;
@@ -35,6 +43,8 @@ globalThis.AnacoObBatch=(()=>{
     await initialized;
     if(running||workClaim||pendingDiscard)throw new Error(tx('batch_busy'));
     if(!queue)return false;
+    await assertVault();
+    if(running||workClaim||pendingDiscard)throw new Error(tx('batch_busy'));
     if(id){const item=queue.items.find(i=>i.id===id);if(!item||item.status!=='failed')return false;item.status='pending';item.error='';}
     if(!queue.items.some(i=>i.status==='pending'))return false;
     if(Number.isInteger(windowId))queue.windowId=windowId;
@@ -149,6 +159,7 @@ globalThis.AnacoObBatch=(()=>{
       for(const item of queue.items){
         if(stop)break;
         if(!queue.items.includes(item)||item.status!=='pending')continue;
+        await assertVault();
         item.status='running';await persist();await process(item);await persist();
       }
       queue.status=stop&&queue.items.some(i=>i.status==='pending')?'paused':'complete';
@@ -169,6 +180,8 @@ globalThis.AnacoObBatch=(()=>{
     await initialized;
     if(running||workClaim||pendingDiscard)throw new Error(tx('batch_busy'));
     if(!queue)return false;
+    await assertVault();
+    if(running||workClaim||pendingDiscard)throw new Error(tx('batch_busy'));
     for(const item of queue.items){
       if(['saved','discarded'].includes(item.status))continue;
       if(item.captureId)item.previousCaptureIds=[...new Set([...(item.previousCaptureIds||[]),item.captureId])];
@@ -182,6 +195,8 @@ globalThis.AnacoObBatch=(()=>{
     await initialized;
     if(running||workClaim||pendingDiscard)throw new Error(tx('batch_busy'));
     if(!queue)return false;
+    await assertVault();
+    if(running||workClaim||pendingDiscard)throw new Error(tx('batch_busy'));
     for(const item of queue.items)if(item.status==='failed'){item.status='pending';item.error='';}
     return resume(null,windowId);
   }
@@ -210,5 +225,5 @@ globalThis.AnacoObBatch=(()=>{
     const reviewable=queue.items.filter(i=>i.captureId&&(i.captureId===id||['ready','saved'].includes(i.status)));
     return {queueId:queue.id,index:reviewable.findIndex(i=>i.captureId===id)+1,total:reviewable.length,reviewed:queue.items.filter(i=>i.status==='saved').length,next:remaining.map(i=>i.captureId)};
   }
-  return {start,resume,pause,reviewed,reviewContext,restartVideos,retryFailed,remove,clear,busy:()=>running};
+  return {start,resume,pause,reviewed,reviewContext,restartVideos,retryFailed,remove,clear,busy:()=>running,vault:()=>running?queue?.vault:null};
 })();

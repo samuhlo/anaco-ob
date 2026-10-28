@@ -9,20 +9,54 @@ function app(initial={}){
     webNavigation:{onCompleted:event()},browserAction:{onClicked:event()},commands:{onCommand:event()},menus:{create(){},onClicked:event()}};
   const ctx=vm.createContext({browser,URL,AbortSignal,crypto:require('node:crypto').webcrypto,localStorage:{removeItem(){}},setTimeout:(fn,ms)=>setTimeout(fn,ms===1000?0:ms),clearTimeout});
   vm.runInContext(I18N+['media-source','detection','capture-flow','background','batch-plan','batch'].map(f=>fs.readFileSync(`extension/${f}.js`,'utf8')).join('\n'),ctx);
-  const actualScanTab=ctx.scanTab;
+  const actualScanTab=ctx.scanTab,transport=ctx.native,config={vault:'/vault/A'};
   ctx.scanTab=async tab=>article(tab.url);
   ctx.native=async m=>{
     calls.push(m);
-    if(m.action==='capture'){const c={...m.capture,id:'capture-'+captures.size};captures.set(c.id,c);return c;}
+    if(m.action==='settings')return {config:{...config}};
+    if(m.action==='capture'){const c={...m.capture,vault:config.vault,id:'capture-'+captures.size};captures.set(c.id,c);return c;}
     if(m.action==='draft'){const c={...captures.get(m.id),draft:{body:'Lesson notes'},status:'draft'};captures.set(c.id,c);return {capture:c,draft:c.draft};}
     if(m.action==='load')return captures.get(m.id);
     return {};
   };
   const invoke=code=>vm.runInContext(code,ctx);
   const settled=async()=>{for(let i=0;i<200;i++){if(!ctx.AnacoObBatch.busy())return;await new Promise(r=>setTimeout(r,2));}throw Error('Queue did not settle');};
-  return {ctx,browser,data,created,removed,calls,tabs,captures,invoke,settled,actualScanTab};
+  return {ctx,browser,data,created,removed,calls,tabs,captures,invoke,settled,actualScanTab,config,transport};
 }
 const start={urls:'https://course.test/one\nhttps://course.test/two',windowId:2,provider:'manual',mode:'auto'};
+test('a paused queue rejects another vault and resumes in its recorded vault',async()=>{
+  const a=app({batchQueue:{id:'owned',vault:'/vault/A',status:'paused',windowId:2,options:{provider:'manual'},items:[{id:'one',url:'https://course.test/one',status:'pending'}]}});
+  await new Promise(resolve=>setImmediate(resolve));
+  a.config.vault='/vault/B';
+  await assert.rejects(a.ctx.AnacoObBatch.resume(),/vault.*\/vault\/A/);
+  assert.equal(a.created.length,0);assert.equal(a.data.batchQueue.items[0].status,'pending');
+  a.config.vault='/vault/A';await a.ctx.AnacoObBatch.resume();await a.settled();
+  assert.equal(a.data.batchQueue.items[0].status,'ready');
+  assert.equal([...a.captures.values()][0].vault,'/vault/A');
+});
+test('legacy queues with no vault cannot silently acquire the current destination',async()=>{
+  const a=app({batchQueue:{id:'legacy',status:'paused',items:[{id:'one',url:'https://course.test/one',status:'pending'}]}});
+  await assert.rejects(a.ctx.AnacoObBatch.resume(),/cola antigua/);
+  assert.equal(a.created.length,0);assert.equal(a.data.batchQueue.items[0].status,'pending');
+});
+test('retry and reprocess in another vault preserve existing capture references',async()=>{
+  const a=app({batchQueue:{vault:'/vault/A',id:'owned',status:'paused',options:{mode:'auto'},items:[{id:'one',url:'https://course.test/one',captureId:'retained',status:'failed'}]}});
+  await new Promise(resolve=>setImmediate(resolve));a.config.vault='/vault/B';
+  for(const action of ['retryFailed','restartVideos'])await assert.rejects(a.ctx.AnacoObBatch[action](),/vault/);
+  assert.equal(a.data.batchQueue.items[0].captureId,'retained');
+  assert.equal(a.data.batchQueue.items[0].status,'failed');
+});
+test('settings and profile writes are rejected before reaching the host while work is active',async()=>{
+  const a=app();a.invoke("workClaim='working'");
+  for(const action of ['configure','profile_save'])await assert.rejects(a.transport({action}),/termine el trabajo/);
+  a.invoke('workClaim=null');
+});
+test('the native transport attaches the operation vault to every request',async()=>{
+  const a=app();let receive;const messages=[];
+  a.browser.runtime.connectNative=()=>({onMessage:{addListener(fn){receive=fn;}},onDisconnect:{addListener(){}},postMessage(message){messages.push(message);queueMicrotask(()=>receive({requestId:message.requestId,ok:true,result:{}}));}});
+  a.invoke("workVault='/vault/A'");await a.transport({action:'capture'});
+  assert.equal(messages[0].expected_vault,'/vault/A');
+});
 test('queue uses the login container, runs sequentially without reviews/focus changes and restores the panel',async()=>{
   const a=app({pageContext:{tabId:1,url:'https://course.test/home'},currentCapture:article('https://course.test/home')});
   await a.ctx.AnacoObBatch.start(start);await a.settled();
@@ -110,7 +144,7 @@ test('explicit video mode waits for video despite readable page text',async()=>{
   assert.ok(scans>=5);assert.equal(a.data.batchQueue.items[0].status,'ready');
 });
 test('reprocess as video replaces wrong capture references without deleting drafts or saved notes',async()=>{
-  const a=app({batchQueue:{status:'paused',windowId:2,options:{mode:'auto',provider:'manual'},items:[{id:'a',url:'https://course.test/one',captureId:'wrong-pdf',status:'ready'},{id:'b',url:'https://course.test/saved',captureId:'saved-note',status:'saved'}]}});
+  const a=app({batchQueue:{vault:'/vault/A',status:'paused',windowId:2,options:{mode:'auto',provider:'manual'},items:[{id:'a',url:'https://course.test/one',captureId:'wrong-pdf',status:'ready'},{id:'b',url:'https://course.test/saved',captureId:'saved-note',status:'saved'}]}});
   a.ctx.scanTab=async tab=>lesson(tab.url);
   a.ctx.importResource=async (request,c)=>{const saved={...c,id:'correct-video',images:[]};a.captures.set(saved.id,saved);return saved;};
   await a.ctx.AnacoObBatch.restartVideos(2);await a.settled();
@@ -134,7 +168,7 @@ test('Drive permission recovery excludes feedback and includes the download redi
   assert.deepEqual(Array.from(origins),['https://drive.google.com/*','https://drive.usercontent.google.com/*','https://*.googleusercontent.com/*','https://course.test/*']);
 });
 test('retry all failed links preserves ready drafts and restarts every failed entry',async()=>{
-  const a=app({batchQueue:{id:'retry',status:'complete',windowId:2,options:{mode:'auto',provider:'manual'},items:[{id:'a',url:'https://course.test/one',status:'failed'},{id:'b',url:'https://course.test/two',status:'failed'},{id:'c',url:'https://course.test/ready',status:'ready',captureId:'kept'}]}});
+  const a=app({batchQueue:{vault:'/vault/A',id:'retry',status:'complete',windowId:2,options:{mode:'auto',provider:'manual'},items:[{id:'a',url:'https://course.test/one',status:'failed'},{id:'b',url:'https://course.test/two',status:'failed'},{id:'c',url:'https://course.test/ready',status:'ready',captureId:'kept'}]}});
   await a.ctx.AnacoObBatch.retryFailed(2);await a.settled();
   assert.equal(a.created.length,2);assert.ok(a.data.batchQueue.items.every(i=>i.status==='ready'));
   assert.equal(a.data.batchQueue.items[2].captureId,'kept');

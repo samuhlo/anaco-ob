@@ -156,6 +156,17 @@ class Media:
         if not re.fullmatch(r"[a-f0-9]{32}",str(identifier)):raise UserError("Archivo temporal no válido.")
         return self.app.state/"uploads"/identifier
 
+    def load_upload(self, identifier):
+        directory = self.upload_dir(identifier)
+        meta = json.loads((directory / 'meta.json').read_text())
+        if not meta.get('vault'):
+            # A retry can create a job in the current vault. That new record is
+            # not proof of ownership of an older, unbound upload.
+            raise UserError('Esta subida antigua no conserva un vault de origen verificable. Se han conservado sus archivos; vuelve a importarla desde el vault correcto.')
+        if meta['vault'] != str(self.app.vault()):
+            raise UserError('La subida pertenece a otro vault. Selecciona su vault de origen para continuar.')
+        return directory, meta
+
     def begin(self,message):
         size=message.get("size")
         name=Path(clean(message.get("name"),200)).name
@@ -165,7 +176,7 @@ class Media:
             if not limit:raise UserError("Tipo de recurso incrustado no admitido.")
             if type(size) is not int or not 0<size<=limit:raise UserError("El recurso supera el límite de {megabytes} MB.", megabytes=limit//1_000_000)
             identifier=uuid.uuid4().hex;directory=self.upload_dir(identifier);directory.mkdir(parents=True,mode=0o700)
-            json_dump(directory/"meta.json",{"name":name,"size":size,"url":"","purpose":"asset"})
+            json_dump(directory/"meta.json",{"name":name,"size":size,"url":"","purpose":"asset","vault":str(self.app.vault())})
             (directory/"data.part").touch(mode=0o600)
             return {"upload":identifier}
         limit=MAX_FILE if Path(name).suffix.lower() in ('.pdf','.vtt','.srt') else 1_000_000_000
@@ -173,12 +184,12 @@ class Media:
         if Path(name).suffix.lower() not in (".pdf",".vtt",".srt",".mp3",".mp4",".m4a",".webm",".wav",".ogg",".flac",".mov"):
             raise UserError("Importa PDF, subtítulos SRT/VTT o un archivo de audio/vídeo compatible.")
         identifier=uuid.uuid4().hex;directory=self.upload_dir(identifier);directory.mkdir(parents=True,mode=0o700)
-        json_dump(directory/"meta.json",{"name":name,"size":size,"url":clean(message.get("url"),8000)})
+        json_dump(directory/"meta.json",{"name":name,"size":size,"url":clean(message.get("url"),8000),"vault":str(self.app.vault())})
         (directory/"data.part").touch(mode=0o600)
         return {"upload":identifier}
 
     def chunk(self,message):
-        directory=self.upload_dir(message.get("upload"));meta=json.loads((directory/"meta.json").read_text());path=directory/"data.part"
+        directory,meta=self.load_upload(message.get('upload'));path=directory/'data.part'
         try:raw=base64.b64decode(message.get("data",""),validate=True)
         except Exception as exc:raise UserError("Fragmento de archivo no válido.") from exc
         if len(raw)>524288 or message.get("offset")!=path.stat().st_size or path.stat().st_size+len(raw)>meta["size"]:
@@ -188,14 +199,14 @@ class Media:
 
     def finish_asset(self,message):
         from embeds import store_asset
-        directory=self.upload_dir(message.get("upload"));meta=json.loads((directory/"meta.json").read_text());path=directory/"data.part"
+        directory,meta=self.load_upload(message.get('upload'));path=directory/'data.part'
         if meta.get("purpose")!="asset":raise UserError("La subida no corresponde a un recurso incrustado.")
         if not path.exists() or path.stat().st_size!=meta["size"]:raise UserError("Faltan fragmentos del recurso.")
         result=store_asset(self.app,path,Path(meta["name"]).suffix.lower());shutil.rmtree(directory,ignore_errors=True)
         return result
 
     def finish(self,message):
-        directory=self.upload_dir(message.get("upload"));meta=json.loads((directory/"meta.json").read_text());path=directory/"data.part"
+        directory,meta=self.load_upload(message.get('upload'));path=directory/'data.part'
         suffix=Path(meta["name"]).suffix.lower();target=directory/("source"+suffix)
         if path.exists():
             if path.stat().st_size!=meta["size"]:raise UserError("Faltan fragmentos del archivo.")
