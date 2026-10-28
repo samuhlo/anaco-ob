@@ -1,5 +1,4 @@
 """Cooperative jobs, controlled through a separate Native Messaging connection."""
-import json
 import os
 from pathlib import Path
 import re
@@ -8,6 +7,7 @@ import time
 from core import UserError,json_dump
 from translation import t
 from processes import ManagedProcess, process_info
+from records import RecordError, read_record, job_record, issue
 
 class Cancelled(UserError):
     def __init__(self):super().__init__(t('Trabajo cancelado. Puedes reanudarlo desde Trabajos recuperables.'))
@@ -26,7 +26,10 @@ class Job:
         self.path=self.directory/'job.json'
         self.vault = str(app.vault())
     def load(self):
-        value=json.loads(self.path.read_text()) if self.path.exists() else {'id':self.directory.name,'vault':self.vault,'started':time.time()}
+        try:
+            value=read_record(self.path,lambda v:job_record(v,self.directory.name)) if self.path.exists() or self.path.is_symlink() else {'id':self.directory.name,'vault':self.vault,'started':time.time()}
+        except RecordError as exc:
+            raise UserError('El archivo del trabajo {id} está dañado o no se puede leer. Su original se ha conservado.', id=self.directory.name) from exc
         if value['vault']!=self.vault:raise UserError('El trabajo pertenece a otro vault.')
         return value
     def update(self,**values):
@@ -56,22 +59,25 @@ def capture_jobs(app,identifier):
     result=[]
     for path in (app.state/'jobs').glob('*/job.json'):
         try:
-            value=json.loads(path.read_text())
+            value=read_record(path,lambda v:job_record(v,path.parent.name))
             if value.get('vault')==str(app.vault()) and value.get('action')=='draft' and value.get('request',{}).get('id')==identifier and value.get('status') not in ('complete','discarded'):
                 result.append(Job(app,path.parent.name))
-        except (OSError,ValueError):continue
+        except RecordError:continue
     return result
 
 def pending(app):
     result=[]
+    app.job_issues = {'count': 0, 'records': []}
     for path in (app.state/'jobs').glob('*/job.json'):
         try:
-            value=json.loads(path.read_text())
+            value=read_record(path)
+            if isinstance(value.get('vault'), str) and value['vault'] and value['vault'] != str(app.vault()):continue
+            if not job_record(value,path.parent.name):raise RecordError('invalid_record')
             if value.get('vault')!=str(app.vault()) or value.get('status') in ('complete','discarded'):continue
             if value.get('status')=='running' and not running(value):value['status']='interrupted'
             if value.get('action') in ('upload_finish','draft','video_url'):
                 result.append({k:value.get(k) for k in ('id','action','status','updated')})
-        except (OSError,ValueError):continue
+        except RecordError as exc:issue(app.job_issues,path,exc)
     return sorted(result,key=lambda v:v.get('updated') or 0,reverse=True)[:20]
 
 def run_command(command,check,timeout=300,input=None,text=False):

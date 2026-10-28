@@ -1841,6 +1841,21 @@
   "progress_waiting": {
     "message": "Esperando el resultado de esta fase."
   },
+  "recovery_capture": {
+    "message": "Captura"
+  },
+  "recovery_details": {
+    "message": "Identificadores para recuperar los archivos"
+  },
+  "recovery_job": {
+    "message": "Trabajo"
+  },
+  "recovery_notice": {
+    "message": "Registros locales que no se pueden leer: $1. Sus archivos originales siguen guardados. Puedes continuar con las demás capturas y volver a capturar las fuentes afectadas."
+  },
+  "recovery_unknown_id": {
+    "message": "sin identificador verificable"
+  },
   "render_ampliar_1": {
     "message": "Ampliar: $1"
   },

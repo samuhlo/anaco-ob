@@ -20,6 +20,21 @@ globalThis.AnacoObDiagnosis=(()=>{
       out.push({kind:'ai',title:tx('diag_la_ia_no_esta_lista'),text:reply.ai.message||tx('diag_revisa_el_proveedor_de_ia_en_opciones'),action:'options'});
     return out;
   }
+  function storage(reply){
+    const health=reply?.storage_health;
+    const count=value=>Number.isSafeInteger(value?.count)&&value.count>0?value.count:0;
+    const total=count(health?.captures)+count(health?.jobs);
+    if(!total)return null;
+    const records=[];
+    for(const [group,label] of [[health?.captures,tx('recovery_capture')],[health?.jobs,tx('recovery_job')]]){
+      for(const record of (Array.isArray(group?.records)?group.records:[]).slice(0,20)){
+        const id=/^[a-f0-9-]{32,36}$/.test(record?.id||'')?record.id:tx('recovery_unknown_id');
+        const code=['invalid_json','invalid_record','unreadable','too_large','symlink'].includes(record?.code)?record.code:'unreadable';
+        records.push(label+' '+id+' · '+code);
+      }
+    }
+    return {count:total,text:tx('recovery_notice',[total]),records};
+  }
   // The one line the welcome page offers: it installs uv, Python if missing, and the service.
   function oneLine(os){
     const raw='https://raw.githubusercontent.com/samuhlo/anaco-ob/main/scripts/',page='https://github.com/samuhlo/anaco-ob/blob/main/scripts/';
@@ -36,5 +51,5 @@ globalThis.AnacoObDiagnosis=(()=>{
       {text:tx('diag_registralo_para_firefox_y_zen_con_la_rut'),command:`anaco-ob install --vault "${tx('diag_ruta_de_tu_vault')}"`},
       {text:tx('diag_comprueba_que_falta'),command:'anaco-ob doctor'}];
   }
-  return {connection,status,oneLine,installSteps};
+  return {connection,status,storage,oneLine,installSteps};
 })();

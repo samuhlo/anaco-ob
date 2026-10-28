@@ -138,6 +138,8 @@ def main():
         draft_job=Job(app,'a'*32);draft_job.start({'action':'draft','id':pending_capture['id']});draft_job.update(status='failed')
         failed_job=Job(app,'b'*32);failed_job.start({'action':'video_url','url':'https://example.org/video'});failed_job.update(status='failed')
         active_job=Job(app,'c'*32);active_job.start({'action':'video_url','url':'https://example.org/active'})
+        damaged_capture_path=app.state/'captures'/('f'*32+'.json')
+        damaged_capture_path.write_bytes(b'{broken')
     app.db.close()
     (ROOT / "tests/fixtures/diagram.png").write_bytes(fixture_png())
     if args.media or args.detection:
@@ -368,6 +370,9 @@ def main():
             wait.until(lambda d:'CONECTADO' in d.find_element(By.ID,'connection').text.upper())
             field('refresh').click()
             wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'.pending-dismiss'))==5)
+            wait.until(lambda d:d.find_element(By.ID,'storageNotice').is_displayed())
+            assert 'no se pueden leer: 1' in driver.find_element(By.ID,'storageNoticeText').text
+            assert damaged_capture_path.read_bytes()==b'{broken'
             capture_selector=f'[data-capture="{pending_capture["id"]}"]'
             job_selector=f'[data-job="{"b"*32}"]'
             active_selector=f'[data-job="{"c"*32}"]'
@@ -408,7 +413,9 @@ def main():
             pending_frame=driver.find_element(By.ID,'pending-frame');driver.switch_to.frame(pending_frame)
             wait.until(lambda d:'CONECTADO' in d.find_element(By.ID,'connection').text.upper());field('refresh').click()
             driver.switch_to.default_content();pending_frame.screenshot(str(out/'after.png'));driver.switch_to.frame(pending_frame)
-            report={'passed':True,'widths':dimensions,'hover_and_keyboard':True,'associated_failed_draft_removed':True,'active_work_protected':True,'unrelated_capture_preserved':True,'dismissal_survives_reload':True}
+            assert damaged_capture_path.read_bytes()==b'{broken'
+            assert driver.find_element(By.ID,'storageNotice').is_displayed()
+            report={'passed':True,'widths':dimensions,'hover_and_keyboard':True,'associated_failed_draft_removed':True,'active_work_protected':True,'unrelated_capture_preserved':True,'dismissal_survives_reload':True,'damaged_capture_retained_and_reported':True}
             (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,ensure_ascii=False,indent=2));return
         if args.windows:
             original=driver.execute_async_script('const done=arguments[arguments.length-1];browser.windows.getCurrent().then(done);')

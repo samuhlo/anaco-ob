@@ -18,6 +18,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit, quote
 import uuid
 from captions import html_caption,filename_hint
 from vaults import discover_vaults
+from records import RecordError, read_record, capture_record, issue
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_VAULT = Path.home() / "Second_Brain"
@@ -253,8 +254,11 @@ class App:
                    "reader_batch_pages":6,"pdf_page_limit":60,"pdf_visual_pages":6,"video_minutes":240,"video_frames":3,"asr_model":"base",
                    "provider": "codex", "codex": shutil.which("codex") or "codex",
                    "api_base": "https://api.openai.com/v1", "api_model": "", "api_vision_model": "", "note_language": "es"}
-        if path.exists():
-            saved = json.loads(path.read_text())
+        if path.exists() or path.is_symlink():
+            try:
+                saved = read_record(path, limit=1_000_000)
+            except RecordError as exc:
+                raise UserError('La configuración local no se puede leer. El archivo config.json se conserva; restáuralo desde una copia antes de continuar.') from exc
             default.update(saved)
             # Existing installations explicitly configured their path.
             if "vault" in saved and "vault_mode" not in saved:
@@ -431,7 +435,10 @@ class App:
         p = self.state / "captures" / (capture_id + ".json")
         if not p.exists():
             raise UserError("La captura ya no está disponible.")
-        capture = json.loads(p.read_text())
+        try:
+            capture = read_record(p, lambda value: capture_record(value, capture_id))
+        except RecordError as exc:
+            raise UserError('La captura {id} está dañada o no se puede leer. Su archivo original se ha conservado.', id=capture_id) from exc
         if capture.get("vault") != str(self.vault()):
             raise UserError("Esta captura pertenece a otro vault. Selecciona su vault de origen en Opciones para recuperarla.")
         return capture
@@ -444,9 +451,19 @@ class App:
 
     def pending(self):
         captures = []
+        self.capture_issues = {'count': 0, 'records': []}
+        vault = str(self.vault())
         for p in (self.state / "captures").glob("*.json"):
-            c = json.loads(p.read_text())
-            if c.get("status") not in ("saved", "discarded") and c.get("vault") == str(self.vault()):
+            try:
+                c = read_record(p)
+                if isinstance(c.get('vault'), str) and c['vault'] and c['vault'] != vault:
+                    continue
+                if not capture_record(c, p.stem):
+                    raise RecordError('invalid_record')
+            except RecordError as exc:
+                issue(self.capture_issues, p, exc)
+                continue
+            if c['status'] not in ('saved', 'discarded'):
                 captures.append({"id": c["id"], "title": c["title"], "kind": c["kind"], "created": c["created"], "status": c["status"]})
         return sorted(captures, key=lambda c: c["created"], reverse=True)[:50]
 
@@ -900,7 +917,10 @@ class App:
                 state = {"path": profile.path, "hash": self.guide()["hash"], "problems": profile.problems()}
             except UserError as exc:
                 folders, state = [], {"missing": True, "message": str(exc)}
-            return {"version": VERSION, "config": public_config(self.config()), "folders": folders, "pending": self.pending(), 'jobs':pending(self), "profile": state, "profile_hash": state.get("hash"), "ai": ai_state(self.config())}
+            captures, jobs = self.pending(), pending(self)
+            return {"version": VERSION, "config": public_config(self.config()), "folders": folders, "pending": captures, 'jobs':jobs,
+                    'storage_health': {'captures': self.capture_issues, 'jobs': self.job_issues},
+                    "profile": state, "profile_hash": state.get("hash"), "ai": ai_state(self.config())}
         if action == "settings":
             cfg = self.config()
             from vault_profile import default_sections

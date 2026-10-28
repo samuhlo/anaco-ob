@@ -1841,6 +1841,21 @@
   "progress_waiting": {
     "message": "Waiting for this phase to finish."
   },
+  "recovery_capture": {
+    "message": "Capture"
+  },
+  "recovery_details": {
+    "message": "Identifiers for recovering the files"
+  },
+  "recovery_job": {
+    "message": "Job"
+  },
+  "recovery_notice": {
+    "message": "Unreadable local records: $1. Their original files are still saved. You can continue with the other captures and capture the affected sources again."
+  },
+  "recovery_unknown_id": {
+    "message": "with no verifiable identifier"
+  },
   "render_ampliar_1": {
     "message": "Enlarge: $1"
   },

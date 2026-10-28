@@ -267,6 +267,13 @@ async function refresh() {
     $('profileNoticeText').textContent=profile.missing?(profile.message||tx('panel_este_vault_aun_no_tiene_perfil_escanealo')):profile.problems?.length?profile.problems[0]+(profile.problems.length>1?tx('panel_y_1_mas',[profile.problems.length-1]):''):'';
     if(serviceError && $('error').textContent === serviceError) $('error').hidden=true;
     serviceError='';
+    const recovery=AnacoObDiagnosis.storage(status);
+    $('storageNotice').hidden=!recovery;
+    if(recovery){
+      if($('storageNoticeText').textContent!==recovery.text)$('storageNoticeText').textContent=recovery.text;
+      $('storageNoticeRecords').replaceChildren();
+      for(const text of recovery.records){const item=document.createElement('li');item.textContent=text;$('storageNoticeRecords').append(item);}
+    }
     $('recoverSection').hidden=!(status.jobs||[]).length;$('recoverJobs').replaceChildren();
     const {workSources={}}=await browser.storage.local.get('workSources');
     for(const job of status.jobs||[]){
