@@ -29,6 +29,7 @@ test('automatic review opens in front only while the user remains on its source'
 });
 test('review menu state is scoped to its real window and disappears when its tab closes',async()=>{
  const a=app();a.ctx.message={id:'capture',instance:'view-one',status:{title:'Review',notes:[]}};a.ctx.sender={url:'moz-extension://test/review.html?capture=capture',tab:{id:91,windowId:1}};
+ a.browser.tabs.get=async id=>({id,windowId:1,url:a.ctx.sender.url});
  await vm.runInContext('reviewStatus(message,sender)',a.ctx);assert.equal(a.data.reviewSessions.capture.windowId,1);
  a.ctx.command={id:'capture',windowId:2,command:'read'};
  await assert.rejects(vm.runInContext('reviewCommand(command)',a.ctx),/esta ventana/);

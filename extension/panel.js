@@ -5,7 +5,7 @@ let state = {}, status, locateTimer, serviceError = '';
 let structureInitialized=false;
 let captureFormKey='',captureFormSource='',captureFormId=null,captureTarget='';
 let activeReview=null,preferredReview=null;
-let panelWindowId=null,panelStarted=false;
+let panelWindowId=null,panelStarted=false,knownJobs=null;
 let boundSource=null;
 const sidebarView=typeof window!=='undefined'&&Boolean(browser.extension?.getViews?.({type:'sidebar'}).includes(window));
 if(sidebarView)document.documentElement.style.visibility='hidden';
@@ -289,6 +289,10 @@ async function refresh() {
     pendingControls();
     if(!status.pending.length)$("pending").textContent=tx('panel_no_hay_capturas_pendientes');
     $('pendingSection').hidden=!(status.pending.length||(status.jobs||[]).length);
+    // A job that becomes recoverable while the panel is open is shown where the notice points.
+    const jobIds=(status.jobs||[]).filter(j=>j.status!=='running').map(j=>j.id);
+    if(knownJobs&&jobIds.some(id=>!knownJobs.has(id)))$('pendingSection').open=true;
+    knownJobs=new Set(jobIds);
     showHealth(AnacoObDiagnosis.status(status,browser.runtime.getManifest().version)[0]);
     captureSettingsSummary();
   }catch(error){

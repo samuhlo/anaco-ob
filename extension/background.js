@@ -46,6 +46,9 @@ browser.storage.local.set({reviewSessions:{}});
 async function reviewStatus(message,sender){
   const expected=browser.runtime.getURL('review.html')+'?capture='+encodeURIComponent(message.id);
   if(!sender.tab||sender.url!==expected)return;
+  // Statuses are sent on a timer: one may arrive after the review closed or left its tab.
+  const tab=await browser.tabs.get(sender.tab.id).catch(()=>null);
+  if(tab?.url!==expected)return;
   if(sender.tab.active)for(const value of Object.values(reviewSessions))if(value.windowId===sender.tab.windowId)value.tabActive=false;
   reviewSessions[message.id]={...message.status,id:message.id,tabId:sender.tab.id,windowId:sender.tab.windowId,instance:message.instance,tabActive:Boolean(sender.tab.active),updatedAt:Date.now()};
   await browser.storage.local.set({reviewSessions:{...reviewSessions}});
@@ -250,11 +253,18 @@ let activeDetection;
 let captureModeCache='auto';
 Promise.resolve(browser.storage.local.get('captureMode')).then(v=>{captureModeCache=v?.captureMode||'auto';},()=>{});
 browser.storage.onChanged?.addListener((changes,area)=>{if(area==='local'&&changes.captureMode)captureModeCache=changes.captureMode.newValue||'auto';});
+let explicitCapture=null;
 function capture(tab,input={},options={}){
   const key=tab?keyFor(tab)+JSON.stringify(input)+captureModeCache:'';
   if(activeDetection?.key===key)return activeDetection.promise;
+  // Binding the panel triggers an automatic detection; it must not replace a selection still being read.
+  if(options.automatic&&tab&&explicitCapture?.tab===keyFor(tab))return explicitCapture.promise;
   const promise=performCapture(tab,input,options).finally(()=>{if(activeDetection?.promise===promise)activeDetection=null;});
   activeDetection={key,promise};
+  if(!options.automatic&&tab){
+    const entry={tab:keyFor(tab),promise};explicitCapture=entry;
+    promise.then(()=>{},()=>{}).finally(()=>{if(explicitCapture===entry)explicitCapture=null;});
+  }
   return promise;
 }
 async function performCapture(tab, input = {}, {automatic = false, fresh = true} = {}) {

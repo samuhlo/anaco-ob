@@ -269,3 +269,26 @@ test('resuming a pending capture shows it in the panel that asked for it, even w
  own=await vm.runInContext('panelCapture(1)',ctx);
  assert.equal(own.currentCapture.id,'imported-3');
 });
+test('a late status from a review that already left its tab cannot bring the assistant back',async()=>{
+ const {ctx,data}=app(),review='moz-extension://test/review.html?capture=c1';
+ let current=review;ctx.browser.tabs.get=async id=>({id,url:current});
+ ctx.sender={tab:{id:5,windowId:1,active:true},url:review};
+ await vm.runInContext('reviewStatus({id:"c1",status:{canSave:true},instance:"i"},sender)',ctx);
+ assert.ok(data.reviewSessions.c1);
+ current='https://course.example/page-1';await vm.runInContext('clearReviewTab(5)',ctx);
+ await vm.runInContext('reviewStatus({id:"c1",status:{canSave:true},instance:"i"},sender)',ctx);
+ assert.equal(data.reviewSessions.c1,undefined);
+ ctx.browser.tabs.get=async()=>{throw new Error('Invalid tab ID');};
+ await vm.runInContext('reviewStatus({id:"c1",status:{canSave:true},instance:"i"},sender)',ctx);
+ assert.equal(data.reviewSessions.c1,undefined);
+});
+test('an automatic detection after binding cannot replace a selection capture still in flight',async()=>{
+ const {ctx,data}=app();let release;ctx.a=tab(1);
+ ctx.delayed=new Promise(resolve=>{release=resolve;});ctx.article=capture(1);
+ vm.runInContext('scanTab=(tab,input)=>input.kind==="quote"?delayed:Promise.resolve({...article})',ctx);
+ const quote=vm.runInContext('capture(a,{kind:"quote",selection:"Selected words"})',ctx);
+ await new Promise(resolve=>setImmediate(resolve));
+ const automatic=vm.runInContext('capture(a,{},{automatic:true,fresh:false})',ctx);
+ release({...capture(1),kind:'quote',text:'Selected words'});await quote;await automatic;
+ assert.equal(data.currentCapture.kind,'quote');assert.equal(data.currentCapture.text,'Selected words');
+});
