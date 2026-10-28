@@ -10,6 +10,7 @@
 #connection.service-status[data-state=error]:before{background:var(--error)}
 .panel-page #options{flex-shrink:0}
 .panel-page button{min-height:36px;line-height:1.4;white-space:normal}
+.panel-page :is(button.sm,button.icon,.seg>button,.more>.menu>button){min-height:30px}
 .panel-page button.primary{min-height:44px;width:100%;padding:12px 16px}
 .panel-page button.link{padding:6px 4px}
 .panel-page .button-stack{display:flex;flex-direction:column;gap:10px}
@@ -24,7 +25,7 @@
 .panel-page #captureCard{padding:18px;margin:14px 0;border-radius:20px}
 .capture-heading{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
 .panel-page #captureTitle{font-size:18px;line-height:1.4;margin:0 0 6px}
-.panel-page #source{font-size:11px;margin:0 0 18px}
+.panel-page #source{display:block;font-size:11px;margin:0 0 18px}
 .panel-page #intent{min-height:80px;resize:vertical}
 .panel-page .capture-fields>label:first-child{margin-top:0}
 .panel-page #noteStructure{margin-bottom:0}
@@ -48,19 +49,20 @@
 .capture-attachments[open]>summary{margin-bottom:14px}
 .panel-page .capture-attachments #imageSection{margin:0}
 .panel-page .capture-attachments #embedSection{margin-top:14px}
-.panel-page .capture-settings{margin:18px 0;padding:0 4px;font-size:12px}
+.panel-page .capture-settings{margin:12px 0;padding:0 4px;font-size:12px}
 .panel-page .capture-settings>summary{padding:8px 0;color:var(--muted)}
 .settings-content{padding:8px 0 0}
 .panel-page .capture-mode{display:block}
 .panel-page .capture-mode label{margin-top:0}
-.panel-page #autoReviewLabel{display:flex;align-items:flex-start;gap:8px;margin:16px 0;line-height:1.5}
+.panel-page #autoReviewLabel{display:flex;align-items:flex-start;gap:8px;margin:16px 0;font-size:12px;line-height:1.5}
 .panel-page #autoReviewLabel input{flex-shrink:0;margin-top:2px}
-.panel-page #pendingSection{margin:18px 0 0;padding:16px 4px 0;font-size:12px}
+.panel-page #pendingSection{margin:18px 0 0;padding:16px 4px 0;border-top:1px solid var(--line);font-size:12px}
 .panel-page #pending,#recoverJobs{display:flex;flex-direction:column;gap:8px;margin-top:12px}
 .panel-page .pending-row{display:flex;align-items:center;gap:8px}
 .panel-page #pending .pending-item{margin:0;flex:1;min-width:0;text-align:left;border-radius:12px;padding:12px;overflow-wrap:anywhere}
 .panel-page #recoverSection{margin:16px 0}
-.panel-page .job-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:12px 0;align-items:center}
+.panel-page .job-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:12px 0;align-items:center;border-bottom:1px solid var(--line);font-size:12px}
+.panel-page .job-row>span{min-width:0;overflow-wrap:anywhere}
 .panel-page .job-row>span{grid-column:1;grid-row:1}
 .panel-page .job-row>.pending-resume{grid-column:1;grid-row:2;justify-self:start;margin:0}
 .panel-page .job-row>.pending-dismiss{grid-column:2;grid-row:1 / span 2}
@@ -73,7 +75,7 @@
 .panel-page #refresh{margin-top:12px}
 .panel-page #importButton{margin-top:16px}
 .panel-page .permission-action{width:100%;margin:10px 0 16px}
-.panel-page #cancelJob{margin:14px 0 0;width:100%}
+.panel-page #cancelJob{margin:14px 0 0;width:100%;font-size:12px}
 .panel-page .work-card{position:static;margin:16px 0;padding:18px}
 .panel-page.is-working #captureWorkspace{display:none}
 @media(max-width:300px){.panel-page main{padding:12px}.panel-page #captureCard{padding:14px}.capture-heading{gap:6px}.panel-page #captureTitle{font-size:16px}.panel-page .panel-header{gap:8px}.panel-page .brand img{height:24px}}

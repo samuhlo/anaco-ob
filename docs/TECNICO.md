@@ -59,3 +59,14 @@ La extensión está en español (principal y respaldo) e inglés. Los textos viv
 - **Servicio local:** la extensión envía `lang` en cada mensaje. `native/translation.py` traduce con `native/locales/en.json`, cuya clave es el texto español del código: `UserError("texto {valor}", valor=...)` y `t()` siguen el idioma de la interfaz (errores, avisos, progreso); los avisos se traducen al crearse y se guardan así.
 - **Notas:** `note_language` (`es` por defecto, en Opciones) decide el idioma de las notas nuevas. `n()` traduce los textos fijos de la nota (encabezados predeterminados, fuente, recursos, aportes, tipos de relación) y `writing_rule()` sustituye al antiguo «Escribe en español» en los prompts, que siguen escritos en español. Los marcadores internos `[Página N]` no cambian.
 - **Comprobación:** `python3 scripts/i18n.py check` (en CI) exige cada clave usada en ambos idiomas con los mismos marcadores, rechaza claves calculadas y avisa si el catálogo no está al día. En el servicio exige traducción para cada texto de `UserError`, `t()` y `n()` y rechaza mensajes formateados con f-strings o concatenación.
+
+## Interfaz
+
+`extension/style.css` define los tokens (colores, `--r-sm`/`--r-md`/`--radius`, `--fs-meta`/`--fs-small`/`--fs-title`) y los componentes comunes; `panel.css` y `review.css` solo colocan piezas de su página y no redefinen reglas de otro archivo.
+
+- **Botones:** cuatro niveles. `.primary` es la acción principal y hay como mucho una visible por vista; el botón sin clase es secundario; `.quiet` es una acción discreta sin borde; `.icon` es un botón cuadrado con `aria-label`. `.sm` reduce el tamaño y `.danger` solo cambia el color. `.link` se reserva para navegación dentro de un texto.
+- **Acciones raras:** van en un menú `details.more` con `.menu`; las destructivas, al final y tras un `hr`.
+- **Modos y vistas:** un selector `.seg` con `aria-pressed` cambia de modo (por ejemplo, **Esta página | Varios enlaces**); nunca ejecuta una acción.
+- **Estados:** `.chip` con `data-tone`: `run` (amarillo, pendiente o en curso), `ok` (verde, hecho), `error` (rojo, necesita acción); sin `data-tone`, neutro. El amarillo de acento no indica «hecho».
+- **Enlaces que salen:** «↗» marca siempre lo que abre otra pestaña o página.
+- **Logo:** la interfaz usa `logo.svg` sin la firma «second brain», que a 26–36 px no se lee; el README y la ficha de Mozilla usan `docs/brand/logo-firma.svg`. El icono es la piedra con una «A».
