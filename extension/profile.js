@@ -60,10 +60,16 @@ globalThis.AnacoObProfileCard = (() => {
       }
       if (!scanned.documents.length) $("profileDocList").append(el("p", {className: "muted", textContent: tx('profile_no_se_han_encontrado_instrucciones_ni_pl')}));
       $("profileDocs").hidden = false;
+      lead("profileInterpret");
       $("profilePath").value = $("profilePath").value || scanned.suggested_path;
       $("profileDocs").scrollIntoView({block: "nearest"});
     } catch (error) { message(error.message, true); }
     finally { done(); }
+  }
+
+  // [UI] Only the current step of the profile flow keeps the primary button.
+  function lead(id) {
+    for (const button of ["profileScan", "profileInterpret", "profileSave"]) $(button).classList.toggle("primary", button === id);
   }
 
   async function interpret(useModel) {
@@ -78,6 +84,7 @@ globalThis.AnacoObProfileCard = (() => {
       $("profileWarnings").textContent = (result.warnings || []).join("\n");
       render();
       $("profileReview").hidden = false;
+      lead("profileSave");
       $("profileReview").scrollIntoView({block: "start"});
     } catch (error) { message(error.message, true); }
     finally { done(); }
@@ -209,6 +216,7 @@ globalThis.AnacoObProfileCard = (() => {
       message(tx('profile_perfil_guardado_en_1_las_notas_nuevas_se',[result.path]));
       await browser.storage.local.set({currentCapture: null, draftResult: null, settingsRevision: crypto.randomUUID()});
       $("profileReview").hidden = $("profileDocs").hidden = true;
+      lead("profileScan");
       await refresh();
     } catch (error) { message(error.message, true); }
     finally { done(); }

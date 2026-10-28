@@ -1504,7 +1504,8 @@ def main():
             draft={**ready,'id':'draft-fixture','draft':{'body':'Propuesta lista para revisar'}}
             def publish(c,**extra):
                 value={**c,'token':c.get('id') or c['url']}
-                driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({currentCapture:arguments[0],draftResult:null,operation:"",operationError:"",operationProgress:null,autoReview:true,pageContext:{url:arguments[0].url,status:"ready"},...arguments[1]}).then(done);',value,extra)
+                # The panel reads the capture of its pinned tab, so the fixture claims that tab.
+                driver.execute_async_script('const done=arguments[arguments.length-1];browser.windows.getCurrent().then(w=>browser.runtime.sendMessage({type:"panelCapture",windowId:w.id})).then(own=>browser.storage.local.set({currentCapture:arguments[0],draftResult:null,operation:"",operationError:"",operationProgress:null,autoReview:true,pageContext:{url:arguments[0].url,status:"ready",tabId:own?.panelSource?.tabId},...arguments[1]})).then(done);',value,extra)
                 wait.until(lambda d:d.find_element(By.ID,'captureTitle').get_attribute('textContent')==c['title'])
                 driver.execute_script('document.getElementById("advancedCapture").open=false;document.getElementById("attachments").open=false;window.scrollTo(0,0);')
             def primary():

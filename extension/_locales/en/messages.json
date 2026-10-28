@@ -1254,7 +1254,7 @@
     "message": "You will review the result before saving it to your vault."
   },
   "panel_flow_open_review": {
-    "message": "Open review"
+    "message": "Open review ↗"
   },
   "panel_flow_page_text": {
     "message": "Page text"
@@ -2301,7 +2301,7 @@
     "message": "Open the terminal"
   },
   "welcome_abrir_opciones": {
-    "message": "Open Options"
+    "message": "Open Options ↗"
   },
   "welcome_atras": {
     "message": "Back"

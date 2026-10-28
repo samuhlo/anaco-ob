@@ -16,7 +16,7 @@
 <article class="onboard-tile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7"/><path d="m15 17 2 2 4-4"/></svg><h2><span data-i18n="welcome_la_pieza_local_si">La pieza local sí puede</span></h2><p><span data-i18n="welcome_la_pieza_local_si_texto">Guarda las notas en tu vault, busca relaciones con lo que ya tienes y transcribe audio sin enviarlo fuera.</span></p></article>
 <article class="onboard-tile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/></svg><h2><span data-i18n="welcome_abierta_y_tuya">Abierta y solo tuya</span></h2><p><span data-i18n="welcome_abierta_y_tuya_texto">Es código abierto, no habla con servidores de Anaco y se quita con un comando.</span></p></article>
 </div>
-<div class="row onboard-actions"><button type="button" class="primary" data-go="install"><span data-i18n="welcome_instalarla">Instalarla</span></button><button type="button" class="link" data-go="install" data-already><span data-i18n="welcome_ya_la_tengo">Ya la tengo instalada</span></button></div>
+<div class="row onboard-actions"><button type="button" class="primary" data-go="install"><span data-i18n="welcome_instalarla">Instalarla</span></button><button type="button" class="quiet" data-go="install" data-already><span data-i18n="welcome_ya_la_tengo">Ya la tengo instalada</span></button></div>
 </section>
 
 <section class="onboard-step" data-step="install" hidden>
@@ -60,7 +60,7 @@ codex login</pre></div>
 <label class="onboard-choice"><input type="radio" name="ai" value="manual"><span><strong><span data-i18n="welcome_sin_ia">Sin IA</span></strong><small><span data-i18n="welcome_sin_ia_texto">Tú escribes la nota; Anaco guarda la página y sus recursos.</span></small></span></label>
 </div>
 <p class="notice error" id="aiError" hidden></p>
-<div class="row onboard-actions"><button type="button" class="primary" id="saveAi"><span data-i18n="welcome_guardar_y_seguir">Guardar y seguir</span></button><button type="button" class="link" data-go="vault"><span data-i18n="welcome_atras">Atrás</span></button></div>
+<div class="row onboard-actions"><button type="button" class="primary" id="saveAi"><span data-i18n="welcome_guardar_y_seguir">Guardar y seguir</span></button><button type="button" class="quiet" data-go="vault"><span data-i18n="welcome_atras">Atrás</span></button></div>
 </section>
 
 <section class="onboard-step" data-step="done" hidden>

@@ -1254,7 +1254,7 @@
     "message": "Revisarás el resultado antes de guardarlo en tu vault."
   },
   "panel_flow_open_review": {
-    "message": "Abrir revisión"
+    "message": "Abrir revisión ↗"
   },
   "panel_flow_page_text": {
     "message": "Texto de la página"
@@ -2301,7 +2301,7 @@
     "message": "Abre la terminal"
   },
   "welcome_abrir_opciones": {
-    "message": "Abrir Opciones"
+    "message": "Abrir Opciones ↗"
   },
   "welcome_atras": {
     "message": "Atrás"
