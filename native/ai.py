@@ -10,26 +10,38 @@ import re
 import urllib.error
 from translation import t
 import urllib.request
-from core import UserError, image_bytes
+from core import UserError, image_bytes, api_endpoint
 
 TIMEOUT = 300
 MIME = {".png": "image/png", ".jpg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp"}
 
 
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    """A configured API URL is the only destination authorized for this request."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
 def request(cfg, body):
-    url = cfg["api_base"].rstrip("/") + "/chat/completions"
+    url = api_endpoint(cfg['api_base']) + '/chat/completions'
     headers = {"Content-Type": "application/json"}
     if cfg.get("api_key"):
         headers["Authorization"] = "Bearer " + cfg["api_key"]
     data = json.dumps(body, ensure_ascii=False).encode()
     try:
-        with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=headers, method="POST"), timeout=TIMEOUT) as response:
+        opener = urllib.request.build_opener(NoRedirect())
+        with opener.open(urllib.request.Request(url, data=data, headers=headers, method="POST"), timeout=TIMEOUT) as response:
             return 200, json.loads(response.read())
     except urllib.error.HTTPError as exc:
+        if exc.code in (301, 302, 303, 307, 308):
+            exc.close()
+            raise UserError('El servidor de IA ha redirigido la petición. Configura su URL base final en Opciones; no se han reenviado la clave ni el contenido.') from exc
         try:
             detail = json.loads(exc.read())
         except ValueError:
             detail = {}
+        finally:
+            exc.close()
         return exc.code, detail
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         raise UserError("No responde el servidor de IA en {url}. Comprueba la URL en Opciones y que el servidor esté en marcha. La captura sigue pendiente.", url=cfg['api_base']) from exc

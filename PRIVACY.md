@@ -18,7 +18,7 @@ Anaco no tiene servidores propios y no recoge estadísticas, telemetría ni iden
 Solo si eliges un proveedor de IA:
 
 - **Codex (ChatGPT).** Se envían a OpenAI, con tu sesión de Codex, la captura que preparas, fragmentos de las notas candidatas para relacionarlas y los documentos de instrucciones que el perfil del vault selecciona. Al pedir una propuesta de perfil con IA se envían estadísticas agregadas del vault y los documentos que marques.
-- **Proveedor compatible con OpenAI.** Lo mismo, al servicio que configures (Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter u otro). Si es un modelo local, como Ollama o LM Studio, nada sale de tu ordenador. La clave API se guarda solo en la configuración del servicio local y la extensión no la recibe.
+- **Proveedor compatible con OpenAI.** Lo mismo, al servicio que configures (Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter u otro). Si es un modelo local, como Ollama o LM Studio, nada sale de tu ordenador. La clave API se guarda solo en la configuración del servicio local y la extensión no la recibe. Al cambiar la URL base se elimina la clave anterior salvo que introduzcas una nueva. Las peticiones de IA no siguen redirecciones.
 - **Captura manual.** No se envía nada a ningún proveedor.
 
 Cada proveedor trata esos datos según sus propias condiciones. Las descargas que pides (imágenes, clips, PDF, demos de CodePen y sus librerías) se hacen directamente desde tu navegador a su origen.
@@ -53,7 +53,7 @@ Anaco has no servers of its own and collects no analytics, telemetry or usage id
 Only if you choose an AI provider:
 
 - **Codex (ChatGPT).** The capture you prepare, excerpts of candidate notes to relate them and the instruction documents selected by the vault profile are sent to OpenAI through your Codex session. Asking the AI for a vault profile sends aggregated vault statistics and the documents you select.
-- **OpenAI-compatible provider.** The same, to the service you configure (Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter or another). With a local model such as Ollama or LM Studio, nothing leaves your computer. The API key is stored only in the local service settings and never reaches the extension.
+- **OpenAI-compatible provider.** The same, to the service you configure (Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter or another). With a local model such as Ollama or LM Studio, nothing leaves your computer. The API key is stored only in the local service settings and never reaches the extension. Changing the base URL removes the previous key unless you enter a new one. AI requests do not follow redirects.
 - **Manual capture.** Nothing is sent to any provider.
 
 Each provider handles that data under its own terms. The downloads you request (images, clips, PDF, CodePen demos and their libraries) go directly from your browser to their source.
