@@ -29,6 +29,9 @@
   "batch_invalid_url": {
     "message": "Enlace no válido (usa http o https, sin contraseñas): $1"
   },
+  "batch_legacy_vault_unknown": {
+    "message": "Esta cola antigua no conserva su vault de origen. Conserva sus enlaces, vacía la cola y crea una nueva desde el vault correcto. Las capturas preparadas siguen en Pendientes."
+  },
   "batch_login": {
     "message": "Esta página pide iniciar sesión. Abre el origen, entra en tu cuenta y reintenta."
   },
@@ -167,6 +170,9 @@
   "batch_urls": {
     "message": "Enlaces, uno por línea"
   },
+  "batch_vault_changed": {
+    "message": "Esta cola pertenece al vault $1. Vuelve a seleccionarlo en Opciones para continuar."
+  },
   "batch_video": {
     "message": "Vídeo o audio de la clase"
   },
@@ -196,6 +202,9 @@
   },
   "bg_clip_1_no_se_pudo_guardar_2": {
     "message": "Clip «$1»: no se pudo guardar ($2)."
+  },
+  "bg_configure_work_active": {
+    "message": "Espera a que termine el trabajo o pausa la cola antes de cambiar la configuración o el perfil."
   },
   "bg_contenido_incrustado": {
     "message": "Contenido incrustado"

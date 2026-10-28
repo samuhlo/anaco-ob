@@ -102,6 +102,7 @@ async function returnFromOptions(sender) {
 let locateSequence = 0;
 let port;
 let workClaim=null;
+let workVault=null;
 let pendingDiscard=false;
 // Close the sidebar Firefox inherits into a new window, keeping explicit opens.
 const knownSidebarWindows=new Set(),inheritedSidebarWindows=new Set();
@@ -129,6 +130,9 @@ browser.storage.local.get(["operation","activeWork"]).then(({operation,activeWor
 });
 function native(message, timeoutMs=2400000) {
   return new Promise((resolve, reject) => {
+    if(['configure','profile_save'].includes(message.action)&&(workClaim||globalThis.AnacoObBatch?.busy())){
+      reject(new Error(tx('bg_configure_work_active')));return;
+    }
     if(['capture','draft','revise','propose_split','refresh_links','upload_begin','upload_chunk','upload_finish','finish_asset','video_url','subtitles'].includes(message.action)||message.action?.startsWith('reader_'))try{checkWork();}catch(error){reject(error);return;}
     if (!port) {
       port = browser.runtime.connectNative(HOST);
@@ -149,7 +153,8 @@ function native(message, timeoutMs=2400000) {
     const requestId = crypto.randomUUID();
     const timer = setTimeout(() => {requests.delete(requestId); reject(new Error(tx('bg_el_servicio_esta_tardando_demasiado_la_c')));}, timeoutMs);
     requests.set(requestId, {resolve, reject, timer,workId:workClaim});
-    try { port.postMessage({...message, requestId,task:workClaim,lang:AnacoObI18n.language()}); } catch (error) { clearTimeout(timer); requests.delete(requestId); reject(error); }
+    const expectedVault=workVault||globalThis.AnacoObBatch?.vault();
+    try { port.postMessage({...message,...(expectedVault?{expected_vault:expectedVault}:{}), requestId,task:workClaim,lang:AnacoObI18n.language()}); } catch (error) { clearTimeout(timer); requests.delete(requestId); reject(error); }
   });
 }
 
@@ -159,17 +164,19 @@ async function beginWork(c,operation,showCapture=true){
   if(typeof AbortController==='function')workAbortControllers.set(id,new AbortController());
   const activeWork={id,title:c.title||tx('bg_captura'),source:c.source||{url:c.url},captureToken:c.token,captureId:c.id,startedAt:Date.now()};
   try{
-    const {workSources={}}=await browser.storage.local.get('workSources');workSources[id]={source:activeWork.source,title:activeWork.title};await browser.storage.local.set({workSources});
+    workVault=c.vault||globalThis.AnacoObBatch?.vault()||(await native({action:'settings'})).config.vault;
+    activeWork.vault=workVault;
+    const {workSources={}}=await browser.storage.local.get('workSources');workSources[id]={source:activeWork.source,title:activeWork.title,vault:workVault};await browser.storage.local.set({workSources});
     await browser.storage.local.set({activeWork,operation,operationProgress:null,operationError:'',operationDiagnostic:null,
       pageContext:{...activeWork.source,status:'ready'},...(showCapture?{currentCapture:c}:{currentCapture:null,draftResult:null})});
-  }catch(error){workClaim=null;throw error;}
+  }catch(error){workClaim=null;workVault=null;workAbortControllers.delete(id);throw error;}
   return id;
 }
 async function endWork(id,error=null){
   if(id!==workClaim)return false;
   try{await native({action:'finish_job',job:id,status:cancelledWork.has(id)?'cancelled':error?'failed':'complete'});}catch{}
   await browser.storage.local.set({activeWork:null,operation:'',operationProgress:null,operationError:error?.message||''});
-  workClaim=null;cancelledWork.delete(id);workResources.delete(id);workAbortControllers.delete(id);return true;
+  workClaim=null;workVault=null;cancelledWork.delete(id);workResources.delete(id);workAbortControllers.delete(id);return true;
 }
 async function cancelWork(){
   if(!workClaim)return;

@@ -27,23 +27,28 @@ class Job:
         if not re.fullmatch(r'[a-f0-9-]{32,36}',str(identifier)):raise UserError('Trabajo no válido.')
         self.app=app;self.directory=app.state/'jobs'/identifier;self.directory.mkdir(parents=True,exist_ok=True,mode=0o700)
         self.path=self.directory/'job.json'
+        self.vault = str(app.vault())
     def load(self):
-        value=json.loads(self.path.read_text()) if self.path.exists() else {'id':self.directory.name,'vault':str(self.app.vault()),'started':time.time()}
-        if value['vault']!=str(self.app.vault()):raise UserError('El trabajo pertenece a otro vault.')
+        value=json.loads(self.path.read_text()) if self.path.exists() else {'id':self.directory.name,'vault':self.vault,'started':time.time()}
+        if value['vault']!=self.vault:raise UserError('El trabajo pertenece a otro vault.')
         return value
     def update(self,**values):
         value=self.load();value.update(values,updated=time.time());json_dump(self.path,value);return value
     def check(self):
         if (self.directory/'cancel').exists():raise Cancelled()
+    def check_vault(self):
+        if self.vault != str(self.app.vault()):raise UserError('El trabajo pertenece a otro vault.')
     def start(self,message):
-        self.check();self.update(status='running',pid=os.getpid(),action=message.get('action'),request={k:v for k,v in message.items() if k not in ('requestId','data','capture')})
+        self.check_vault();self.check();self.update(status='running',pid=os.getpid(),action=message.get('action'),request={k:v for k,v in message.items() if k not in ('requestId','data','capture')})
     def cancel(self):
-        self.load();(self.directory/'cancel').touch(mode=0o600);return {'cancel_requested':True}
+        self.check_vault();self.load();(self.directory/'cancel').touch(mode=0o600);return {'cancel_requested':True}
     def assert_inactive(self):
+        self.check_vault()
         if running(self.load()):raise UserError('El trabajo sigue en curso. Cancélalo antes de descartarlo.')
     def discard(self):
         self.assert_inactive();self.update(status='discarded');return {'discarded':True}
     def resume(self):
+        self.check_vault()
         value=self.load()
         if value.get('status') in ('complete','discarded'):raise UserError('Este trabajo ya no está pendiente.')
         if value.get('action') not in ('upload_finish','draft','video_url'):raise UserError('Repite la extracción desde la página original; sus páginas recibidas se conservan.')

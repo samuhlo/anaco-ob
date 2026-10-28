@@ -245,6 +245,8 @@ class App:
         self.db.commit()
 
     def config(self):
+        if getattr(self, '_operation_config', None) is not None:
+            return dict(self._operation_config)
         path = self.state / "config.json"
         default = {"vault": str(DEFAULT_VAULT), "vault_mode": "auto", "note_structure": "single",
                    "model": "gpt-6.1-sol", "reading_model":"gpt-6-luna", "vision_model":"gpt-6.1-sol", "reasoning_effort":"medium", "describe_images":True,"vision_policy":"auto",
@@ -268,6 +270,7 @@ class App:
     def set_config(self, values):
         cfg = self.config()
         previous_endpoint = cfg['api_base']
+        previous_vault = Path(cfg['vault']).expanduser().resolve()
         for key in ("vault", "vault_mode", "note_structure", "model", "reading_model", "vision_model", "reasoning_effort", "describe_images", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model", "provider", "api_base", "api_model", "api_vision_model", "note_language"):
             if key in values:
                 cfg[key] = values[key]
@@ -292,7 +295,7 @@ class App:
             raise UserError("No encuentro esa carpeta. Busca de nuevo el vault o corrige la ruta manual.") from exc
         if not vault.is_dir() or vault == Path.home() or vault == Path("/"):
             raise UserError("Selecciona la carpeta concreta de un vault, no tu carpeta personal.")
-        if cfg.get("vault") != str(vault) and "vault" in values:
+        if previous_vault != vault and 'vault' in values:
             cfg.pop("profile_path", None)
         cfg["vault"] = str(vault)
         if cfg["provider"] not in PROVIDERS:
@@ -854,6 +857,20 @@ class App:
                 "obsidian_url": "obsidian://open?vault=" + quote(self.vault().name, safe="") + "&file=" + quote(rendered["relative"], safe="")}
 
     def handle(self, message):
+        # A second host or installer may update config.json during an operation.
+        # Every read in this request must still use its original configuration.
+        set_language(message.get('lang'))
+        config = self.config()
+        expected = message.get('expected_vault')
+        if expected is not None and expected != str(Path(config['vault']).expanduser().resolve()):
+            raise UserError('El vault cambió desde que empezó la operación. Vuelve a seleccionar el vault de origen para continuar.')
+        self._operation_config = config
+        try:
+            return self._handle(message)
+        finally:
+            self._operation_config = None
+
+    def _handle(self, message):
         set_language(message.get("lang"))
         try:
             set_note_language(self.config().get("note_language"))
