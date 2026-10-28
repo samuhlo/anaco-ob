@@ -6,8 +6,16 @@ let data,previewTimer,previewSequence=0,finished=false,activeNote='source',draft
 let mergedInto={},history=[],proposal=null,internalNote=null,revisionBusy=false;
 let splitProposal=null;
 const saveState={disabled:true,label:tx('review_guardar_y_volver')};
+let blockedByVault=false,queueReview=null,fromQueue=false;
+let regularSaveLabel=saveState.label;
 const reviewInstance=crypto.randomUUID();let reviewStatusTimer,lastReviewStatus='',closingReview=false;
 function publishReview(){
+  saveState.label=fromQueue?(queueReview?.next.length?tx('review_save_next'):tx('review_save_queue')):regularSaveLabel;
+  $('saveReview').textContent=saveState.label;$('saveReview').disabled=saveState.disabled||revisionBusy||closingReview||$('splitDialog').open||$('revisionDialog').open;
+  $('back').textContent=fromQueue?tx('review_back_queue'):tx('review_volver_al_articulo');
+  $('queueReviewProgress').hidden=!queueReview;
+  if(queueReview)$('queueReviewProgress').textContent=tx('review_queue_progress',[queueReview.index,queueReview.total,queueReview.reviewed]);
+  relationSelectionState();
   clearTimeout(reviewStatusTimer);
   reviewStatusTimer=setTimeout(()=>{
     if(!data)return;
@@ -41,7 +49,7 @@ function relations(){
   $('relations').replaceChildren();
   for(const relation of drafts[activeNote].relations||[]){
     const box=document.createElement('div');box.className='relation';
-    const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.value=relation.path;check.checked=(edits[activeNote].relations||[]).includes(relation.path);label.append(check,document.createTextNode(' '+relation.path));
+    const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.value=relation.path;check.checked=(edits[activeNote].relations||[]).includes(relation.path);check.disabled=relation.evidence_origin==='note'&&!edits[activeNote].body.includes(relation.source_evidence);if(check.disabled)check.checked=false;label.append(check,document.createTextNode(' '+relation.path));
     const kind=document.createElement('select');kind.className='relation-kind';kind.dataset.relationKind=relation.path;
     for(const value of data.relation_kinds){const option=document.createElement('option');option.value=value;option.textContent=value;kind.append(option);}kind.value=edits[activeNote].relation_kinds?.[relation.path]||relation.kind||'relaciona';
     const p=document.createElement('p');p.textContent=relation.reason;
@@ -49,6 +57,28 @@ function relations(){
   }
   if(!drafts[activeNote].relations?.length)$('relations').textContent=isCollection()?tx('review_sin_conexiones_propuestas_con_notas_exis'):tx('review_sin_conexiones_con_evidencia_suficiente_');
 }
+function relationSelectionState(){
+  for(const check of document.querySelectorAll('#relations input[type="checkbox"]')){
+    const relation=drafts[activeNote]?.relations?.find(r=>r.path===check.value);
+    check.disabled=relation?.evidence_origin==='note'&&!$('body').value.includes(relation.source_evidence);
+    if(check.disabled){check.checked=false;check.title=tx('review_la_evidencia_cambio_buscar_conexiones');}else check.title='';
+  }
+  const checks=[...document.querySelectorAll('#relations input[type="checkbox"]:not(:disabled),#newRelations input[type="checkbox"]:not(:disabled)')];
+  const busy=revisionBusy||closingReview||finished;
+  $('selectRelations').disabled=busy||!checks.some(c=>!c.checked);
+  $('clearRelations').disabled=busy||!checks.some(c=>c.checked);
+}
+function selectRelations(selected){
+  if(revisionBusy||closingReview||finished)return;
+  relationSelectionState();
+  for(const check of document.querySelectorAll('#relations input[type="checkbox"]:not(:disabled),#newRelations input[type="checkbox"]:not(:disabled)')){
+    check.checked=selected;
+    if(selected&&check.dataset.newLink&&edits[check.dataset.newLink])edits[check.dataset.newLink].excluded_links=(edits[check.dataset.newLink].excluded_links||[]).filter(id=>id!==activeNote);
+  }
+  changed();
+}
+$('selectRelations').onclick=()=>selectRelations(true);
+$('clearRelations').onclick=()=>selectRelations(false);
 function applyAssets(){
   const value=edits[activeNote];
   $('model').textContent=value.revision_model?tx('review_revisado_con')+value.revision_model:drafts[activeNote].assisted?tx('review_asistido_por')+drafts[activeNote].model:tx('review_captura_manual_sin_resumen_generado');
@@ -78,9 +108,10 @@ async function preview(){
     const collision=result.collisions?.length?tx('review_ya_existe_1',[result.collisions.join(', ')]):'';
     $('duplicate').hidden=!result.duplicate&&!collision;$('duplicate').textContent=collision||(result.duplicate?tx('review_esta_captura_ya_existe')+result.duplicate:'');
     $('error').hidden=true;$('previewState').textContent=tx('review_vista_actualizada');
-    saveState.label=result.update_count?tx('review_guardar_propuesta_y_volver'):isCollection()?tx('review_guardar_1_notas_y_volver',[result.selected_count]):tx('review_guardar_y_volver');
+    regularSaveLabel=result.update_count?tx('review_guardar_propuesta_y_volver'):isCollection()?tx('review_guardar_1_notas_y_volver',[result.selected_count]):tx('review_guardar_y_volver');
     const unapproved=result.updates_pending?.length; if(unapproved)$('previewState').textContent=tx('review_revisa_y_acepta_las_ampliaciones_pendien');
-    saveState.disabled=Boolean(result.duplicate||collision||finished||closingReview||unapproved||revisionBusy);
+    blockedByVault=Boolean(result.duplicate||collision);
+    saveState.disabled=Boolean(blockedByVault||finished||closingReview||unapproved||revisionBusy);
   }catch(e){if(sequence===previewSequence){$('previewState').textContent=tx('review_revisa_los_campos');error(e);}}
   finally{publishReview();}
 }
@@ -105,12 +136,12 @@ async function loadImage(index){
 function setView(edit){$('editPane').hidden=!edit;$('reading').hidden=edit;if(!edit)preview();else publishReview();}
 async function finish(decision){
   if(closingReview||finished&&decision!=='back')return;
-  if(decision==='save'&&saveState.disabled)return;
+  if(decision==='save'&&(saveState.disabled||revisionBusy||$('splitDialog').open||$('revisionDialog').open))return;
   $('error').hidden=true;persist();clearTimeout(previewTimer);for(const id of ['discard','back'])$(id).disabled=true;
   $('operation').textContent=decision==='save'?tx('review_guardando_la_propuesta_revisada'):tx('review_volviendo_al_origen');$('operation').hidden=false;
   closingReview=true;saveState.disabled=true;publishReview();
   try{
-    const result=await send({type:'finishReview',id:captureId,decision,fields:fields()});
+    const result=await send({type:'finishReview',id:captureId,decision,fields:fields(),fromQueue});
     if(result?.returnError){finished=Boolean(result.completed);$('success').textContent=decision==='save'?tx('review_propuesta_guardada')+result.returnError:result.returnError;$('success').hidden=false;$('back').disabled=false;$('operation').hidden=true;closingReview=false;publishReview();}
   }catch(e){error(e);$('operation').hidden=true;for(const id of ['discard','back'])$(id).disabled=false;closingReview=false;await preview();error(e);}
 }
@@ -126,7 +157,7 @@ function updateFilename(){
 }
 function internalLinks(values){
   $('newRelations').replaceChildren();internalNote=activeNote;
-  for(const value of values){const box=document.createElement('div');box.className='internal-link';const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.dataset.newLink=value.id;check.checked=value.accepted;label.append(check,document.createTextNode(' '+value.title));const reason=document.createElement('small');reason.textContent=value.kind+' · '+value.reason;box.append(label,reason);$('newRelations').append(box);
+  for(const value of values){const box=document.createElement('div');box.className='internal-link';const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.dataset.newLink=value.id;check.checked=value.accepted;check.disabled=Boolean(value.stale);label.append(check,document.createTextNode(' '+value.title));const reason=document.createElement('small');reason.textContent=value.kind+' · '+value.reason;box.append(label,reason);$('newRelations').append(box);
     if(value.source_evidence){const details=document.createElement('details'),summary=document.createElement('summary'),text=document.createElement('p');summary.textContent=value.stale?tx('review_la_evidencia_cambio_buscar_conexiones'):tx('review_ver_que_conecta_las_dos_notas');text.className='evidence';text.textContent=tx('review_en_esta_nota')+value.source_evidence+'\n\nEn «'+value.title+'»:\n'+value.target_evidence;details.append(summary,text);box.append(details);}
     check.onchange=()=>{if(check.checked&&edits[value.id])edits[value.id].excluded_links=(edits[value.id].excluded_links||[]).filter(v=>v!==activeNote);changed();};
   }
@@ -221,7 +252,7 @@ function acceptRevision(){
 function undoRevision(){const snapshot=history.pop();if(!snapshot)return;edits=snapshot.notes;selected=new Set(snapshot.selected_notes);activeNote=snapshot.active_note;mergedInto=snapshot.merged_into||{};showNote();$('undoRevision').disabled=!history.length;persist();preview();}
 async function init(){
   if(!/^[a-f0-9]{32}$/.test(captureId||''))throw new Error(tx('review_no_se_ha_indicado_una_captura_valida'));
-  data=await send({type:'reviewData',id:captureId});document.title=data.draft.title+' · Anaco';
+  data=await send({type:'reviewData',id:captureId});queueReview=data.queueReview;fromQueue=Boolean(queueReview);document.title=data.draft.title+' · Anaco';
   drafts={source:data.draft,...Object.fromEntries((data.bundle?.notes||[]).map(note=>[note.id,note]))};selected=new Set(Object.keys(drafts));
   for(const [id,draft] of Object.entries(drafts))edits[id]={title:draft.title,context:draft.context,body:draft.body,folder:draft.folder,filename:draft.filename,note_type:draft.note_type||(draft.folder.startsWith('07_Clases/')?'resumen':'fuente_externa'),tags:draft.tags,images:draft.selected_images||[],captions:{},relations:[]};
   for(const folder of data.folders){const option=document.createElement('option');option.value=folder;option.textContent=folder;$('folder').append(option);}
@@ -311,7 +342,20 @@ for(const button of document.querySelectorAll('[data-revise]'))button.onclick=()
 $('mergeButton').onclick=()=>proposeRevision('merge');$('acceptRevision').onclick=acceptRevision;$('rejectRevision').onclick=()=>{proposal=null;$('revisionDialog').close();};$('undoRevision').onclick=undoRevision;
 $('cancelRevision').onclick=()=>send({type:'cancelWork'}).catch(error);
 $('reading').onclick=event=>{const link=event.target.closest('a.wiki-link');if(!link||!isCollection())return;const path=new URL(link.href).searchParams.get('file');const note=previewNotes.find(n=>n.relative.replace(/\.md$/,'')===path);if(note){event.preventDefault();switchNote(note.id);}};
+$('saveReview').onclick=()=>finish('save');
 $('discard').onclick=()=>finish('discard');$('back').onclick=()=>finish('back');$('closeImage').onclick=()=>$('imageDialog').close();
+// Recheck only a blocked save when returning from Obsidian; do not disable an
+// enabled Save button between the user's pointerdown and click.
+function recheckVault(){
+  if(data&&blockedByVault&&!finished&&!closingReview&&!revisionBusy&&document.visibilityState==='visible'){
+    clearTimeout(previewTimer);previewTimer=setTimeout(preview,100);
+  }
+}
+window.addEventListener('focus',recheckVault);
+document.addEventListener('visibilitychange',recheckVault);
 window.addEventListener('unload',()=>{for(const asset of assets.values())URL.revokeObjectURL(asset.url);});
+browser.storage.onChanged.addListener((changes,area)=>{
+  if(area==='local'&&changes.batchQueue&&data)send({type:'batchReviewContext',id:captureId}).then(context=>{queueReview=context;fromQueue=fromQueue||Boolean(context);publishReview();}).catch(error);
+});
 init().catch(e=>{$('operation').hidden=true;error(e);});
 const reviewBar=document.querySelector('.review-bar');if(typeof ResizeObserver==='function')new ResizeObserver(()=>document.documentElement.style.setProperty('--review-bar-height',reviewBar.getBoundingClientRect().height+'px')).observe(reviewBar);

@@ -24,3 +24,10 @@ test('streamed resources exceeding the limit are cancelled and cannot be resumed
  const r=resource(async()=>new Response(new Uint8Array(700000))),opened=await r.open('https://player.example/video.mp4',1000);
  await assert.rejects(r.read(opened.id),/límite/);await assert.rejects(r.read(opened.id),/interrumpió/);
 });
+
+test('video transport accepts the 1 GB cap while retaining smaller PDF limits',async()=>{
+ const r=resource(async()=>new Response(new Uint8Array(12),{headers:{'content-length':'134000000'}}));
+ const opened=await r.open('https://drive.usercontent.google.com/download',1000000000);assert.equal(opened.ok,true);r.close(opened.id);
+ await assert.rejects(r.open('https://files.test/file.pdf',100000000),/límite/);
+ await assert.rejects(r.open('https://files.test/file.mp4',1000000001),/no válido/);
+});

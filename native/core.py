@@ -24,7 +24,7 @@ DEFAULT_VAULT = Path.home() / "Second_Brain"
 from installer import default_state
 from translation import n, set_language, set_note_language, t, writing_rule
 # Must match extension/manifest.json: the panel compares them to spot an outdated service.
-VERSION = "1.2.0"
+VERSION = "1.2.3"
 STATE = Path(os.environ.get("ANACO_OB_STATE") or os.environ.get("ZEN_BRAIN_STATE") or default_state())
 STOP = set("para como este esta esto estas estos sobre desde entre donde cuando porque pero una uno unos unas del los las por con sin que sus son ser mas muy hay the and for with from that this into your you have has not".split())
 
@@ -594,7 +594,7 @@ class App:
         body = re.sub(r"!?\[\[([^\]]+)\]\]", lambda m: m.group(1).split("|")[-1], body)
         reused_model=next((c["images"][i].get("caption_model") for i in recommended if c["images"][i].get("caption_model")),"")
         draft = {"title": title, "context": clean(result["context"], 1000), "body": body,
-                 "folder": folder, "tags": self.tags(result.get("tags", [])), "relations": valid,
+                 "folder": folder, "tags": self.note_tags(c, result.get("tags", [])), "relations": valid,
                  "filename": self.filename(c, title, folder), "model": result.get("_model",self.config()["model"]) if provider != "manual" else reused_model,
                  "selected_images":recommended,
                  "visual_image_count":len(visual) if provider!='manual' else 0,
@@ -613,12 +613,25 @@ class App:
             values = clean(values).split(",")
         return list(dict.fromkeys(t for v in values[:12] if (t := slug(v, "-")) and not t.isdigit()))[:8]
 
+    def note_tags(self, capture, values):
+        tags = self.tags(values)
+        if capture.get("kind") == "video" and "video" not in tags:
+            tags.append("video")
+        return tags
+
     def filename(self, capture, title, folder, note_type=None):
         return self.vault_profile().filename(capture,title,folder,note_type)
 
     def duplicate(self, c):
         row = self.db.execute("SELECT path FROM saves WHERE fingerprint=?", (c["fingerprint"],)).fetchone()
-        return row[0] if row else None
+        if not row:
+            return None
+        path = safe_path(self.vault(), row[0])
+        try:
+            path.stat()
+        except FileNotFoundError:
+            return None
+        return row[0]
 
     def render(self, c, fields):
         original = c["draft"]
@@ -673,12 +686,18 @@ class App:
             related.append((rel_path, relation.get('title') or PurePosixPath(link).name))
         link_assisted=bool(original.get('connection_model') and (fields.get('relations') or c.get('_semantic_links')))
         assisted=original["assisted"] or bool(fields.get('revision_model')) or link_assisted
-        fm = profile.frontmatter({"type": typ, "folder": folder, "title": title, "tags": self.tags(fields.get("tags", original["tags"])),
+        fm = profile.frontmatter({"type": typ, "folder": folder, "title": title, "tags": self.note_tags(c, fields.get("tags", original["tags"])),
                                   "context": clean(fields.get("context", original["context"]), 1000), "created": c["created"][:10], "today": today,
                                   "url": c["url"], "author": original.get("author") or c["author"],
                                   "source_format": original.get("source_format") or ("video" if c["kind"]=="video" else "documento" if c["kind"] in ("image","pdf") else "articulo"),
                                   "assisted": assisted, "model": clean(fields.get('revision_model') or original["model"] or original.get('connection_model'),80) if assisted else "",
                                   "relations": related})
+        # Source tags are mandatory even when a vault profile overrides or omits tags.
+        if c["kind"] == "video":
+            tags = fm.get("tags", [])
+            if not isinstance(tags, list):
+                tags = self.tags(tags)
+            fm["tags"] = list(dict.fromkeys([*tags, "video"]))
         yaml = "\n".join(k + ": " + json.dumps(v, ensure_ascii=False) for k, v in fm.items())
         # Angle-bracket link target prevents title and URL Markdown breakouts.
         source = c["url"].replace("<", "%3C").replace(">", "%3E").replace("\n", "")
@@ -770,7 +789,7 @@ class App:
             destination = safe_path(self.vault(), rendered["relative"])
             write_new_atomic(destination, rendered["markdown"].encode("utf-8"))
             note_created = True
-            self.db.execute("INSERT INTO saves VALUES (?, ?, ?)", (c["fingerprint"], rendered["relative"], dt.datetime.now().isoformat()))
+            self.db.execute("INSERT INTO saves VALUES (?, ?, ?) ON CONFLICT(fingerprint) DO UPDATE SET path=excluded.path, created=excluded.created", (c["fingerprint"], rendered["relative"], dt.datetime.now().isoformat()))
             self.db.commit()
         except Exception:
             self.db.rollback()

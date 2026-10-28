@@ -1,4 +1,142 @@
 {
+  "batch_ambiguous": {
+    "message": "There are several possible resources. Open the lesson and choose the content in the individual panel."
+  },
+  "batch_auto": {
+    "message": "Detect automatically"
+  },
+  "batch_back_page": {
+    "message": "Back to the page"
+  },
+  "batch_busy": {
+    "message": "Work is in progress. Wait for it to finish or pause the queue before preparing other content."
+  },
+  "batch_clear": {
+    "message": "Clear queue"
+  },
+  "batch_clear_failed": {
+    "message": "Remove failed links"
+  },
+  "batch_container_permission": {
+    "message": "Authorize container use to keep this tab’s session."
+  },
+  "batch_help": {
+    "message": "Paste up to 100 links, one per line. Uses the current tab’s session; explored links keep the course’s session. Notes remain pending review."
+  },
+  "batch_invalid_url": {
+    "message": "Invalid link (use http or https, without passwords): $1"
+  },
+  "batch_login": {
+    "message": "This page requires sign-in. Open the source, sign in, and retry."
+  },
+  "batch_mode": {
+    "message": "Link content"
+  },
+  "batch_new_list": {
+    "message": "Prepare more links"
+  },
+  "batch_no_content": {
+    "message": "The requested content was not found. Open the source and check that the lesson has loaded and you are signed in."
+  },
+  "batch_note": {
+    "message": "Page text"
+  },
+  "batch_open": {
+    "message": "Open source"
+  },
+  "batch_pause": {
+    "message": "Pause after current item"
+  },
+  "batch_paused": {
+    "message": "Queue paused. You can continue later."
+  },
+  "batch_pdf": {
+    "message": "PDF document"
+  },
+  "batch_pending_queue": {
+    "message": "Continue the pending queue first."
+  },
+  "batch_permissions": {
+    "message": "Permission is needed to read the page or a lesson resource. Click Authorize and retry."
+  },
+  "batch_permissions_domains": {
+    "message": "Permission needed for: $1. Click Authorize and retry."
+  },
+  "batch_reader": {
+    "message": "Viewer book"
+  },
+  "batch_remove": {
+    "message": "Remove from queue"
+  },
+  "batch_remove_running": {
+    "message": "Wait for the current link to finish or cancel its work before removing it."
+  },
+  "batch_remove_title": {
+    "message": "Remove from queue: $1"
+  },
+  "batch_restart_videos": {
+    "message": "Reprocess as videos"
+  },
+  "batch_resume": {
+    "message": "Continue queue"
+  },
+  "batch_retry": {
+    "message": "Authorize and retry"
+  },
+  "batch_retry_failed": {
+    "message": "Authorize and retry failed links"
+  },
+  "batch_review": {
+    "message": "Review note"
+  },
+  "batch_settings": {
+    "message": "Uses the AI, intent, and note organization selected in the panel. Optional images and embeds can be added in an individual capture."
+  },
+  "batch_start": {
+    "message": "Prepare links"
+  },
+  "batch_status_complete": {
+    "message": "Queue finished"
+  },
+  "batch_status_discarded": {
+    "message": "Discarded"
+  },
+  "batch_status_failed": {
+    "message": "Needs attention"
+  },
+  "batch_status_paused": {
+    "message": "Paused"
+  },
+  "batch_status_pausing": {
+    "message": "Pausing after current item"
+  },
+  "batch_status_pending": {
+    "message": "Pending"
+  },
+  "batch_status_ready": {
+    "message": "Ready · awaiting review"
+  },
+  "batch_status_running": {
+    "message": "Preparing"
+  },
+  "batch_status_saved": {
+    "message": "Reviewed and saved"
+  },
+  "batch_summary": {
+    "message": "$1 · $2 of $3 ready · $4 reviewed"
+  },
+  "batch_title": {
+    "message": "Prepare multiple links"
+  },
+  "batch_url_limit": {
+    "message": "Paste between 1 and 100 links, separated by newlines."
+  },
+  "batch_urls": {
+    "message": "Lesson or page links"
+  },
+  "batch_video": {
+    "message": "Lesson video or audio"
+  },
   "bg_1_2_paginas_recibidas_preparando_el_cont": {
     "message": "$1/$2 pages received. Preparing the content…"
   },
@@ -43,6 +181,9 @@
   },
   "bg_documento_pdf": {
     "message": "PDF document"
+  },
+  "bg_drive_download_html": {
+    "message": "Drive kept returning an HTML page after download confirmation. No video was received. The attempt diagnostic is saved in the queue."
   },
   "bg_el_lector_cambio_vuelve_a_detectarlo": {
     "message": "The reader changed. Detect it again."
@@ -265,6 +406,78 @@
   },
   "capture_video_incrustado": {
     "message": "Embedded video"
+  },
+  "course_api_fallback": {
+    "message": "The full catalog could not be read. Links were collected from the page; some modules may be missing."
+  },
+  "course_api_scope": {
+    "message": "Course pagination points outside its catalog. That read has been stopped."
+  },
+  "course_api_unavailable": {
+    "message": "The course catalog is unavailable with this session."
+  },
+  "course_busy": {
+    "message": "An exploration is already running. Stop it before starting another."
+  },
+  "course_depth": {
+    "message": "Internal page depth"
+  },
+  "course_found": {
+    "message": "$1 pages explored · $2 links found"
+  },
+  "course_help": {
+    "message": "Explore modules and internal pages using your session. Then choose which links to prepare."
+  },
+  "course_limit": {
+    "message": "Partial results: the selected depth or the limit of 40 pages and 500 links was reached. You can explore a specific module separately."
+  },
+  "course_load_timeout": {
+    "message": "The page took too long to load or list its links."
+  },
+  "course_locked": {
+    "message": "Locked in the course"
+  },
+  "course_open": {
+    "message": "Open link ↗"
+  },
+  "course_open_course": {
+    "message": "Open course ↗"
+  },
+  "course_paused": {
+    "message": "Paused: $1 pages · $2 links found"
+  },
+  "course_resume": {
+    "message": "Authorize and continue"
+  },
+  "course_scanning": {
+    "message": "Exploring: $1 pages · $2 links found"
+  },
+  "course_select_all": {
+    "message": "Select all"
+  },
+  "course_select_none": {
+    "message": "Clear all"
+  },
+  "course_selection_count": {
+    "message": "$1 selected · up to $2 per list"
+  },
+  "course_start": {
+    "message": "Explore course"
+  },
+  "course_stop": {
+    "message": "Stop exploring"
+  },
+  "course_stopped": {
+    "message": "Exploration stopped. You can continue later."
+  },
+  "course_title": {
+    "message": "Collect course links"
+  },
+  "course_url": {
+    "message": "Course URL"
+  },
+  "course_use": {
+    "message": "Use selected links in queue"
   },
   "detect_anaco_no_tiene_permiso_para_leer_esta_pa": {
     "message": "Anaco has no permission to read this page ($1). Press «Allow reading» or «Detect content» to grant it."
@@ -752,6 +965,9 @@
   "panel_avance_del_trabajo": {
     "message": "Job progress"
   },
+  "panel_bound_page": {
+    "message": "Panel linked to: $1"
+  },
   "panel_buscando_subtitulos": {
     "message": "LOOKING FOR SUBTITLES"
   },
@@ -1232,6 +1448,9 @@
   "panel_una_nota_con_apartados": {
     "message": "One note"
   },
+  "panel_use_active": {
+    "message": "Use the current tab"
+  },
   "panel_varias_notas_enlazadas_por_temas": {
     "message": "Several linked notes"
   },
@@ -1580,6 +1799,9 @@
   "review_asistido_por": {
     "message": "Assisted by "
   },
+  "review_back_queue": {
+    "message": "← Back to queue"
+  },
   "review_buscando_relaciones_para_cada_tema_y_ent": {
     "message": "Looking for links for each topic and between the notes…"
   },
@@ -1600,6 +1822,9 @@
   },
   "review_cerrar_imagen": {
     "message": "Close image"
+  },
+  "review_clear_relations": {
+    "message": "Clear all"
   },
   "review_conexiones_con_tu_conocimiento": {
     "message": "Connections with your knowledge"
@@ -1814,6 +2039,9 @@
   "review_que_necesita_mejorar_este_apartado": {
     "message": "What this section needs to improve"
   },
+  "review_queue_progress": {
+    "message": "Review $1 of $2 · $3 reviewed and saved"
+  },
   "review_reducir": {
     "message": "Shorten"
   },
@@ -1841,11 +2069,20 @@
   "review_revisar_nota_anaco": {
     "message": "Review note · Anaco"
   },
+  "review_save_next": {
+    "message": "Save and next"
+  },
+  "review_save_queue": {
+    "message": "Save and return to queue"
+  },
   "review_se_anadira_al_final": {
     "message": "Will be added at the end"
   },
   "review_selecciona_una_nota_existente": {
     "message": "Select an existing note"
+  },
+  "review_select_relations": {
+    "message": "Select all connections"
   },
   "review_sin_conexiones_con_evidencia_suficiente_": {
     "message": "No connections with enough evidence. You can link it later."

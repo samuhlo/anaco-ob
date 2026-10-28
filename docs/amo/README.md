@@ -2,6 +2,11 @@
 
 Textos y material para la ficha de Anaco en AMO. El paquete se genera con `npm run build` en `dist/anaco-ob-<versión>.zip`.
 
+La 1.2.0 ya está publicada en [la ficha de Anaco](https://addons.mozilla.org/addon/anaco/).
+El material de presentación actualizado (iconos, cuatro imágenes, textos ES/EN y
+vista previa) está en [listing/](listing/README.md). Se aplica a la información de
+la ficha sin cambiar el paquete de la extensión.
+
 ## Pasos
 
 1. `npm ci && npm test && npm run lint && npm run build`.

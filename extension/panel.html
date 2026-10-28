@@ -3,10 +3,43 @@
   <div class="panel-identity"><h1 class="brand"><img src="logo.svg" alt="Anaco"></h1><span id="connection" class="service-status" role="status"><span data-i18n="panel_conectando">Conectando…</span></span></div>
   <button class="link" id="options"><span data-i18n="panel_opciones">Opciones ↗</span></button>
 </header>
+<div class="panel-binding"><p id="boundPage" class="muted"></p><button id="useActiveTab" class="link" data-i18n="panel_use_active">Usar la pestaña actual</button></div>
 <div id="healthNotice" class="notice error" role="alert" hidden><strong id="healthTitle"></strong> <span id="healthText"></span> <button class="link" id="healthAction" type="button"></button></div>
 <div id="profileNotice" class="notice" role="status" hidden><span id="profileNoticeText"></span> <button class="link" id="profileReviewButton" type="button"><span data-i18n="panel_revisar_perfil">Revisar perfil ↗</span></button></div>
 <div class="copyable-error"><div id="error" class="notice error" role="alert" hidden></div><button id="copyError" class="copy-small" type="button" aria-label="Copiar error y diagnóstico" title="Copiar error y diagnóstico" data-i18n-title="panel_copiar_error_y_diagnostico" data-i18n-aria-label="panel_copiar_error_y_diagnostico"><span data-i18n="panel_copiar">Copiar</span></button></div>
 <section id="workCard" class="work-card" aria-label="Trabajo en curso" hidden data-i18n-aria-label="panel_trabajo_en_curso"><div class="work-heading"><span class="work-spinner" aria-hidden="true"></span><div><span id="workStage" class="eyebrow"><span data-i18n="panel_en_curso">EN CURSO</span></span><strong id="workTitle"></strong></div><span id="workElapsed" class="badge"></span></div><div id="operation" role="status" aria-live="polite" hidden></div><progress id="workProgress" aria-label="Avance del trabajo" data-i18n-aria-label="panel_avance_del_trabajo"></progress><p id="workDetail"></p><button id="cancelJob" type="button"><span data-i18n="panel_cancelar_y_conservar_avance">Cancelar y conservar avance</span></button><p id="workHint" class="muted"><span data-i18n="panel_puedes_seguir_navegando_o_cerrar_este_pa">Puedes seguir navegando o cerrar este panel. El trabajo continúa.</span></p></section><div id="success" class="notice success" hidden></div>
+<details id="batchSection" class="card batch-section">
+  <summary data-i18n="batch_title">Preparar varios enlaces</summary>
+  <div id="batchForm">
+  <details id="courseExplorer" class="course-explorer">
+    <summary data-i18n="course_title">Capturar enlaces de un curso</summary>
+    <p class="muted" data-i18n="course_help">Explora módulos y páginas internas con tu sesión. Después elige qué enlaces preparar.</p>
+    <label for="courseURL" data-i18n="course_url">Enlace del curso</label><input id="courseURL" type="url" placeholder="https://…">
+    <label for="courseDepth" data-i18n="course_depth">Niveles de páginas internas</label><select id="courseDepth"><option value="1">1</option><option value="3" selected>3</option><option value="5">5</option></select>
+    <div class="course-actions"><button id="courseStart" type="button" data-i18n="course_start">Explorar curso</button><button id="courseOpen" type="button" data-i18n="course_open_course">Abrir curso ↗</button><button id="courseStop" type="button" hidden data-i18n="course_stop">Detener exploración</button><button id="courseResume" type="button" hidden data-i18n="course_resume">Continuar exploración</button></div>
+    <p id="courseStatus" role="status" aria-live="polite"></p><p id="courseError" class="notice error" hidden></p><div id="courseWarnings" class="muted"></div>
+    <div id="courseSelection" hidden><div class="course-actions"><button id="courseAll" type="button" data-i18n="course_select_all">Seleccionar todos</button><button id="courseNone" type="button" class="link" data-i18n="course_select_none">Desmarcar todos</button></div><p id="courseCount" class="muted" role="status"></p><div id="courseTree" class="course-tree"></div><button id="courseUse" class="primary" type="button" data-i18n="course_use">Pasar seleccionados a la cola</button></div>
+  </details>
+
+  <p class="muted" data-i18n="batch_help">Pega un enlace por línea (máximo 100). Se abrirán de uno en uno en segundo plano, con la sesión y el contenedor de la pestaña actual. Las notas quedarán pendientes de revisión.</p>
+  <label for="batchURLs" data-i18n="batch_urls">Enlaces de clases o páginas</label><textarea id="batchURLs" rows="5" spellcheck="false" placeholder="https://…"></textarea>
+  <label for="batchMode" data-i18n="batch_mode">Contenido de los enlaces</label><select id="batchMode">
+    <option value="auto" data-i18n="batch_auto">Detectar automáticamente</option><option value="video" data-i18n="batch_video">Vídeo o audio de la clase</option><option value="pdf" data-i18n="batch_pdf">Documento PDF</option><option value="reader" data-i18n="batch_reader">Libro del visor</option><option value="note" data-i18n="batch_note">Texto de la página</option>
+  </select><p class="muted" data-i18n="batch_settings">Se usarán la IA, la intención y la organización elegidas en el panel. Las imágenes y recursos opcionales se pueden añadir en una captura individual.</p>
+  <button id="batchStart" class="primary" data-i18n="batch_start">Preparar enlaces</button>
+  </div>
+  <p id="batchSummary" role="status" aria-live="polite"></p><p id="batchError" class="notice error" hidden></p>
+  <div class="batch-actions">
+  <button id="batchPause" hidden data-i18n="batch_pause">Pausar después del actual</button><button id="batchResume" hidden data-i18n="batch_resume">Continuar cola</button>
+  <button id="batchRestartVideos" hidden data-i18n="batch_restart_videos">Reprocesar como vídeos</button>
+  <button id="batchRetryFailed" hidden data-i18n="batch_retry_failed">Autorizar y reintentar fallidos</button>
+  <button id="batchNewList" hidden data-i18n="batch_new_list">Preparar otros enlaces</button>
+  <button id="batchClearFailed" hidden data-i18n="batch_clear_failed">Quitar fallidos</button>
+  <button id="batchClear" hidden data-i18n="batch_clear">Vaciar cola</button>
+  <button id="batchBack" class="link" hidden data-i18n="batch_back_page">Volver a la página</button>
+  </div>
+  <ol id="batchItems" class="batch-items"></ol>
+</details>
 <section id="reviewWorkspace" class="card" hidden><div class="eyebrow"><span data-i18n="panel_asistente_de_revision">ASISTENTE DE REVISIÓN</span></div><h2 id="reviewMenuTitle"></h2><label id="reviewChooserLabel" for="reviewChooser" hidden><span data-i18n="panel_revision_abierta">Revisión abierta</span></label><select id="reviewChooser" hidden></select><p id="reviewMenuStatus" class="muted" role="status"></p><div id="reviewMenuNotes" class="review-menu-notes"></div><div class="edit-actions"><button id="reviewRead"><span data-i18n="panel_lectura">Lectura</span></button><button id="reviewEdit"><span data-i18n="panel_editar_markdown">Editar Markdown</span></button><button id="reviewProperties"><span data-i18n="panel_destino_e_imagenes">Destino e imágenes</span></button><button id="reviewConnections"><span data-i18n="panel_ver_conexiones">Ver conexiones</span></button><button id="reviewRefreshLinks"><span data-i18n="panel_buscar_conexiones">Buscar conexiones</span></button><button id="reviewSplit"><span data-i18n="panel_proponer_division">Proponer división</span></button></div><div class="button-stack review-actions"><button id="reviewFocus"><span data-i18n="panel_abrir_la_revision">Abrir la revisión ↗</span></button><button id="reviewSave" class="primary" disabled><span data-i18n="panel_guardar_y_volver">Guardar y volver</span></button></div></section>
 <div id="captureWorkspace">
 
@@ -50,4 +83,4 @@
 </div></details>
 <details id="pendingSection"><summary><span data-i18n="panel_capturas_pendientes">Capturas pendientes</span></summary><section id="recoverSection" hidden><h3><span data-i18n="panel_trabajos_recuperables">Trabajos recuperables</span></h3><div id="recoverJobs"></div></section><div id="pending"></div><button id="refresh" class="link"><span data-i18n="panel_actualizar_pendientes">Actualizar pendientes</span></button></details>
 
-</div></main><script src="i18n-catalog.js"></script><script src="i18n.js"></script><script src="media-source.js"></script><script src="embeds.js"></script><script src="diagnosis.js"></script><script src="progress.js"></script><script src="capture-flow.js"></script><script src="panel.js"></script></body></html>
+</div></main><script src="i18n-catalog.js"></script><script src="i18n.js"></script><script src="media-source.js"></script><script src="embeds.js"></script><script src="diagnosis.js"></script><script src="progress.js"></script><script src="capture-flow.js"></script><script src="batch-plan.js"></script><script src="panel.js"></script><script src="batch-ui.js"></script><script src="course-links.js"></script><script src="course-ui.js"></script></body></html>

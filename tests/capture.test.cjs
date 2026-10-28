@@ -3,7 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 const vm=require('node:vm'),fs=require('node:fs');
 
 // Exercise the capture entry point with player internals and reader candidates.
-async function capture({url='https://www.youtube.com/watch?v=abcdefghijk',book=false,media=true,article=false}={}){
+async function capture({url='https://www.youtube.com/watch?v=abcdefghijk',book=false,media=true,article=false,frames=[]}={}){
   const calls={inventory:0,collect:0};
   const player={currentSrc:'blob:https://www.youtube.com/internal',src:'',title:'',textTracks:[],duration:120,
     closest:()=>null,querySelector:()=>null,querySelectorAll:()=>[]};
@@ -13,7 +13,7 @@ async function capture({url='https://www.youtube.com/watch?v=abcdefghijk',book=f
     querySelectorAll:()=>[],cloneNode:()=>clone,matches:()=>false};
   const document={body:root,title:'Video title',contentType:'text/html',
     querySelector:selector=>selector.startsWith('.pdfViewer,')?(book?root:null):selector==='article'?(article?root:null):selector==='main,[role=main]'?root:null,
-    querySelectorAll:selector=>selector==='video,audio'?players:[],images:[]};
+    querySelectorAll:selector=>selector==='video,audio'?players:selector==='embed,object,iframe'?frames:[],images:[]};
   const context=vm.createContext({URL,document,location:new URL(url),
     window:{getSelection:()=>null},crypto:{randomUUID:()=> 'id'},Node:{ELEMENT_NODE:1,TEXT_NODE:3},
     performance:{getEntriesByType:()=>[]},AnacoObMediaWatcher:true,
@@ -57,4 +57,11 @@ test('explicit books still work with embedded video, and canvas-only readers rem
     assert.equal(result.reader.pages.length,2);assert.equal(calls.inventory,1);
     assert.match(result.warnings[0],/Libro detectado/);
   }
+});
+
+test('Drive view and preview identify one file and retain its resource key',async()=>{
+ const frame={tagName:'IFRAME',src:'https://drive.google.com/file/d/lesson_id/preview',title:'Embedded video',getAttribute:()=>null};
+ const {result}=await capture({url:'https://drive.google.com/file/d/lesson_id/view?resourcekey=required-key',article:true,media:false,frames:[frame]});
+ assert.equal(result.videos.length,1);assert.equal(result.videos[0].title,'Video title');
+ const download=new URL(result.videos[0].download);assert.equal(download.searchParams.get('id'),'lesson_id');assert.equal(download.searchParams.get('resourcekey'),'required-key');
 });

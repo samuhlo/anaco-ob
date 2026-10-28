@@ -6,6 +6,7 @@ let structureInitialized=false;
 let captureFormKey='',captureFormSource='',captureFormId=null,captureTarget='';
 let activeReview=null,preferredReview=null;
 let panelWindowId=null,panelStarted=false;
+let boundSource=null;
 const sidebarView=typeof window!=='undefined'&&Boolean(browser.extension?.getViews?.({type:'sidebar'}).includes(window));
 if(sidebarView)document.documentElement.style.visibility='hidden';
 function timeLabel(seconds){seconds=Math.max(0,Math.floor(seconds||0));return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');}
@@ -297,6 +298,9 @@ async function refresh() {
 }
 async function sync(changes) {
   state=await browser.storage.local.get(["currentCapture","draftResult","operation","operationProgress","operationError","operationDiagnostic","lastResult","pageContext","activeWork","autoReview","reviewSessions","captureMode"]);
+  if(!manualImport&&Number.isInteger(panelWindowId)){const own=await browser.runtime.sendMessage({type:'panelCapture',windowId:panelWindowId});if(own){boundSource=own.panelSource;Object.assign(state,own);}}
+  $('boundPage').textContent=boundSource?tx('panel_bound_page',[state.currentCapture?.title||boundSource.url||'']):'';
+  $('useActiveTab').disabled=Boolean(state.operation)||Boolean(globalThis.AnacoObBatchUI?.busy);
   $('captureMode').value=state.captureMode||'auto';$('captureMode').disabled=Boolean(state.operation);
   reviewMenu();
   $('autoReview').checked=state.autoReview!==false;
@@ -304,7 +308,7 @@ async function sync(changes) {
   $('extractPdf').textContent=$('autoReview').checked?tx('panel_crear_nota_del_pdf'):tx('panel_extraer_pdf_y_paginas');
   $('extractReader').textContent=$('autoReview').checked?tx('panel_crear_notas_del_libro_completo'):tx('panel_extraer_libro_completo');
   $('importButton').textContent=$('autoReview').checked?tx('panel_extraer_y_preparar_nota'):tx('panel_extraer_archivo');
-  if(!changes||changes.currentCapture||changes.draftResult||changes.pageContext)drawCapture(state.currentCapture);
+  if(!changes||changes.currentCapture||changes.draftResult||changes.pageContext||changes.panelBindingRevision)drawCapture(state.currentCapture);
   renderCaptureFlow();
   pendingControls();
   captureSettingsSummary();
@@ -342,7 +346,7 @@ function showHealth(problem){
 $('healthAction').onclick=run(async()=>healthAction==='options'?browser.runtime.sendMessage({type:'openOptions',windowId:panelWindowId}):browser.tabs.create({url:browser.runtime.getURL('welcome.html#install')}));
 function reviewMenu(){
   const previous=activeReview;
-  const sessions=Object.values(state.reviewSessions||{}).filter(r=>r.windowId===panelWindowId).sort((a,b)=>b.updatedAt-a.updatedAt);
+  const sessions=Object.values(state.reviewSessions||{}).filter(r=>r.windowId===panelWindowId&&r.tabActive).sort((a,b)=>b.updatedAt-a.updatedAt);
   const focused=sessions.find(r=>r.tabActive);if(focused)preferredReview=focused.id;
   activeReview=focused||sessions.find(r=>r.id===preferredReview)||sessions[0]||null;
   $('reviewWorkspace').hidden=!activeReview;$('captureWorkspace').hidden=Boolean(activeReview);
@@ -378,6 +382,7 @@ $("options").onclick=run(async()=>{
   await browser.runtime.sendMessage({type:'openOptions',windowId:panelWindowId});
 });
 $('cancelJob').onclick=run(async()=>{await browser.runtime.sendMessage({type:'cancelWork'});});
+$('useActiveTab').onclick=run(async()=>{await browser.runtime.sendMessage({type:'detectActive',windowId:panelWindowId,useActive:true,fresh:false});await sync();});
 $('captureMode').onchange=run(async()=>{
   await browser.storage.local.set({captureMode:$('captureMode').value});
   if(!manualImport)await browser.runtime.sendMessage({type:'detectActive',fresh:true,windowId:panelWindowId});
@@ -391,7 +396,7 @@ for(const id of ["captureEmpty","recapture"])$(id).onclick=run(async()=>{
   const origins=[state.pageContext?.url,state.currentCapture?.url].filter(Boolean);
   const granted=await requestOrigins(origins);
   if(!granted)throw new Error(tx('panel_no_se_ha_concedido_acceso_a_esta_pagina'));
-  await browser.runtime.sendMessage({type:"detectActive"});
+  await browser.runtime.sendMessage({type:"detectActive",windowId:panelWindowId});
 });
 $("prepare").onclick=run(async()=>{
   const selected=[...document.querySelectorAll("#images input:checked")].map(i=>Number(i.value));
@@ -444,7 +449,7 @@ $("authorizeDetection").onclick=run(async()=>{
   const c=state.currentCapture;
   const granted=await browser.permissions.request({origins:c.requiredOrigins});
   if(!granted)throw new Error(tx('panel_no_se_ha_concedido_acceso_al_contenido_i'));
-  await browser.runtime.sendMessage({type:'inspectFrame'});
+  await browser.runtime.sendMessage({type:'inspectFrame',token:c.token});
 });
 $("videoResource").onchange=()=>{
   const video=state.currentCapture?.videos[Number($("videoResource").value)];
@@ -465,7 +470,7 @@ $("importButton").onclick=run(async()=>{
     await browser.runtime.sendMessage({type:"adoptUpload",capture:c,work:uploadWork.work,manual:manualImport,...preparation()});
   }catch(error){await browser.runtime.sendMessage({type:'failWork',work:uploadWork.work,error:error.message});throw error;}
 });
-browser.storage.onChanged.addListener((changes,area)=>{if(area==="local"&&panelStarted)sync(changes).catch(showError);});
+browser.storage.onChanged.addListener((changes,area)=>{if(area==="local"&&panelStarted){sync(changes).catch(showError);if(changes.panelBindingRevision&&!manualImport)detectCurrent(false);}});
 let tabRefreshTimer;
 function detectCurrent(fresh=false,tabId){
   clearTimeout(tabRefreshTimer);
@@ -481,9 +486,9 @@ async function startPanel(){
   }
   panelStarted=true;
   if(browser.tabs&&!manualImport){
-    browser.tabs.onActivated.addListener(info=>{if(panelWindowId===null||info.windowId===panelWindowId){const match=Object.values(state.reviewSessions||{}).find(r=>r.tabId===info.tabId);if(match){preferredReview=match.id;reviewMenu();}detectCurrent(false,info.tabId);}});
-    browser.tabs.onUpdated.addListener((id,change,tab)=>{if((panelWindowId===null||tab.windowId===panelWindowId)&&tab.active&&(change.status==='complete'||change.url))detectCurrent(true,id);});
-    browser.windows?.onFocusChanged?.addListener(id=>{if(id===panelWindowId)detectCurrent(false);});
+    browser.tabs.onActivated.addListener(info=>{if(panelWindowId===null||info.windowId===panelWindowId){const match=Object.values(state.reviewSessions||{}).find(r=>r.tabId===info.tabId);if(match)preferredReview=match.id;sync().catch(showError);}});
+    browser.tabs.onUpdated.addListener((id,change)=>{if(id===boundSource?.tabId&&(change.status==='complete'||change.url))detectCurrent(true,id);});
+
   }
   await sync();brandIntro();refresh().catch(showError);if(!manualImport)detectCurrent(false);
 }

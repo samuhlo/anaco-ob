@@ -8,7 +8,7 @@ function app(){
  const event=()=>({addListener(){}});
  const browser={webNavigation:{onCompleted:event()},runtime:{getURL:p=>'moz-extension://test/'+p,onMessage:event()},permissions:{contains:async()=>true},storage:{local:{get:async keys=>Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(k=>[k,data[k]])),set:async values=>Object.assign(data,values)}},tabs:{onRemoved:event()},browserAction:{onClicked:event()},commands:{onCommand:event()},menus:{create(){},onClicked:event()}};
  const ctx=vm.createContext({browser,URL,crypto:require('node:crypto').webcrypto,setTimeout,clearTimeout,AbortSignal});
- vm.runInContext(I18N+fs.readFileSync('extension/detection.js','utf8')+fs.readFileSync('extension/background.js','utf8'),ctx);
+ vm.runInContext(I18N+fs.readFileSync('extension/media-source.js','utf8')+fs.readFileSync('extension/detection.js','utf8')+fs.readFileSync('extension/background.js','utf8'),ctx);
  return {ctx,data};
 }
 const tab=id=>({id,url:`https://course.example/page-${id}`,windowId:1,title:`Page ${id}`});
@@ -198,4 +198,61 @@ test('page CORS failures can fall back to extension permissions and record safe 
  assert.equal(result.size,3);assert.equal(ctx.diagnostic.attempts[0].reason,'page-fetch');
  assert.ok(ctx.diagnostic.attempts.some(v=>v.context==='extension'&&v.status===200));
  assert.ok(!JSON.stringify(ctx.diagnostic).includes('secret'));
+});
+
+test('panel stays attached to its chosen tab when another tab becomes active',async()=>{
+ const {ctx,data}=app();ctx.a=tab(1);ctx.b=tab(2);
+ ctx.browser.tabs.get=async id=>tab(id);ctx.browser.tabs.query=async()=>[tab(2)];
+ ctx.scanTab=async value=>capture(value.id);
+ await vm.runInContext('bindPanel(a);detectActive({windowId:1,tabId:2})',ctx);
+ assert.equal(data.currentCapture.source.tabId,1);
+ await vm.runInContext('detectActive({windowId:1,useActive:true})',ctx);
+ assert.equal(data.currentCapture.source.tabId,2);
+});
+test('two windows show their own pinned capture, including when the global capture belongs to the other',async()=>{
+ const {ctx}=app();ctx.a=tab(1);ctx.b={...tab(2),windowId:2};ctx.scanTab=async value=>capture(value.id);
+ await vm.runInContext('bindPanel(a);capture(a)',ctx);await vm.runInContext('bindPanel(b);capture(b)',ctx);
+ const one=await vm.runInContext('panelCapture(1)',ctx),two=await vm.runInContext('panelCapture(2)',ctx);
+ assert.equal(one.currentCapture.source.tabId,1);assert.equal(two.currentCapture.source.tabId,2);
+ assert.equal(vm.runInContext('captureForToken(undefined)',ctx),null);
+});
+
+test('Google feedback frames cannot block detection of the actual Drive player',async()=>{
+ const {ctx}=app();
+ vm.runInContext(fs.readFileSync('extension/media-source.js','utf8'),ctx);
+ ctx.AnacoObEmbeds={embedFrame:()=>false};
+ const frames=[];
+ ctx.browser.webNavigation.getAllFrames=async()=>[{frameId:0,url:tab(1).url},{frameId:4,url:'https://drive.google.com/file/d/lesson/preview'},{frameId:99,url:'https://feedback-pa.clients6.google.com/static/feedback.html'}];
+ ctx.readFrame=async(id,frameId)=>{frames.push(frameId);if(frameId===99)throw Error('Missing host permission');return {...capture(1),frameId,videos:frameId===4?[{url:'https://drive.google.com/file/d/lesson/preview',download:'https://drive.google.com/uc?id=lesson',tracks:[]}]:[]};};
+ ctx.a=tab(1);const c=await vm.runInContext('scanTab(a)',ctx);
+ assert.deepEqual(frames,[0,4]);assert.equal(c.requiredOrigins.length,0);assert.equal(c.videos.length,1);
+});
+
+test('a recognized Drive confirmation is followed once and real media is returned',async()=>{
+ const {ctx}=app(),requests=[];ctx.requestURL='https://drive.google.com/uc?id=lesson';
+ ctx.AnacoObDriveDownload={publicRequest:()=>({url:'https://drive.usercontent.google.com/download?id=lesson&confirm=t',method:'GET'}),confirmation:async(response,url)=>{assert.equal(url,ctx.requestURL);await response.body.cancel();return {url:'https://drive.usercontent.google.com/download?id=lesson&confirm=t',method:'GET'};}};
+ ctx.fetch=async(url)=>{requests.push(url);return requests.length===1?new Response('<form>Drive confirmation</form>',{headers:{'content-type':'text/html'}}):new Response('real media',{headers:{'content-type':'video/mp4'}});};
+ const result=await vm.runInContext('resourceBytes(requestURL,null,0,1000000000)',ctx);
+ assert.equal(result.size,10);assert.equal(requests.length,2);assert.match(requests[1],/drive.usercontent.google.com/);
+});
+test('Drive confirmation cannot loop or turn a real login page into a download',async()=>{
+ const {ctx}=app();let calls=0;
+ ctx.AnacoObDriveDownload={publicRequest:()=>({url:'https://drive.usercontent.google.com/download?id=lesson&confirm=t',method:'GET'}),confirmation:async(response)=>{await response.body.cancel();return {url:'https://drive.usercontent.google.com/download?id=lesson&confirm=t',method:'GET'};}};
+ ctx.fetch=async()=>{calls++;return new Response('<html>Login</html>',{headers:{'content-type':'text/html'}});};
+ await assert.rejects(vm.runInContext('resourceBytes("https://drive.google.com/uc?id=lesson",null)',ctx),/HTML/);assert.equal(calls,4);
+});
+
+test('Drive can fall back to its public download when account cookies keep returning HTML',async()=>{
+ const {ctx}=app(),calls=[];
+ ctx.AnacoObDriveDownload={confirmation:async response=>{await response.body.cancel();return null;},publicRequest:()=>({url:'https://drive.usercontent.google.com/download?id=lesson&confirm=t',method:'GET'})};
+ ctx.fetch=async(url,options)=>{calls.push({url,...options});return options.credentials==='include'?new Response('<html>Account page</html>',{headers:{'content-type':'text/html'}}):new Response('public video',{headers:{'content-type':'video/mp4'}});};
+ const result=await vm.runInContext('resourceBytes("https://drive.google.com/uc?id=lesson",null)',ctx);
+ assert.equal(result.size,12);assert.deepEqual(calls.map(c=>c.credentials),['include','omit']);
+});
+test('Drive submits POST confirmation fields only to the validated download target',async()=>{
+ const {ctx}=app(),calls=[];
+ ctx.AnacoObDriveDownload={confirmation:async response=>{await response.body.cancel();return {url:'https://drive.usercontent.google.com/download?id=lesson&export=download&confirm=t',method:'POST',body:'uuid=test-token',headers:{'Content-Type':'application/x-www-form-urlencoded'}};}};
+ ctx.fetch=async(url,options)=>{calls.push({url,...options});return calls.length===1?new Response('<form>Confirm</form>',{headers:{'content-type':'text/html'}}):new Response('media',{headers:{'content-type':'video/mp4'}});};
+ const result=await vm.runInContext('resourceBytes("https://drive.google.com/uc?id=lesson",null)',ctx);
+ assert.equal(result.size,5);assert.equal(calls[1].method,'POST');assert.equal(calls[1].body,'uuid=test-token');
 });

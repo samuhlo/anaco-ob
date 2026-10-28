@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "anaco-ob"
-version = "1.2.0"
+version = "1.2.3"
 description = "Local service for Anaco: captures from Zen/Firefox into reviewed notes for your Obsidian vault."
 readme = "README.md"
 license = "MIT"

@@ -24,6 +24,7 @@ import zipfile
 import zlib
 
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
@@ -54,6 +55,9 @@ def main():
     signal.signal(signal.SIGTERM,lambda *_:sys.exit(143))
     parser = argparse.ArgumentParser()
     parser.add_argument("--ai", action="store_true")
+    parser.add_argument("--course-links", action="store_true", help="Course catalog pagination, nested discovery, selection and bulk relations")
+    parser.add_argument("--batch-video", action="store_true", help="Moodle-style guide PDF plus delayed lesson player and URL launcher")
+    parser.add_argument("--batch", action="store_true", help="Pinned source and authenticated multi-link preparation in the background")
     parser.add_argument('--editorial',action='store_true',help='Review and save an editable linked collection with a deterministic model fixture')
     parser.add_argument('--session-video',action='store_true',help='Video, captions and HLS requiring the actual player referrer and session')
     parser.add_argument('--quality',action='store_true',help='Narrow sidebar, full image gallery, selection limit and visible progress')
@@ -83,6 +87,7 @@ def main():
     parser.add_argument('--podcast',action='store_true',help='Podcast mode in the panel, conversation note with checked quotes and preparing it again as a video from the review')
     parser.add_argument("--media",action="store_true",help="Exercise native PDF viewer, course iframe, subtitles and local imports")
     args = parser.parse_args()
+    args.batch = args.batch or args.batch_video
     args.book = args.book or args.book_images
     out = ROOT / ".test-artifacts" / ("zen-book-images" if args.book_images else "zen-book" if args.book else "zen-reader" if args.reader else "zen-copy-error" if args.copy_error else "zen-import" if args.manual_import else "zen-detection" if args.detection else "zen-options" if args.options else "zen-media" if args.media else "zen-permissions" if args.fresh_permissions else "zen-ai" if args.ai else "zen")
     out.mkdir(parents=True, exist_ok=True)
@@ -104,6 +109,8 @@ def main():
     if args.languages:out=ROOT/'.test-artifacts/zen-languages';out.mkdir(parents=True,exist_ok=True)
     if args.split_review:out=ROOT/'.test-artifacts/zen-split-review';out.mkdir(parents=True,exist_ok=True)
     if args.podcast:out=ROOT/'.test-artifacts/zen-podcast';out.mkdir(parents=True,exist_ok=True)
+    if args.batch:out=ROOT/('.test-artifacts/zen-batch-video' if args.batch_video else '.test-artifacts/zen-batch');out.mkdir(parents=True,exist_ok=True)
+    if args.course_links:out=ROOT/'.test-artifacts/zen-course-links';out.mkdir(parents=True,exist_ok=True)
     run_dir = Path(tempfile.mkdtemp(prefix="run-",dir=out))
     vault = run_dir / "Vault"
     for name in ("02_Cerebro/Modelos_Mentales", "02_Cerebro/Tech_&_Codigo", "07_Clases/01_Curso/01_Tema", "99_Recursos"):
@@ -111,7 +118,7 @@ def main():
     (vault / "02_Cerebro/Modelos_Mentales/recuperacion_activa.md").write_text("# Recuperación activa\n\nIntentar recordar sin mirar fortalece la memoria. Las pruebas sin apuntes ayudan a detectar lagunas y corregir errores.")
     (vault / "02_Cerebro/Tech_&_Codigo/recuperacion_paquetes.md").write_text("# Recuperación de paquetes\n\nLa recuperación de paquetes perdidos utiliza retransmisión en redes de ordenadores. Los routers conectan equipos.")
     app = App(run_dir / "state")
-    app.set_config({"vault":str(vault), "provider":"codex" if args.ai or args.panel_ux else "manual",'note_structure':'linked' if args.editorial or args.workflow or args.review_menu else 'single'})
+    app.set_config({"vault":str(vault), "provider":"codex" if args.ai or args.panel_ux else "manual",'note_structure':'linked' if args.editorial or args.workflow or args.review_menu or args.course_links else 'single'})
     if args.profile or args.readme_shots:
         # A reduced copy of the reorganized second_brain, with no profile yet.
         sys.path.insert(0,str(ROOT/'tests'))
@@ -168,9 +175,9 @@ def main():
                     if args.embeds or args.readme_shots:manifest["permissions"]+=["https://codepen.io/*","https://cdpn.io/*"]+(["https://tympanus.net/*"] if args.embeds_live or args.readme_shots else [])
                     archive.writestr(relative,json.dumps(manifest))
                 else:archive.write(p,relative)
-        if args.book_ai or args.editorial or args.workflow or args.split_review or args.review_menu or args.podcast:
+        if args.book_ai or args.editorial or args.workflow or args.split_review or args.review_menu or args.podcast or args.course_links:
             fake=run_dir/'fake_book_cli.py'
-            shutil.copyfile(ROOT/('tests/fake_conversation_cli.py' if args.podcast else 'tests/fake_editorial_cli.py' if args.editorial or args.workflow or args.split_review or args.review_menu else 'tests/fake_book_cli.py'),fake);fake.chmod(0o700)
+            shutil.copyfile(ROOT/('tests/fake_conversation_cli.py' if args.podcast else 'tests/fake_editorial_cli.py' if args.editorial or args.workflow or args.split_review or args.review_menu or args.course_links else 'tests/fake_book_cli.py'),fake);fake.chmod(0o700)
             config_path=run_dir/'state/config.json'
             config=json.loads(config_path.read_text());config['codex']=str(fake);config_path.write_text(json.dumps(config))
         session_requests=[]
@@ -186,6 +193,55 @@ def main():
                     self.send_response(200);self.send_header('Content-Type','application/pdf');self.end_headers();return
                 super().do_HEAD()
             def do_GET(self):
+                if args.course_links and self.path.startswith(('/courses/42/','/api/v1/courses/42/')):
+                    authorized='zen_course=test' in self.headers.get('Cookie','');session_requests.append({'path':self.path,'session':authorized})
+                    if not authorized:self.send_error(403,'Session required');return
+                    path=self.path.split('?')[0];next_page='page=2' in self.path;link=None
+                    if path=='/api/v1/courses/42/modules':
+                        data=[{'id':2,'name':'Locked module','state':'locked','items_count':1,'items':[{'id':21,'type':'Page','title':'Locked lesson','page_url':'locked'}]}] if next_page else [{'id':1,'name':'Cloud foundations','state':'unlocked','items_count':4,'items':[]}]
+                        if not next_page:link=f'<http://127.0.0.1:{self.server.server_port}/api/v1/courses/42/modules?page=2>; rel="next"'
+                    elif path=='/api/v1/courses/42/modules/1/items':
+                        data=[{'id':12,'type':'Page','title':'Shared responsibility','page_url':'responsibility','indent':1},{'id':13,'type':'ExternalUrl','title':'Reference video','external_url':'https://example.org/reference-video','indent':1}] if next_page else [{'id':10,'type':'SubHeader','title':'Core concepts','indent':0},{'id':11,'type':'Page','title':'Compute module','page_url':'compute','indent':1}]
+                        if not next_page:link=f'<http://127.0.0.1:{self.server.server_port}/api/v1/courses/42/modules/1/items?page=2>; rel="next"'
+                    else:data=None
+                    if data is not None:
+                        self.send_response(200);self.send_header('Content-Type','application/json')
+                        if link:self.send_header('Link',link)
+                        self.end_headers();self.wfile.write(json.dumps(data).encode());return
+                    if path.endswith('/compute'):body='<a href="/courses/42/pages/nested">Nested lesson</a>'
+                    elif path.endswith('/responsibility'):body='<a href="/courses/42/pages/compute">Compute module again</a>'
+                    elif path.endswith('/nested'):body='<a href="/lesson.pdf">Lesson PDF</a>'
+                    elif path.endswith('/locked'):self.send_error(500,'Locked lessons must not be opened');return
+                    else:body='<p>Course index</p>'
+                    page=('<html><title>Cloud course</title><main class="user_content">'+body+'</main></html>').encode();self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.end_headers();self.wfile.write(page);return
+                if args.batch_video and self.path.startswith(('/mod/url/view.php','/batch-player.html','/batch-captions.vtt','/handbook.pdf')):
+                    authorized='zen_course=test' in self.headers.get('Cookie','')
+                    session_requests.append({'path':self.path,'session':authorized})
+                    if not authorized:self.send_error(403,'Session required');return
+                    if self.path.startswith('/handbook.pdf'):
+                        self.send_error(500,'The unrelated handbook must never be downloaded');return
+                    if self.path.startswith('/batch-captions.vtt'):
+                        page=b'WEBVTT\n\n00:00.000 --> 00:04.000\nVIDEO LESSON TRANSCRIPT. Temporary roles grant least privilege access to the required resources.\n';mime='text/vtt'
+                    elif self.path.startswith('/batch-player.html'):
+                        page=b'<html><title>Lesson video</title><main><video controls src="/lesson.mp4"><track kind="subtitles" srclang="en" src="/batch-captions.vtt"></video></main></html>';mime='text/html'
+                    else:
+                        head='<html><title>Course lesson</title><nav><a href="/handbook.pdf">Student handbook PDF</a></nav><main id="region-main">'
+                        if 'case=launch' in self.path:
+                            body='<div class="urlworkaround"><a href="/batch-player.html">Open the lesson</a></div>'
+                        else:
+                            body='<p>The lesson player will load here.</p><script>setTimeout(()=>{const f=document.createElement("iframe");f.loading="lazy";f.src="/batch-player.html";document.querySelector("main").append(f);},3000)</script>'
+                        page=(head+body+'</main></html>').encode();mime='text/html'
+                    self.send_response(200);self.send_header('Content-Type',mime+'; charset=utf-8');self.end_headers();self.wfile.write(page);return
+                if args.batch and self.path.startswith('/batch-'):
+                    private=self.path.startswith('/batch-private')
+                    authorized='zen_course=test' in self.headers.get('Cookie','')
+                    session_requests.append({'path':self.path,'session':authorized})
+                    if private and not authorized:self.send_error(403,'Session required');return
+                    if private:
+                        time.sleep(3)
+                        page=b'<html><title>Private lesson</title><article><h1>Private lesson</h1><p>PRIVATE SESSION CONTENT. Identity policies grant only the actions required for a resource. Temporary roles reduce the use of long lived credentials. Audit the grants and review access regularly to keep the configuration clear and maintainable.</p></article></html>'
+                    else:page=b'<html><title>Sign in</title><form><input type="password"></form></html>'
+                    self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.end_headers();self.wfile.write(page);return
                 if args.code and self.path=='/edge-code.html':
                     page=b'<!doctype html><meta charset="utf-8"><article><h1>Code fidelity</h1><p>A reference example with source code, whitespace and template delimiters. It explains a literal string and a second statement for future consultation.</p><pre class="language-js"><code>const text = "```";\n\n\nconst y = 2;</code></pre><p>Inline: <code>a &lt; b &amp;&amp; c</code>.</p></article>'
                     self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.end_headers();self.wfile.write(page);return
@@ -563,7 +619,7 @@ def main():
                 const tab=existing?await browser.tabs.get(existing):await browser.tabs.create({url:targetURL,active:false});
                 for(let i=0;i<200;i++){const now=await browser.tabs.get(tab.id);if(now.status==='complete'&&now.url===targetURL)break;await new Promise(r=>setTimeout(r,50));}
                 const current=await browser.tabs.get(tab.id);
-                const c=await bg.capture(current,input);done({ok:true,result:c});
+                bg.bindPanel(current);const c=await bg.capture(current,input);done({ok:true,result:c});
               }).catch(e=>done({ok:false,error:e.message}));''',target_url or url,input,file_tab['id'] if file_tab else None)
             assert result["ok"],result
             wait.until(lambda d:not d.find_element(By.ID,"captureCard").get_attribute("hidden") or d.find_element(By.ID,'fileImport').is_displayed())
@@ -571,6 +627,142 @@ def main():
                 attachment=driver.find_element(By.ID,'attachments')
                 if attachment.is_displayed() and not attachment.get_attribute('open'):attachment.find_element(By.TAG_NAME,'summary').click()
             return result["result"]
+
+        if args.batch:
+            handles=set(driver.window_handles)
+            driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.create({url:arguments[0],active:true}).then(done);',panel)
+            panel_handle=wait.until(lambda d:next(iter(set(d.window_handles)-handles),None))
+            driver.switch_to.window(panel_handle)
+            wait.until(lambda d:'CONECTADO' in d.find_element(By.ID,'connection').text.upper())
+            first=capture({})
+            original=first['source']
+            # Switching active tabs does not change the source shown by the panel.
+            second=driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.create({url:arguments[0],active:true}).then(done);',url+'?other=1')
+            driver.switch_to.window(panel_handle)
+            own=message({'type':'panelCapture','windowId':original['windowId']})
+            assert own['currentCapture']['source']['tabId']==original['tabId'],own
+            # Click the real form, accepting its optional permission prompt.
+            batch_urls=[url.replace('article.html','mod/url/view.php?case=delayed'),url.replace('article.html','mod/url/view.php?case=launch')] if args.batch_video else [url.replace('article.html','batch-private'),url.replace('article.html','batch-login'),url]
+            field('batchURLs').send_keys('\n'.join(batch_urls))
+            Select(field('provider')).select_by_value('manual')
+            field('batchStart').click()
+            driver.set_context('chrome')
+            try:
+                WebDriverWait(driver,2).until(lambda d:d.execute_script('return PopupNotifications.panel.state === "open"'))
+                driver.execute_script('PopupNotifications.panel.querySelector("popupnotification").button.click()')
+            except TimeoutException:
+                pass  # Already granted origins and cookies can be granted without a prompt.
+            driver.set_context('content')
+            def queued():
+                return driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("batchQueue").then(s=>done(s.batchQueue));')
+            wait.until(lambda d:queued())
+            assert queued()['status']=='running'
+            wait.until(lambda d:'is-batch' in d.find_element(By.TAG_NAME,'body').get_attribute('class'))
+            assert not driver.find_element(By.ID,'captureWorkspace').is_displayed()
+            assert not driver.find_element(By.ID,'batchForm').is_displayed()
+            # Unload the panel completely: the background still owns the queue.
+            driver.get('about:blank');time.sleep(2);driver.get(panel)
+            wait.until(lambda d:'CONECTADO' in d.find_element(By.ID,'connection').text.upper())
+            result=WebDriverWait(driver,60).until(lambda d:(q if (q:=queued()) and q['status']=='complete' else None))
+            if args.batch_video:
+                assert [i['status'] for i in result['items']]==['ready','ready'],result
+                captures=[message({'type':'native','message':{'action':'load','id':i['captureId']}}) for i in result['items']]
+                assert all(c['kind']=='video' and 'VIDEO LESSON TRANSCRIPT' in c['text'] for c in captures),[(c['kind'],c['title']) for c in captures]
+                assert not any(r['path'].startswith('/handbook.pdf') for r in session_requests),session_requests
+                assert all(r['session'] for r in session_requests),session_requests
+                previous_ids=[i['captureId'] for i in result['items']]
+                field('batchRestartVideos').click()
+                wait.until(lambda d:queued()['status']=='running')
+                retried=WebDriverWait(driver,60).until(lambda d:(q if (q:=queued()) and q['status']=='complete' else None))
+                assert retried['options']['mode']=='video'
+                assert all(i['status']=='ready' and i['captureId']!=old and old in i['previousCaptureIds'] for i,old in zip(retried['items'],previous_ids)),retried
+                assert not any(r['path'].startswith('/handbook.pdf') for r in session_requests),session_requests
+                driver.execute_script('document.getElementById("batchSection").open=true;document.getElementById("batchSummary").scrollIntoView()')
+                assert not driver.find_element(By.ID,'captureWorkspace').is_displayed()
+                driver.save_screenshot(str(out/'video-queue.png'))
+                driver.find_element(By.ID,'batchBack').click()
+                wait.until(lambda d:d.find_element(By.ID,'captureWorkspace').is_displayed())
+                assert not driver.find_element(By.ID,'batchSection').get_attribute('open')
+                driver.find_element(By.CSS_SELECTOR,'#batchSection>summary').click()
+                wait.until(lambda d:not d.find_element(By.ID,'captureWorkspace').is_displayed())
+                # Remove individual results, empty the list, and immediately add another one.
+                driver.find_elements(By.CSS_SELECTOR,'.batch-remove')[0].click()
+                wait.until(lambda d:len(queued()['items'])==1)
+                driver.find_element(By.ID,'batchClear').click()
+                wait.until(lambda d:queued() is None and d.find_element(By.ID,'batchURLs').is_displayed())
+                field('batchURLs').send_keys(batch_urls[0]);field('batchStart').click()
+                wait.until(lambda d:queued() and queued()['status']=='running')
+                fresh=WebDriverWait(driver,60).until(lambda d:(q if (q:=queued()) and q['status']=='complete' else None))
+                assert len(fresh['items'])==1 and fresh['items'][0]['status']=='ready',fresh
+                for old in previous_ids:
+                    assert message({'type':'native','message':{'action':'load','id':old}})['status']=='draft'
+                # Use Firefox's real HTML parser to test the guarded Drive confirmation.
+                confirmation=driver.execute_async_script("""const done=arguments[arguments.length-1];browser.runtime.getBackgroundPage().then(bg=>{
+                  const page='https://drive.google.com/uc?id=test-file',response='https://drive.usercontent.google.com/uc?id=test-file';
+                  const html='<form id="download-form" method="get" action="https://drive.usercontent.google.com/download"><input type="hidden" name="id" value="test-file"><input type="hidden" name="export" value="download"><input type="hidden" name="confirm" value="t"><input type="hidden" name="uuid" value="test-token"></form>';
+                  const parse=(h,r=response)=>bg.AnacoObDriveDownload.confirmationURL(h,r,page);
+                  const post=bg.AnacoObDriveDownload.confirmationRequest('<form id="download-form" method="post" action="https://drive.usercontent.google.com/download?id=test-file&amp;export=download&amp;confirm=t&amp;at=test-session-token"><input type="hidden" name="uuid" value="test-token"></form>',response,page);
+                  done({post,valid:parse(html),wrongFile:parse(html.replace('value="test-file"','value="other-file"')),wrongAction:parse(html.replace('https://drive.usercontent.google.com/download','https://other.test/download')),wrongOrigin:parse(html,'https://other.test/download'),login:parse('<form><input type="password"></form>')});
+                });""")
+                assert confirmation['valid'].startswith('https://drive.usercontent.google.com/download?')
+                assert confirmation['post']['method']=='POST' and confirmation['post']['body']=='uuid=test-token'
+                assert 'at=test-session-token' in confirmation['post']['url']
+                assert all(confirmation[k] is None for k in ['wrongFile','wrongAction','wrongOrigin','login']),confirmation
+                report={'passed':True,'late_iframe_video':True,'moodle_launch_link':True,'handbook_not_downloaded':True,'authenticated_subtitles':True,'video_notes':len(captures),'reprocess_as_video':True,'previous_drafts_preserved':True,'batch_focus_and_return':True,'remove_clear_replace_queue':True,'drive_confirmation_guards':True}
+                (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
+            assert [i['status'] for i in result['items']]==['ready','failed','ready'],result
+            assert 'sesión' in result['items'][1]['error'],result
+            private=message({'type':'native','message':{'action':'load','id':result['items'][0]['captureId']}})
+            assert 'PRIVATE SESSION CONTENT' in private['text']
+            assert session_requests and all(r['session'] for r in session_requests),session_requests
+            reviews=driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.query({}).then(t=>done(t.filter(v=>v.url.includes("review.html"))));')
+            assert not reviews,reviews
+            own=message({'type':'panelCapture','windowId':original['windowId']})
+            assert own['currentCapture']['source']['tabId']==original['tabId']
+            driver.execute_script('document.getElementById("batchSection").open=true');driver.set_window_size(390,1100)
+            driver.execute_script('document.getElementById("batchSection").scrollIntoView()')
+            assert driver.execute_script('return document.documentElement.scrollWidth<=innerWidth')
+            driver.save_screenshot(str(out/'queue.png'))
+            # Opening a result is explicit and uses the usual review.
+            handles=set(driver.window_handles)
+            review=message({'type':'openReview','id':result['items'][0]['captureId']})
+            assert review['tabId']
+            review_handle=wait.until(lambda d:next(iter(set(d.window_handles)-handles),None))
+            driver.switch_to.window(review_handle)
+            wait.until(lambda d:d.find_element(By.ID,'saveReview').is_enabled())
+            assert driver.find_element(By.ID,'saveReview').text=='Guardar y siguiente'
+            assert driver.execute_script('return document.getElementById("saveReview").getBoundingClientRect().height<90')
+            driver.save_screenshot(str(out/'next-review.png'))
+            driver.find_element(By.ID,'saveReview').click()
+            wait.until(lambda d:d.current_url.endswith('capture='+result['items'][2]['captureId']))
+            assert driver.current_window_handle==review_handle
+            wait.until(lambda d:d.find_element(By.ID,'saveReview').is_enabled())
+            assert driver.find_element(By.ID,'saveReview').text=='Guardar y volver a la cola'
+            driver.find_element(By.ID,'saveReview').click()
+            wait.until(lambda d:d.current_url==panel)
+            wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'.batch-items li[data-state="saved"]'))==2)
+            assert 'Revisada y guardada' in driver.find_element(By.ID,'batchItems').text
+            assert driver.execute_script("""return getComputedStyle(document.querySelector('.batch-items li[data-state="saved"]')).backgroundColor !== "rgba(0, 0, 0, 0)";""")
+            driver.save_screenshot(str(out/'reviewed-queue.png'))
+            # Regenerate a saved source: deletion outside Anaco must unblock the open review.
+            old=message({'type':'native','message':{'action':'load','id':result['items'][0]['captureId']}})
+            target=vault/old['saved_path'];assert target.is_file()
+            fresh=message({'type':'native','message':{'action':'capture','capture':{k:old[k] for k in ('kind','url','title','text')}}})
+            message({'type':'native','message':{'action':'draft','id':fresh['id'],'provider':'manual'}})
+            handles=set(driver.window_handles);message({'type':'openReview','id':fresh['id']})
+            duplicate_handle=wait.until(lambda d:next(iter(set(d.window_handles)-handles),None))
+            driver.switch_to.window(duplicate_handle)
+            wait.until(lambda d:not d.find_element(By.ID,'duplicate').get_attribute('hidden'))
+            assert not driver.find_element(By.ID,'saveReview').is_enabled()
+            target.unlink()
+            driver.execute_script('window.dispatchEvent(new Event("focus"))')
+            wait.until(lambda d:d.find_element(By.ID,'saveReview').is_enabled())
+            assert driver.find_element(By.ID,'duplicate').get_attribute('hidden')
+            driver.find_element(By.ID,'saveReview').click()
+            wait.until(lambda d:duplicate_handle not in d.window_handles)
+            driver.switch_to.window(panel_handle);assert target.is_file()
+            report={'passed':True,'pinned_source':True,'authenticated_session':True,'continues_without_panel':True,'no_automatic_review_tabs':True,'login_page_rejected':True,'ready':2,'failed':1,'narrow_panel_no_overflow':True,'save_advances_in_same_tab':True,'last_save_returns_to_queue':True,'saved_rows_highlighted':True,'deleted_note_can_be_regenerated_and_saved':True}
+            (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
 
         def source_script(tab_id,code):
             result=driver.execute_async_script('''const done=arguments[arguments.length-1],id=arguments[0],code=arguments[1];
@@ -642,6 +834,55 @@ def main():
             handle=wait.until(find)
             wait.until(lambda d:d.find_element(By.ID,'fileImport').is_displayed())
             return handle
+        if args.course_links:
+            c=capture({})
+            field('courseURL').send_keys(url.replace('article.html','courses/42/modules#module_1'))
+            field('courseStart').click()
+            driver.set_context('chrome')
+            try:
+                WebDriverWait(driver,2).until(lambda d:d.execute_script('return PopupNotifications.panel.state === "open"'))
+                driver.execute_script('PopupNotifications.panel.querySelector("popupnotification").button.click()')
+            except TimeoutException:pass
+            driver.set_context('content')
+            def discovered():
+                return driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("courseDiscovery").then(s=>done(s.courseDiscovery));')
+            found=WebDriverWait(driver,60).until(lambda d:(s if (s:=discovered()) and s['status']=='complete' else None))
+            assert not found['blocked'],found['blocked']
+            nodes=found['nodes'];assert any(n['title']=='Nested lesson' for n in nodes)
+            assert any(n['title']=='Lesson PDF' for n in nodes)
+            assert any(n['title']=='Locked lesson' and n['locked'] for n in nodes)
+            assert found['count']==4,found['visited']
+            assert all(r['session'] for r in session_requests),session_requests
+            field('courseAll').click()
+            wait.until(lambda d:len(discovered()['selected'])==5)
+            assert len(driver.find_elements(By.CSS_SELECTOR,'#courseTree input:disabled:checked'))==0
+            driver.set_window_size(390,1000)
+            driver.execute_script('document.querySelectorAll("#courseTree details").forEach(d=>d.open=true);document.getElementById("courseSelection").scrollIntoView()')
+            assert driver.execute_script('return document.documentElement.scrollWidth<=innerWidth')
+            driver.save_screenshot(str(out/'course-tree.png'))
+            field('courseUse').click()
+            links=driver.find_element(By.ID,'batchURLs').get_attribute('value').splitlines()
+            assert len(links)==5 and len(set(links))==5,links
+            assert any('/pages/nested' in v for v in links) and not any('/pages/locked' in v for v in links)
+            assert driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("batchQueue").then(s=>done(s.batchQueue||null));') is None
+            # Bulk-select the real validated external and internal connections from the fixture model.
+            driver.set_window_size(1100,1000)
+            assert driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("currentCapture").then(s=>done(s.currentCapture.url));')==url
+            message({'type':'prepare','provider':'codex','images':[],'note_structure':'linked'})
+            open_review()
+            wait.until(lambda d:review_status().get('canSave'))
+            review_control('note','comprension');review_control('connections')
+            wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'#relations input[type="checkbox"]'))>0)
+            driver.find_element(By.ID,'clearRelations').click()
+            wait.until(lambda d:review_status().get('canSave'))
+            assert not driver.find_elements(By.CSS_SELECTOR,'#relations input:checked,#newRelations input:checked')
+            driver.find_element(By.ID,'selectRelations').click()
+            wait.until(lambda d:review_status().get('canSave'))
+            assert not driver.find_elements(By.CSS_SELECTOR,'#relations input:not(:disabled):not(:checked),#newRelations input:not(:disabled):not(:checked)')
+            driver.save_screenshot(str(out/'all-relations.png'))
+            report={'passed':True,'canvas_pagination':True,'nested_pages':True,'locked_items_excluded':True,'session_preserved':True,'unique_selected_links':len(links),'selection_does_not_start_processing':True,'bulk_external_and_internal_relations':True}
+            (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
+
         if args.review_menu:
             c=capture({});Select(field('provider')).select_by_value('codex');driver.find_element(By.ID,'prepare').click();open_review()
             review_handle=driver.current_window_handle;capture_id=driver.current_url.split('capture=')[1]
@@ -816,8 +1057,15 @@ def main():
             WebDriverWait(driver,15).until(lambda d:'responde' in d.find_element(By.ID,'serviceStatus').text)
             step('vault')
             # The configured vault is offered already; type it again as a user would.
+            driver.set_window_size(390,900)
+            gap=driver.execute_script('return document.getElementById("saveVault").getBoundingClientRect().top-document.getElementById("vaultOther").getBoundingClientRect().bottom')
+            assert gap>=20,gap
+            assert driver.execute_script('return document.documentElement.scrollWidth<=innerWidth')
+            driver.execute_script('document.getElementById("vaultOther").scrollIntoView()')
+            driver.save_screenshot(str(out/'welcome-vault-narrow.png'))
             box=driver.find_element(By.ID,'vaultPath');box.click();box.clear();box.send_keys(str(vault))
             driver.find_element(By.ID,'saveVault').click();step('ai')
+            assert driver.execute_script('return parseFloat(getComputedStyle(document.getElementById("saveAi").parentElement).marginTop)>=20')
             assert message({'type':'native','message':{'action':'settings'}})['config']['vault']==str(vault)
             driver.find_element(By.CSS_SELECTOR,'input[name="ai"][value="service"]').click()
             Select(driver.find_element(By.ID,'aiService')).select_by_value('gemini')
@@ -1732,13 +1980,22 @@ def main():
         if args.detection:
             def stored_capture():
                 return driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get(["currentCapture","pageContext","operation"]).then(done);')
+            def select_source(tab):
+                # Detection now follows an explicit choice, not every tab activation.
+                driver.execute_async_script('''const done=arguments[arguments.length-1],id=arguments[0];
+                  browser.runtime.getBackgroundPage().then(async bg=>{
+                    let tab;for(let i=0;i<200;i++){tab=await browser.tabs.get(id);if(tab.status==='complete')break;await new Promise(r=>setTimeout(r,50));}
+                    bg.bindPanel(tab);await bg.capture(tab);done(true);
+                  }).catch(e=>done({error:e.message}));''',tab['id'])
             def open_active(path):
                 tab=driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.create({url:arguments[0],active:true}).then(done);',url.replace('article.html',path))
+                select_source(tab)
                 result=wait.until(lambda d: (s if s.get('pageContext',{}).get('tabId')==tab['id'] and s['pageContext'].get('status')=='ready' and s.get('currentCapture') else False) if (s:=stored_capture()) else False)
                 driver.switch_to.window(panel_handle)
                 return tab,result['currentCapture']
             def activate(tab):
                 driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.update(arguments[0],{active:true}).then(done);',tab['id'])
+                select_source(tab)
                 wait.until(lambda d: (s:=stored_capture())['pageContext'].get('tabId')==tab['id'] and s['pageContext'].get('status')=='ready')
                 driver.switch_to.window(panel_handle)
                 return stored_capture()['currentCapture']
@@ -1764,6 +2021,7 @@ def main():
             # The embedded provider already has a user session, just as a course
             # player would after login. This visit does not grant host access.
             session_tab=driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.create({url:arguments[0],active:true}).then(done);',url.replace('127.0.0.1','localhost').replace('article.html','session.html'))
+            select_source(session_tab)
             wait.until(lambda d: (s:=stored_capture())['pageContext'].get('tabId')==session_tab['id'] and s['pageContext'].get('status')=='ready')
             driver.switch_to.window(panel_handle)
             nested_tab,nested=open_active('nested-course.html')

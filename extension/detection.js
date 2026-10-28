@@ -19,7 +19,7 @@ const AnacoObDetection = (() => {
     const result = {...base, reader, url:tab.url, title: chosen[0]?.title || base.title,
       text: chosen.map(p => p.text).filter(Boolean).join('\n\n').slice(0,120000),
       images: reader?[]:unique(chosen.flatMap(p => (p.images || []).map(i => ({...i, frameId:p.frameId})))),
-      documents: unique(pages.flatMap(p => p.documents || [])),
+      documents: unique(pages.flatMap(p => (p.documents || []).map(d=>({...d,frameId:p.frameId,frameURL:p.url})))),
       videos: unique(pages.flatMap(p => (p.videos || []).map(v=>({...v,frameId:p.frameId,frameURL:p.url})))),
       embeds: top?.embeds || [],
       frames: unique(blocked), requiredOrigins:[...new Set(blocked.filter(f=>f.needsPermission!==false).map(f => origin(f.url)).filter(Boolean))],

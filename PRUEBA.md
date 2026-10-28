@@ -1,4 +1,4 @@
-# Probar Anaco 1.2.0
+# Probar Anaco 1.2.3
 
 Esta versión captura artículos, frases, imágenes, PDF y contenido de vídeo/audio. Prepara una propuesta editable y guarda Markdown y adjuntos en tu vault. Las relaciones, las imágenes recomendadas y sus descripciones se revisan antes de guardar.
 
@@ -421,3 +421,54 @@ La detección enumera páginas sin rasterizar el libro repetidamente. Los cambio
 El texto, las páginas y las lecturas intermedias se conservan en `~/.local/share/anaco-ob/readers/`, separados por extracción y vinculados al vault. Las notas y adjuntos finales siguen requiriendo revisión. La reanudación de transferencia utiliza el mismo lector y captura; si recargas o cambias el libro, vuelve a detectar para evitar mezclar páginas distintas.
 
 La versión admite hasta 500 páginas localizables en el DOM del lector. Un visor que recicla unas pocas páginas y no expone las restantes puede requerir una adaptación específica; comprueba el número localizado antes de empezar. Las páginas no dibujadas o protegidas se notifican sin omitirlas en silencio.
+
+## Panel vinculado y cola de enlaces (1.2.1)
+
+1. Abre una clase con tu sesión iniciada y pulsa Anaco. Cambia a otra pestaña: el panel conserva la clase de origen y cualquier trabajo continúa. Para capturar la nueva pestaña, pulsa el icono o **Usar la pestaña actual**.
+2. Despliega **Preparar varios enlaces**, pega los enlaces (uno por línea) y elige el contenido. Para clases de vídeo puedes seleccionar **Vídeo o audio de la clase**. La cola usa la IA, intención y organización del panel; el modo automático pide una captura individual si encuentra varios recursos posibles.
+3. Pulsa **Preparar enlaces** y concede los permisos de los dominios. El permiso opcional de cookies permite abrir las pestañas en el mismo contenedor; Anaco no exporta las cookies. Puedes cerrar el panel y seguir navegando, manteniendo el navegador abierto.
+4. Comprueba el estado de cada enlace. **Autorizar y reintentar** solicita los dominios adicionales detectados. Si falta iniciar sesión, usa **Abrir origen**, inicia sesión y reintenta. Los errores de una clase no impiden preparar las siguientes.
+5. **Revisar nota** abre la revisión habitual. El lote no guarda automáticamente en el vault. Las imágenes y recursos opcionales del artículo se eligen en una captura individual; PDF, lectores y vídeo conservan su extracción habitual.
+6. **Pausar después del actual** deja los restantes pendientes. **Continuar cola** los retoma; tras reiniciar el navegador también debes pulsarlo. Los borradores preparados siguen disponibles en Capturas pendientes aunque empieces otra cola.
+
+Prueba reproducible: `.venv/bin/python tests/e2e_zen.py --batch` usa un vault temporal, una clase con cookie de sesión, un formulario de acceso y un artículo. Las plataformas privadas reales pueden requerir permisos o interacción adicional en su reproductor.
+
+### Corregir un lote que eligió PDF en vez de vídeos (1.2.2)
+
+Pausa la cola y carga el paquete 1.2.2 como complemento temporal sin desinstalar Anaco. En **Preparar varios enlaces**, pulsa **Reprocesar como vídeos**: vuelve a extraer los enlaces no guardados con el modo vídeo, conservando los borradores anteriores en Capturas pendientes. No reutiliza las extracciones PDF del intento anterior. Si se descubre otro dominio del reproductor, concede su permiso con **Autorizar y reintentar**.
+
+En automático se excluyen los PDF de navegación (por ejemplo, la guía general del alumnado), se espera al reproductor y se prioriza el vídeo sobre documentos auxiliares. Las actividades URL de Moodle pueden abrir su enlace de contenido en la misma pestaña de trabajo, sin activarla. El modo vídeo nunca se sustituye por PDF o texto de la página.
+
+### Permisos de Drive y foco del panel (1.2.3)
+
+Los marcos auxiliares de Google Feedback ya no bloquean la lectura del vídeo. La autorización de Google Drive incluye los dominios de redirección de sus descargas, igual que el flujo individual. Si una cola anterior quedó fallida, pulsa **Autorizar y reintentar fallidos** para solicitar juntos los permisos pendientes y repetir los enlaces fallidos sin volver a preparar los que ya están listos. El mensaje de permiso indica ahora los dominios concretos.
+
+Al iniciar una cola, el panel muestra su progreso y resultados y oculta la captura de la página y el formulario de nuevos enlaces. Mantiene esa vista al pausarse o terminar. **Volver a la página** recupera la captura individual y **Preparar otros enlaces** permite introducir otra lista cuando no quedan enlaces pendientes. La bienvenida separa los botones de cada paso de los campos anteriores, también en pantallas estrechas.
+
+### Editar la cola y vídeos grandes de Drive · misma versión 1.2.3
+
+Cada enlace ofrece **Quitar de la cola**. **Quitar fallidos** retira solo los enlaces con error y **Vaciar cola** permite empezar otra lista. Estos controles no eliminan capturas preparadas ni notas guardadas. Los enlaces que aún esperan pueden quitarse mientras se procesa otro; el enlace en curso debe terminar o cancelarse antes de quitarlo o vaciar toda la cola.
+
+Drive muestra una confirmación especial para algunos archivos grandes. Anaco reconoce únicamente el formulario de descarga de Drive para el mismo archivo solicitado y continúa la descarga. Una página real de inicio de sesión o una redirección ajena no se acepta como vídeo. Los vídeos descargados desde el navegador admiten hasta 1 GB; los PDF conservan su límite de 100 MB.
+
+La corrección de Drive de la misma 1.2.3 admite confirmaciones GET y POST y una alternativa sin cookies para enlaces públicos. Para cargar el código actualizado, selecciona de nuevo el ZIP con **Cargar complemento temporal** en `about:debugging`; después usa **Autorizar y reintentar fallidos**. Si Drive vuelve a devolver HTML, la cola conserva el diagnóstico del intento, sin cookies ni tokens.
+
+### Revisión seguida y notas borradas · misma 1.2.3
+
+En una nota preparada desde la cola, **Guardar y siguiente** guarda y abre la siguiente propuesta pendiente en la misma pestaña. Los enlaces fallidos o aún en preparación no se abren como notas. Al terminar la última, **Guardar y volver a la cola** muestra la lista. **Volver a la cola** conserva el borrador sin marcarlo como revisado.
+
+Las filas guardadas se muestran en amarillo con **Revisada y guardada**; las preparadas mantienen **pendiente de revisión**. El botón para guardar también está disponible directamente en la cabecera de la revisión.
+
+Si borras una nota del vault y vuelves a generarla, el historial comprueba que el archivo siga existiendo antes de bloquear el guardado. La revisión vuelve a comprobar un guardado bloqueado al recuperar el foco. Se siguen protegiendo los archivos existentes y las partes de colecciones que no hayas borrado.
+
+### Capturar enlaces de un curso · misma 1.2.3
+
+1. Abre el curso con la sesión y el contenedor que uses normalmente. En el panel, despliega **Preparar varios enlaces → Capturar enlaces de un curso**. Si estás viendo una cola terminada, pulsa antes **Preparar otros enlaces**.
+2. Pega el enlace del curso (en AWS Academy, la página `/courses/…/modules`), elige la profundidad de páginas internas y pulsa **Explorar curso**. Autoriza el dominio cuando Firefox lo solicite.
+3. El explorador lee los módulos y sus páginas internas en segundo plano. Puedes cerrar el panel, detener la exploración o continuar después. El árbol conserva módulos, secciones e indentación; los elementos bloqueados no se pueden seleccionar. Si falta acceso a un dominio, **Autorizar y continuar** reintenta las páginas pendientes.
+4. Marca módulos completos o enlaces individuales. **Seleccionar todos** omite los elementos bloqueados. **Pasar seleccionados a la cola** rellena la lista de enlaces sin iniciar su preparación; puedes comprobarla antes de pulsar **Preparar enlaces**.
+5. Se conservan el contenedor del curso y las selecciones. Se eliminan enlaces duplicados. Cada exploración está limitada a 40 páginas y 500 enlaces, y la profundidad elegida; si llega al límite muestra que los resultados son parciales. Cada lista para preparar admite hasta 100 enlaces.
+
+Canvas se lee mediante su catálogo paginado de módulos e ítems. Si ese catálogo no está disponible, se usan los enlaces de la página y se avisa de que pueden faltar módulos. El explorador sigue enlaces accesibles: no activa botones de laboratorios ni desbloquea actividades, y las páginas que solo exponen navegación interna sin enlaces pueden requerir una captura individual.
+
+En la revisión, **Seleccionar todas las relaciones** y **Desmarcar todas** afectan a las conexiones disponibles de la nota activa, incluidas las conexiones entre notas derivadas. Las relaciones cuya evidencia haya quedado desactualizada no se activan automáticamente.

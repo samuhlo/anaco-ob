@@ -86,7 +86,7 @@ class Editorial:
             if not isinstance(images,list) or any(type(n) is not int or not 0<=n<len(c['images']) for n in images):raise UserError('Una nota contiene una figura inexistente.')
             images=[n for n in dict.fromkeys(images) if n in root['selected_images']]
             note={**copy.deepcopy(root),'id':key,'title':title,'context':clean(child.get('context'),1000),'body':body,'folder':folder,
-                  'note_type':typ,'filename':profile.filename(c,title,folder,typ),'tags':self.app.tags(child.get('tags',[])),
+                  'note_type':typ,'filename':profile.filename(c,title,folder,typ),'tags':self.app.note_tags(c,child.get('tags',[])),
                   'relations':self.validate_relations(c,child.get('relations',[]),candidates),'selected_images':images,
                   'source_pages':sorted(set(pages)),'source_evidence':evidence,'links':child.get('links') or [],'strategy':'study' if profile.study(folder) else 'concept'}
             total+=len(body);notes.append(note)
@@ -105,7 +105,7 @@ class Editorial:
             if len(body)>80000:raise UserError('La nota supera el tamaño permitido. Pide una síntesis más compacta o elige varias notas.')
             root['body']=body
             root['relations']=list({r['path']:r for r in root['relations']+[r for n in notes for r in n['relations']]}.values())
-            root['tags']=self.app.tags(root['tags']+[tag for n in notes for tag in n['tags']])
+            root['tags']=self.app.note_tags(c,root['tags']+[tag for n in notes for tag in n['tags']])
             root['source_pages']=sorted({p for n in notes for p in n['source_pages']})
             root['strategy']='source'
             root['rationale']=t('Una sola nota, según tu elección; los apartados se conservan juntos.')

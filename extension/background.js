@@ -1,6 +1,32 @@
 /* The background owns in-flight requests so closing the sidebar doesn't cancel them. */
 const HOST = "org.samuh.anaco_ob";
 const SESSION = crypto.randomUUID();
+// A sidebar belongs to the page explicitly chosen by the user, not the active tab.
+const panelSources = new Map();
+function bindPanel(tab) {
+  if (!tab || !Number.isInteger(tab.windowId)) return;
+  panelSources.set(tab.windowId, {tabId:tab.id, windowId:tab.windowId, url:tab.url});
+  browser.storage.local.set({panelBindingRevision:crypto.randomUUID()});
+}
+async function panelSource(windowId) {
+  if (!panelSources.has(windowId)) {
+    const [tab] = await browser.tabs.query({active:true, windowId});
+    if (tab) bindPanel(tab);
+  }
+  return panelSources.get(windowId);
+}
+async function panelCapture(windowId) {
+  const source=await panelSource(windowId);
+  const state=await browser.storage.local.get(['currentCapture','draftResult','pageContext']);
+  if(state.pageContext?.tabId===source?.tabId)return {...state,panelSource:source};
+  const cached=source&&tabCaptures.get(`${source.tabId}:${source.url}`);
+  return {...(cached||{currentCapture:null,draftResult:null}),pageContext:source?{...source,status:'ready'}:null,panelSource:source};
+}
+function captureForToken(token) {
+  if(!token)return null;
+  for(const value of tabCaptures.values())if(value.currentCapture?.token===token)return value.currentCapture;
+  return null;
+}
 // Keep return targets in this browser session; never reuse tab IDs after restart.
 const optionsSources = new Map();
 const reviewSessions={};
@@ -69,6 +95,7 @@ let sidebarOpening=Promise.resolve();
 browser.windows?.onCreated?.addListener(w=>{if(!knownSidebarWindows.has(w.id)){knownSidebarWindows.add(w.id);inheritedSidebarWindows.add(w.id);}});
 browser.windows?.onRemoved?.addListener(id=>{knownSidebarWindows.delete(id);inheritedSidebarWindows.delete(id);});
 function openSidebar(tab){
+  if(tab&&!workClaim&&!globalThis.AnacoObBatch?.busy())bindPanel(tab);
   if(Number.isInteger(tab?.windowId)){knownSidebarWindows.add(tab.windowId);inheritedSidebarWindows.delete(tab.windowId);}
   else if(browser.windows?.getLastFocused)sidebarOpening=browser.windows.getLastFocused().then(w=>{knownSidebarWindows.add(w.id);inheritedSidebarWindows.delete(w.id);});
   // Keep this call inside the original user gesture.
@@ -140,7 +167,7 @@ async function cancelWork(){
 const tabCaptures = new Map();
 let detectionSequence = 0;
 const keyFor = tab => `${tab.id}:${tab.url}`;
-const sourceFor = tab => ({tabId:tab.id, windowId:tab.windowId, url:tab.url, session:SESSION});
+const sourceFor = tab => ({tabId:tab.id, windowId:tab.windowId, url:tab.url, cookieStoreId:tab.cookieStoreId, session:SESSION});
 function pdfCapture(tab) {
   return {kind:"pdf",url:tab.url,title:tab.title||tx('bg_documento_pdf'),text:"",images:[],warnings:[],documents:[{url:tab.url,title:tab.title||"PDF"}],videos:[],frames:[],contentReady:false,requiredOrigins:[]};
 }
@@ -166,11 +193,12 @@ async function probePDF(url){
     return response.ok&&/application\/pdf/i.test(response.headers.get('content-type')||'');
   }catch{return false;}
 }
-async function scanTab(tab, input = {}) {
+async function scanTab(tab, input = {}, modeOverride) {
   if (AnacoObDetection.pdfURL(tab.url)) return pdfCapture(tab);
   const pages = [], blocked = [];
   // Course mode is the previous detection, kept as an escape hatch for course players.
-  const {captureMode='auto'}=await browser.storage.local.get('captureMode');
+  const {captureMode:storedMode='auto'}=await browser.storage.local.get('captureMode');
+  const captureMode=modeOverride||storedMode;
   const embeds=captureMode!=='course';
   try { pages.push(await readFrame(tab.id, 0, embeds?{...input,embeds:true}:input)); }
   catch {
@@ -182,7 +210,7 @@ async function scanTab(tab, input = {}) {
   const all = await browser.webNavigation.getAllFrames({tabId:tab.id}).catch(() => []);
   // Read each frame independently. One denied domain must not hide other frames.
   const frames = (all || []).filter(f => f.frameId !== 0 && !f.errorOccurred &&
-    !/doubleclick|recaptcha|googlesyndication/i.test(f.url) && !(embeds&&AnacoObEmbeds.embedFrame(f.url))).slice(0,40);
+    !/doubleclick|recaptcha|googlesyndication/i.test(f.url) && !globalThis.AnacoObMedia?.auxiliaryFrame(f.url) && !(embeds&&AnacoObEmbeds.embedFrame(f.url))).slice(0,40);
   const results = await Promise.allSettled(frames.map(async frame => {
     if (AnacoObDetection.pdfURL(frame.url)) return {kind:'pdf',url:frame.url,frameId:frame.frameId,documents:[{url:frame.url,title:tx('bg_pdf_del_curso')}]};
     try { return {...await readFrame(tab.id, frame.frameId),parentFrameId:frame.parentFrameId}; }
@@ -218,6 +246,7 @@ function capture(tab,input={},options={}){
   return promise;
 }
 async function performCapture(tab, input = {}, {automatic = false, fresh = true} = {}) {
+  if(AnacoObBatchBusy()){if(automatic)return null;throw new Error(tx('batch_busy'));}
   if (automatic && tab?.url?.startsWith(browser.runtime.getURL(''))) return null;
   if(workClaim){if(automatic)return (await browser.storage.local.get('currentCapture')).currentCapture;throw new Error(tx('bg_la_captura_actual_sigue_procesandose_pue'));}
   const sequence = ++detectionSequence;
@@ -258,8 +287,16 @@ async function capturePdf(tab) {
   return capture(tab);
 }
 async function detectActive(message = {}) {
-  const tab = Number.isInteger(message.tabId)?await browser.tabs.get(message.tabId).catch(()=>null):(await browser.tabs.query({active:true,...(Number.isInteger(message.windowId)?{windowId:message.windowId}:{currentWindow:true})}))[0];
+  if(globalThis.AnacoObBatch?.busy())return null;
+  let source;
+  if(Number.isInteger(message.windowId)) {
+    if(message.useActive&&!workClaim){const [active]=await browser.tabs.query({active:true,windowId:message.windowId});bindPanel(active);}
+    source=await panelSource(message.windowId);
+  }
+  const id=source?.tabId??message.tabId;
+  const tab = Number.isInteger(id)?await browser.tabs.get(id).catch(()=>null):(await browser.tabs.query({active:true,currentWindow:true}))[0];
   if(!tab)return null;
+  if(source&&source.url!==tab.url)bindPanel(tab);
   return capture(tab, {}, {automatic:true, fresh:message.fresh !== false});
 }
 async function publishCapture(c, draftResult = null) {
@@ -409,7 +446,7 @@ async function prepare(message,ownedCapture=null) {
     result.capture.token = c.token;
     await publishCapture(result.capture, result);
     await browser.storage.local.set({editorFields:null});
-    await openReview(c.id,{automatic:true,source:c.source});
+    if(!message.deferReview)await openReview(c.id,{automatic:true,source:c.source});
     await endWork(work);
     return result;
   } catch (error) {
@@ -465,7 +502,8 @@ async function locateImage(message) {
 }
 
 async function reviewData(id) {
-  return native({action:'review_data',id});
+  const data=await native({action:'review_data',id});
+  return {...data,queueReview:await globalThis.AnacoObBatch?.reviewContext(id)||null};
 }
 
 async function discardPending(message){
@@ -493,29 +531,60 @@ async function discardPending(message){
   }finally{pendingDiscard=false;}
 }
 
+async function finishQueueReview(message,sender){
+  const context=await globalThis.AnacoObBatch?.reviewContext(message.id);
+  let nextId;
+  if(message.decision!=='back')for(const id of context?.next||[]){
+    const candidate=await native({action:'load',id});
+    if(candidate.status==='draft'&&candidate.draft){nextId=id;break;}
+    if(['saved','discarded'].includes(candidate.status))await AnacoObBatch.reviewed(id,candidate.status);
+  }
+  const {reviews={}}=await browser.storage.local.get('reviews');
+  delete reviews[message.id];
+  const url=nextId?browser.runtime.getURL('review.html')+'?capture='+encodeURIComponent(nextId):browser.runtime.getURL('panel.html');
+  let existing;
+  if(nextId&&reviews[nextId]&&reviews[nextId]!==sender.tab.id){
+    try{const tab=await browser.tabs.get(reviews[nextId]);if(tab.url===url)existing=tab;}catch{}
+  }
+  if(nextId)reviews[nextId]=existing?.id||sender.tab.id;
+  await browser.storage.local.set({reviews});
+  await clearReviewTab(sender.tab.id);
+  if(existing){
+    await browser.tabs.update(existing.id,{active:true});
+    if(existing.windowId!==sender.tab.windowId)await browser.windows.update(existing.windowId,{focused:true});
+    await browser.tabs.remove(sender.tab.id);
+  }else await browser.tabs.update(sender.tab.id,{url,active:true});
+}
+
 async function finishReview(message,sender) {
   const expected=browser.runtime.getURL("review.html")+"?capture="+encodeURIComponent(message.id);
   if(!sender.tab || sender.url!==expected)throw new Error(tx('bg_esta_accion_debe_iniciarse_en_la_pagina_'));
   const c=await native({action:"load",id:message.id});
+  const fromQueue=message.fromQueue||Boolean(await globalThis.AnacoObBatch?.reviewContext(message.id));
   let result;
   if(message.decision==="save")result=await native({action:"save",id:message.id,fields:message.fields});
   else if(message.decision==="discard")result=await native({action:"discard",id:message.id});
   else if(message.decision!=="back")throw new Error(tx('bg_accion_de_revision_desconocida'));
   if(message.decision!=="back"){
+    await globalThis.AnacoObBatch?.reviewed(message.id,message.decision==='save'?'saved':'discarded');
     localStorage.removeItem("editor:"+message.id);
     for (const [key,value] of tabCaptures) if(value.currentCapture?.id===message.id)tabCaptures.delete(key);
     const {currentCapture:current}=await browser.storage.local.get("currentCapture");
     if(current?.id===message.id)await browser.storage.local.set({currentCapture:null,draftResult:null,operationError:"",lastResult:message.decision==="save"?result:null});
+  }
+  if(fromQueue){
+    try{await finishQueueReview(message,sender);}catch(error){return {result,completed:message.decision!=='back',returnError:tx('bg_la_operacion_termino_pero_no_pude_volver')+error.message};}
+    return {result,completed:true};
   }
   const {sources={},reviews={}}=await browser.storage.local.get(["sources","reviews"]);
   const source=sources[message.id]||{url:c.url};
   try {
     let target;
     if(source.session===SESSION&&Number.isInteger(source.tabId)){
-      try{target=await browser.tabs.get(source.tabId);}catch{}
+      try{target=await browser.tabs.get(source.tabId);if(target.url!==source.url)target=null;}catch{}
     }
     if(target){await browser.tabs.update(target.id,{active:true});await browser.windows.update(target.windowId,{focused:true});}
-    else{const url=source.url||c.url;await browser.tabs.create({url:/^https?:/.test(url)?url:browser.runtime.getURL("panel.html"),active:true});}
+    else{const url=source.url||c.url;await browser.tabs.create({url:/^https?:/.test(url)?url:browser.runtime.getURL("panel.html"),active:true,...(source.cookieStoreId&&source.cookieStoreId!=='firefox-default'?{cookieStoreId:source.cookieStoreId}:{})});}
     delete reviews[message.id];await browser.storage.local.set({reviews});
     await browser.tabs.remove(sender.tab.id);
   } catch(error) {return {result,completed:message.decision!=="back",returnError:tx('bg_la_operacion_termino_pero_no_pude_volver')+error.message};}
@@ -544,7 +613,7 @@ async function sourceForImport(){
 const resourceHost=url=>{try{return new URL(url).hostname;}catch{return '';}};
 function resourceAttempt(diagnostic,value){
   if(!diagnostic)return;
-  const same=diagnostic.attempts.find(v=>v.context===value.context&&v.host===value.host&&v.status===value.status&&v.reason===value.reason);
+  const same=diagnostic.attempts.find(v=>v.context===value.context&&v.host===value.host&&v.status===value.status&&v.reason===value.reason&&v.method===value.method&&v.credentials===value.credentials);
   if(same)same.count++;else if(diagnostic.attempts.length<16)diagnostic.attempts.push({...value,count:1});
 }
 async function resourceBytes(url,source,frameId=0,maxBytes=100000000,diagnostic){
@@ -575,17 +644,35 @@ async function resourceBytes(url,source,frameId=0,maxBytes=100000000,diagnostic)
     if(frameError?.message===tx('bg_el_recurso_supera_el_limite_de_descarga'))throw frameError;
   }
   // A CDN may allow the extension but reject page CORS. Try its authorized read.
-  let response;
   const workSignal=workAbortControllers.get(workClaim)?.signal;
-  try{response=await fetch(url,{credentials:'include',signal:workSignal?AbortSignal.any([workSignal,AbortSignal.timeout(30000)]):AbortSignal.timeout(30000)});}
-  catch{
-    resourceAttempt(diagnostic,{context:'extension',host,reason:'network-or-cors'});
-    throw new Error(tx('bg_no_se_pudo_leer_el_recurso_del_reproduct'));
+  const timeout=AbortSignal.timeout(maxBytes>100000000?600000:30000);
+  const signal=workSignal?AbortSignal.any([workSignal,timeout]):timeout;
+  let response,request={url,method:'GET'},credentials='include',confirmed=false,readable=false;
+  const drive=globalThis.AnacoObDriveDownload&&globalThis.AnacoObMedia?.driveFile(url);
+  for(let attempt=0;attempt<(drive?4:1);attempt++){
+    checkWork();
+    const {url:requestURL,...options}=request;
+    try{response=await fetch(requestURL,{...options,credentials,signal,cache:drive?'no-store':'default'});}
+    catch{
+      resourceAttempt(diagnostic,{context:'extension',host:resourceHost(requestURL),reason:'network-or-cors'});
+      throw new Error(tx('bg_no_se_pudo_leer_el_recurso_del_reproduct'));
+    }
+    resourceAttempt(diagnostic,{context:'extension',host:resourceHost(requestURL),status:response.status,
+      reason:confirmed?'drive-confirmation':credentials==='omit'?'drive-public-download':'',method:request.method,credentials});
+    if(!response.ok){await response.body?.cancel();throw new Error(tx('bg_el_servidor_rechazo_el_recurso_del_repro',[response.status]));}
+    const type=response.headers.get('content-type')||'';
+    if(!/text\/html|application\/xhtml/i.test(type)){readable=true;break;}
+    const next=drive&&!confirmed?await AnacoObDriveDownload.confirmation(response,url,diagnostic):null;
+    if(next){request=next;confirmed=true;continue;}
+    await response.body?.cancel().catch(()=>{});
+    // Public shares may work without the account cookies that caused an HTML
+    // redirect. Private shares still need their normal authenticated download.
+    if(drive&&credentials==='include'){
+      request=AnacoObDriveDownload.publicRequest(url);credentials='omit';confirmed=false;continue;
+    }
+    break;
   }
-  resourceAttempt(diagnostic,{context:'extension',host,status:response.status,reason:''});
-  if(!response.ok)throw new Error(tx('bg_el_servidor_rechazo_el_recurso_del_repro',[response.status]));
-  const type=response.headers.get('content-type')||'';
-  if(/text\/html|application\/xhtml/i.test(type))throw new Error(tx('bg_el_recurso_devolvio_una_pagina_de_acceso'));
+  if(!readable)throw new Error(drive?tx('bg_drive_download_html'):tx('bg_el_recurso_devolvio_una_pagina_de_acceso'));
   if(Number(response.headers.get('content-length'))>maxBytes){await response.body?.cancel();throw new Error(tx('bg_el_recurso_supera_el_limite_de_descarga'));}
   let size=0;const parts=[],reader=response.body.getReader();
   while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>maxBytes){await reader.cancel();throw new Error(tx('bg_el_recurso_supera_el_limite_de_descarga'));}parts.push(value);}
@@ -595,12 +682,13 @@ async function subtitleText(url, source, frameId=0,diagnostic){
   const result=await resourceBytes(url,source,frameId,5000000,diagnostic);
   return new TextDecoder().decode(await new Blob(result.parts).arrayBuffer());
 }
-async function importResource(message){
-  const {operation,currentCapture}=await browser.storage.local.get(['operation','currentCapture']);
+async function importResource(message,ownedCapture=null){
+  const {operation,currentCapture:storedCapture}=await browser.storage.local.get(['operation','currentCapture']);
+  const currentCapture=ownedCapture||storedCapture;
   if(operation)throw new Error(tx('bg_ya_hay_un_recurso_procesandose_puedes_ca'));
   if(message.token&&currentCapture?.token!==message.token)throw new Error(tx('bg_la_pestana_cambio_antes_de_extraer_el_re'));
   const source=currentCapture?.source||await sourceForImport();
-  const diagnostic={kind:message.kind,frameId:message.frameId||0,playerHost:resourceHost(message.frameURL||source?.url),resourceHost:resourceHost(message.url),attempts:[]};
+  const diagnostic={transport:'drive-confirmation-v2',kind:message.kind,frameId:message.frameId||0,playerHost:resourceHost(message.frameURL||source?.url),resourceHost:resourceHost(message.url),attempts:[]};
   const work=await beginWork(currentCapture||{title:message.title||tx('bg_recurso'),source},message.kind==='pdf'?tx('bg_extrayendo_el_pdf'):tx('bg_recuperando_subtitulos_o_audio'),Boolean(currentCapture));
   try{
     let c;
@@ -626,7 +714,7 @@ async function importResource(message){
           await browser.storage.local.set({operation:tx('bg_recuperando_video_del_curso_segmento_1_d',[Math.min(completed+1,total),total]),operationProgress:{stage:'download',unit:'segments',completed,total}});
         }}));
       }else{
-        ({parts,size}=await resourceBytes(message.url,source,message.frameId||0,100000000,diagnostic));
+        ({parts,size}=await resourceBytes(message.url,source,message.frameId||0,message.kind==='pdf'?100000000:1000000000,diagnostic));
       }
       const begin=await native({action:"upload_begin",name:message.name||(message.kind==="pdf"?"documento.pdf":"video.mp4"),size,url:message.pageUrl||message.url});
       await browser.storage.local.set({operation:tx('bg_transfiriendo_archivo'),operationProgress:null});
@@ -637,12 +725,13 @@ async function importResource(message){
     checkWork();
     const adopted=await adoptMedia(c,source);
     await endWork(work);return adopted;
-  }catch(error){await browser.storage.local.set({operationDiagnostic:diagnostic});await endWork(work,error);throw error;}
+  }catch(error){error.diagnostic=diagnostic;await browser.storage.local.set({operationDiagnostic:diagnostic});await endWork(work,error);throw error;}
 }
 
 let readingBook=false;
-async function extractReader(message){
-  const {currentCapture:c,operation}=await browser.storage.local.get(['currentCapture','operation']);
+async function extractReader(message,ownedCapture=null){
+  const {currentCapture:storedCapture,operation}=await browser.storage.local.get(['currentCapture','operation']);
+  const c=ownedCapture||storedCapture;
   if(operation||readingBook)throw new Error(tx('bg_ya_hay_una_extraccion_o_una_nota_en_curs'));
   if(!c?.reader||c.token!==message.token)throw new Error(tx('bg_el_lector_cambio_vuelve_a_detectarlo'));
   if(c.reader.overflow)throw new Error(tx('bg_el_libro_supera_las_500_paginas_admitida'));
@@ -697,7 +786,8 @@ async function extractReader(message){
 }
 
 async function inspectFrame(message){
-  const {currentCapture:c}=await browser.storage.local.get('currentCapture');
+  const {currentCapture}=await browser.storage.local.get('currentCapture');
+  const c=captureForToken(message.token)||currentCapture;
   if(!c?.source?.tabId)throw new Error(tx('bg_vuelve_a_detectar_la_pagina_del_curso'));
   const tab=await browser.tabs.get(c.source.tabId);
   return capture(tab);
@@ -709,14 +799,15 @@ browser.tabs.onRemoved.addListener(tabId=>{
 });
 browser.browserAction.onClicked.addListener(tab => {
   openSidebar(tab);
-  if(tab.url?.startsWith(browser.runtime.getURL(''))||Object.values(reviewSessions).some(r=>r.windowId===tab.windowId))return;
+  if(workClaim||globalThis.AnacoObBatch?.busy()||tab.url?.startsWith(browser.runtime.getURL('')))return;
   capture(tab).catch(error => browser.storage.local.set({operationError: error.message}));
 });
 browser.commands.onCommand.addListener(async command => {
   if (command !== "capture-page") return;
   openSidebar();
   const [tab] = await browser.tabs.query({active:true,currentWindow:true});
-  if(tab.url?.startsWith(browser.runtime.getURL(''))||Object.values(reviewSessions).some(r=>r.windowId===tab.windowId))return;
+  if(workClaim||globalThis.AnacoObBatch?.busy()||tab.url?.startsWith(browser.runtime.getURL('')))return;
+  bindPanel(tab);
   capture(tab).catch(error => browser.storage.local.set({operationError:error.message}));
 });
 browser.menus.create({id: "quote", title: tx('bg_guardar_frase_con_anaco'), contexts: ["selection"]});
@@ -728,6 +819,7 @@ globalThis.addEventListener?.('storage',event=>{
 });
 browser.menus.onClicked.addListener((info, tab) => {
   openSidebar(tab);
+  if(workClaim||globalThis.AnacoObBatch?.busy())return;
   capture(tab, {kind: info.menuItemId, selection: info.selectionText, src: info.srcUrl})
     .catch(error => browser.storage.local.set({operationError:error.message}));
 });
@@ -737,7 +829,7 @@ function queueMediaRefresh(tabId){
   mediaRefreshTimer=setTimeout(async()=>{
     try{
       const {pageContext,currentCapture}=await browser.storage.local.get(['pageContext','currentCapture']);
-      if(workClaim||readingBook||pageContext?.tabId!==tabId||currentCapture?.id||currentCapture?.reader||pageContext.status==='loading')return;
+      if(workClaim||globalThis.AnacoObBatch?.busy()||readingBook||pageContext?.tabId!==tabId||currentCapture?.id||currentCapture?.reader||pageContext.status==='loading')return;
       const tab=await browser.tabs.get(tabId);
       if(tab.active)await capture(tab,{}, {automatic:true});
     }catch{ /* The user may have closed or navigated away from this page. */ }
@@ -750,15 +842,30 @@ browser.runtime.onMessage.addListener((message, sender) => {
     return;
   }
   if (sender.id !== browser.runtime.id || !sender.url?.startsWith(browser.runtime.getURL(""))) return;
+  if(message.type==='panelCapture')return panelCapture(message.windowId);
+  if(message.type==='batchStart')return AnacoObBatch.start(message);
+  if(message.type==='courseStart')return AnacoObCourses.start(message);
+  if(message.type==='courseStop')return AnacoObCourses.stop();
+  if(message.type==='courseResume')return AnacoObCourses.resume(message.windowId);
+  if(message.type==='courseSelect')return AnacoObCourses.select(message.ids||[]);
+  if(message.type==='batchReviewContext')return AnacoObBatch.reviewContext(message.id);
+  if(message.type==='batchRemove')return AnacoObBatch.remove(message.id);
+  if(message.type==='batchClear')return AnacoObBatch.clear(message.failedOnly);
+  if(message.type==='batchRetryFailed')return AnacoObBatch.retryFailed(message.windowId);
+  if(message.type==='batchRestartVideos')return AnacoObBatch.restartVideos(message.windowId);
+  if(message.type==='batchPause')return AnacoObBatch.pause();
+  if(message.type==='batchResume')return AnacoObBatch.resume(message.id,message.windowId);
+  if(AnacoObBatchBusy() && ['prepare','importResource','extractReader','inspectFrame','beginUploadWork','resumeJob','resume','redraft','revise','proposeSplit','refreshConnections','discardPending','captureActive','capturePdfActive'].includes(message.type))return Promise.reject(new Error(tx('batch_busy')));
+  if(message.type==='cancelWork'&&AnacoObBatchBusy())return AnacoObBatch.pause(true);
   if (message.type === "native") return native(message.message);
   if (message.type === 'reviewStatus') return reviewStatus(message,sender);
   if (message.type === 'reviewCommand') return reviewCommand(message);
   if (message.type === 'openOptions') return openOptions(message.windowId);
   if (message.type === 'returnFromOptions') return returnFromOptions(sender);
   if (message.type === 'sidebarPolicy') return allowSidebar(message.windowId);
-  if (message.type === "extractReader") return extractReader(message).then(c=>message.prepareAfter?prepare({token:c.token,images:c.images.map((_,i)=>i),provider:message.provider,intent:message.intent,note_structure:message.note_structure},c):c);
-  if (message.type === "prepare") return prepare(message);
-  if (message.type === "importResource") return importResource(message).then(c=>message.prepareAfter?prepare({token:c.token,images:c.images.map((_,i)=>i),provider:message.provider,intent:message.intent,note_structure:message.note_structure},c):c);
+  if (message.type === "extractReader") return extractReader(message,captureForToken(message.token)).then(c=>message.prepareAfter?prepare({token:c.token,images:c.images.map((_,i)=>i),provider:message.provider,intent:message.intent,note_structure:message.note_structure},c):c);
+  if (message.type === "prepare") return prepare(message,captureForToken(message.token));
+  if (message.type === "importResource") return importResource(message,captureForToken(message.token)).then(c=>message.prepareAfter?prepare({token:c.token,images:c.images.map((_,i)=>i),provider:message.provider,intent:message.intent,note_structure:message.note_structure},c):c);
   if (message.type === "inspectFrame") return inspectFrame(message);
   if(message.type==='beginUploadWork')return (async()=>{
     const {operation,currentCapture}=await browser.storage.local.get(['operation','currentCapture']);
@@ -823,3 +930,5 @@ browser.runtime.onMessage.addListener((message, sender) => {
     return c;
   });
 });
+
+function AnacoObBatchBusy(){return Boolean(globalThis.AnacoObBatch?.busy());}

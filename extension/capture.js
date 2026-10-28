@@ -101,39 +101,59 @@ globalThis.AnacoObCapture = async (input = {}) => {
     context = (target?.closest("figure,p")?.textContent || "").trim().slice(0,3000);
   }
   const warnings = [];
+  const resourceRoot=document.querySelector('#region-main')||root;
+  const resourceScope=node=>node?.closest('nav,header,footer,aside,[role="navigation"],[role="banner"],.navbar,.drawer,.block')||resourceRoot.contains&&!resourceRoot.contains(node)?'navigation':'content';
+  const linkLauncher=/\/mod\/url\/view\.php$/.test(location.pathname);
+  const launchLinks=linkLauncher?[...document.querySelectorAll('#region-main .urlworkaround a[href],#region-main .resourceworkaround a[href]')].map(a=>absolute(a.href)).filter(u=>/^https?:/.test(u)):[];
   const documents=[],videos=[],frames=[];
   const seenDocs=new Set(),seenVideos=new Set();
-  function addDocument(url,title){url=absolute(url);if(url&&!seenDocs.has(url)){seenDocs.add(url);documents.push({url,title:title||tx('bg_documento_pdf')});}}
+  function addDocument(url,title,details={}){url=absolute(url);if(!url)return;
+    const existing=documents.find(d=>d.url===url);
+    if(existing){if(details.scope==='content')existing.scope='content';if(details.embedded)existing.embedded=true;return;}
+    seenDocs.add(url);documents.push({url,title:title||tx('bg_documento_pdf'),...details});
+  }
   function addVideo(video){
     if(AnacoObMedia.apiURL(video.url))return;
-    video.url=AnacoObMedia.platformURL(video.url)||video.url;
+    const drive=AnacoObMedia.driveFile(video.url);
+    video.url=drive?.url||AnacoObMedia.platformURL(video.url)||video.url;
+    if(drive){
+      video.download=drive.download;
+      const existing=videos.find(v=>AnacoObMedia.driveFile(v.url)?.id===drive.id);
+      if(existing){
+        if(drive.url===AnacoObMedia.driveFile(location.href)?.url)existing.title=document.title;
+        if(new URL(drive.url).searchParams.has('resourcekey')){existing.url=drive.url;existing.download=drive.download;}
+        return;
+      }
+    }
     if(video.url&&!seenVideos.has(video.url)){seenVideos.add(video.url);videos.push(video);}
   }
   for(const node of document.querySelectorAll('embed,object,iframe')){
     const src=absolute(node.src||node.data||node.getAttribute('src'));
     if(!src)continue;
-    if(node.type==='application/pdf'||/\.pdf(?:[?#]|$)/i.test(src))addDocument(src,node.title);
+    if(node.type==='application/pdf'||/\.pdf(?:[?#]|$)/i.test(src))addDocument(src,node.title,{scope:resourceScope(node),embedded:true});
     else if(node.tagName==='IFRAME'){
       frames.push({url:src,title:node.title||new URL(src).hostname});
       const u=new URL(src);const nested=u.searchParams.get('file')||u.searchParams.get('url');
-      if(nested&&/\.pdf(?:[?#]|$)/i.test(nested))addDocument(new URL(nested,src).href,node.title);
+      if(nested&&/\.pdf(?:[?#]|$)/i.test(nested))addDocument(new URL(nested,src).href,node.title,{scope:resourceScope(node),embedded:true});
       if(AnacoObMedia.platformURL(src)||/drive\.google\.com\/file\/d\//i.test(src)){const id=src.match(/drive\.google\.com\/file\/d\/([^/?#]+)/)?.[1];addVideo({url:src,title:node.title||tx('capture_video_incrustado'),tracks:[],download:id?'https://drive.google.com/uc?export=download&id='+encodeURIComponent(id):undefined});}
     }
   }
   for(const link of document.querySelectorAll('a[href]')){
     const href=absolute(link.href),label=(link.textContent||'').trim();
+    // Moodle URL activities may expose a link to the lesson instead of an iframe.
+    if(linkLauncher&&resourceScope(link)==='content'&&(AnacoObMedia.platformURL(href)||/\.(?:mp4|webm|mp3|m4a|m3u8)(?:[?#]|$)/i.test(href)))addVideo({url:href,title:label||document.title,tracks:[],extractable:true});
     if(/\.pdf(?:[?#]|$)/i.test(href)||(/\.pdf\b/i.test(label)&&/\/files\//.test(href))||/application\/pdf/i.test(link.getAttribute('type')||link.dataset.mimetype||'')){
       let url=href;if(/\.instructure\.com$/.test(location.hostname)&&/\/files\/\d+(?:\/preview)?(?:[?#]|$)/.test(url))url=url.replace(/(\/files\/\d+)(?:\/preview)?(?=[?#]|$)/,'$1/download');
-      addDocument(url,label);
+      addDocument(url,label,{scope:resourceScope(link),embedded:false});
     }
   }
   // A paginated/scrolling HTML viewer can fetch its PDF without exposing a link.
   for(const resource of performance.getEntriesByType('resource')){
-    try{if(/\.pdf$/i.test(new URL(resource.name).pathname))addDocument(resource.name,tx('capture_pdf_cargado_por_el_visor'));}catch{}
+    try{if(/\.pdf$/i.test(new URL(resource.name).pathname))addDocument(resource.name,tx('capture_pdf_cargado_por_el_visor'),{scope:'content',embedded:true});}catch{}
   }
   if(bookRoot?.matches('.pdfViewer')){
     const file=new URL(location.href).searchParams.get('file');
-    if(file)addDocument(file,document.title||tx('capture_documento_del_visor'));
+    if(file)addDocument(file,document.title||tx('capture_documento_del_visor'),{scope:'content',embedded:true});
   }
   for(const video of document.querySelectorAll('video,audio')){
     if(video.closest('[data-anaco-ob-embed]'))continue;
@@ -154,9 +174,9 @@ globalThis.AnacoObCapture = async (input = {}) => {
       duration:Number.isFinite(video.duration)?video.duration:null,poster:absolute(video.poster)});
   }
   if(platformPage)addVideo({url:platformPage,title:document.title,tracks:[],extractable:true});
-  const drive=location.href.match(/drive\.google\.com\/file\/d\/([^/?#]+)/);
-  if(drive){addVideo({url:location.href,download:'https://drive.google.com/uc?export=download&id='+encodeURIComponent(drive[1]),title:document.title,tracks:[]});const index=videos.findIndex(v=>v.download);if(index>0)videos.unshift(...videos.splice(index,1));}
-  if(document.contentType==='application/pdf')addDocument(location.href,document.title);
+  const drive=AnacoObMedia.driveFile(location.href);
+  if(drive){addVideo({url:drive.url,download:drive.download,title:document.title,tracks:[]});const index=videos.findIndex(v=>AnacoObMedia.driveFile(v.url)?.id===drive.id);if(index>0)videos.unshift(...videos.splice(index,1));}
+  if(document.contentType==='application/pdf')addDocument(location.href,document.title,{scope:'content',embedded:true});
   if(!input.kind&&bookRoot?.matches('.pdfViewer')&&documents.length)kind='pdf';
   // A viewer is not an article; do not summarize platform navigation or login UI.
   const loginPage=Boolean(document.querySelector('input[type="password"]')) && !documents.length && !videos.length;
@@ -178,7 +198,7 @@ globalThis.AnacoObCapture = async (input = {}) => {
   if (text.length > 120000) warnings.push(tx('capture_la_pagina_supera_el_limite_de_esta_versi'));
   return {reader:reader?{scope:"detected",pages:inventory.pages,overflow:inventory.overflow,visual_limited:false,pageElements:root.querySelectorAll(".page,.pf,[data-page-number]").length,canvas:rendered.canvas,svg:rendered.svg,backgrounds:rendered.backgrounds}:null,documentType:document.contentType,frameRole:authenticationFrame?"authentication":courseShell?"wrapper":"content",surfaces:{canvas:rendered.canvas,svg:rendered.svg,backgrounds:rendered.backgrounds,blocked:rendered.blocked,limited:rendered.limited,failures:rendered.failures},kind, url: location.href, title: document.querySelector('meta[property="og:title"]')?.content || document.title,
     author: document.querySelector('meta[name="author"]')?.content || "", text: text.slice(0,120000), context,
-    images: selectedImages, warnings,documents,videos,frames,embeds,contentReady,loginPage};
+    images: selectedImages, warnings,documents,videos,frames,embeds,contentReady,loginPage,linkLauncher,launchLinks:[...new Set(launchLinks)]};
 };
 // Notify only about changes to media/frames, not every DOM mutation. The
 // background verifies that this is still the selected page before rescanning.

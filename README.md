@@ -7,7 +7,7 @@
 <br /><br />
 
   <img src="https://img.shields.io/badge/STATUS-ACTIVE-FFCA40?style=for-the-badge&labelColor=000000" alt="Status" />
-  <img src="https://img.shields.io/badge/VERSIÓN-1.2.0-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
+  <img src="https://img.shields.io/badge/VERSIÓN-1.2.3-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
   <img src="https://img.shields.io/badge/LICENCIA-MIT-FFCA40?style=for-the-badge&labelColor=000000" alt="Licencia MIT" />
   <br/>
   <img src="https://img.shields.io/badge/Zen_·_Firefox-0C0011?style=for-the-badge&logo=firefoxbrowser&logoColor=FFCA40&labelColor=000000" alt="Zen y Firefox" />
@@ -50,7 +50,7 @@ Anaco lee lo que estás viendo, prepara una propuesta de nota que respeta las re
 
 | PIEZA | QUÉ ES |
 | :--- | :--- |
-| **Panel lateral** | Detecta el contenido de la pestaña actual: artículo, frase, imagen, PDF, vídeo, lector de un curso o recursos incrustados. Eliges qué incluir. |
+| **Panel lateral** | Queda vinculado a la pestaña donde lo abres y detecta su contenido: artículo, frase, imagen, PDF, vídeo, lector de un curso o recursos incrustados. Eliges qué incluir. |
 | **Recursos incrustados** | Publicaciones de X, demos de CodePen y clips silenciosos. Al pasar el ratón por cada uno, el artículo lo resalta. En la nota aparecen en su sitio. |
 | **Revisión** | Una pestaña amplia con la nota, sus propiedades, destino, imágenes y conexiones. Puedes editar, ajustar apartados, dividir en varias notas o integrarlas. |
 | **Perfil del vault** | Escanea tu vault y, con tus propias instrucciones, propone dónde guardar, qué tipos y nombres usar y cómo rellenar el frontmatter. Lo confirmas tú. |
@@ -94,8 +94,12 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 
 ## // 04_ CARACTERÍSTICAS
 
+- **Panel vinculado a su origen**: puedes cambiar de pestaña sin que cambie la captura. Para elegir otra página, pulsa el icono de Anaco en ella o **Usar la pestaña actual**. El lateral sigue visible porque Firefox/Zen lo gestiona por ventana.
+- **Enlaces de cursos**: explora el catálogo de módulos de Canvas/AWS Academy y las páginas internas enlazadas. El árbol permite seleccionar módulos completos o lecciones concretas y pasar hasta 100 enlaces a la cola. La exploración conserva la sesión del curso y no prepara notas hasta que lo indiques.
+- **Relaciones en bloque**: selecciona o desmarca de una vez las relaciones disponibles de la nota, tanto con notas existentes como entre los temas nuevos.
+- **Varios enlaces**: en **Preparar varios enlaces**, pega hasta 100 enlaces, uno por línea. Se procesan de uno en uno en pestañas de segundo plano con la sesión y el contenedor actuales. Puedes pausar después del enlace actual, reintentar los fallidos y abrir cada nota para revisarla. Al reiniciar el navegador, la cola espera a que pulses **Continuar cola**.
 - **Cursos y visores**: lee marcos anidados con permisos por dominio, lectores HTML con páginas dibujadas y PDF del visor. El modo **Curso** conserva la detección clásica.
-- **Vídeo y audio**: usa subtítulos cuando existen y, si no, transcribe en tu equipo con Whisper. El audio no sale a una API. En YouTube, cada marca `[mm:ss]` de la nota abre el vídeo en ese segundo y los capítulos del vídeo se conservan en la transcripción.
+- **Vídeo y audio**: las notas de vídeo incluyen siempre el tag `video`, también las derivadas por temas. Usa subtítulos cuando existen y, si no, transcribe en tu equipo con Whisper. El audio no sale a una API. En YouTube, cada marca `[mm:ss]` de la nota abre el vídeo en ese segundo y los capítulos del vídeo se conservan en la transcripción.
 - **Podcasts y entrevistas**: una conversación de YouTube de hasta 4 h se convierte en una nota de fuente con ficha (programa, participantes, duración), resumen, temas con su minuto, ideas clave, consejos, citas y qué llevarte a la práctica. Anaco reconoce si un vídeo es una conversación; el modo **Podcast · entrevista** lo fuerza y la revisión permite prepararlo de nuevo como vídeo normal, o al revés. Cada cita se comprueba palabra a palabra contra la transcripción y se descarta si no aparece.
 - **Demos sin conexión**: cada pen de CodePen se guarda como un `index.html` con sus librerías y módulos ES, para verlo en la nota con el plugin HTML Prototype Viewer.
 - **Imágenes con criterio**: aprovecha los pies del HTML y solo envía a análisis visual las imágenes que lo necesitan.
@@ -181,7 +185,7 @@ docs/          # Historial, validación, notas técnicas y capturas
 
 ## // 08_ TESTS · DOCS · ESTADO · LICENCIA
 
-- **Estado:** 1.2.0 disponible en [Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/). Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
+- **Estado:** 1.2.3 preparada para pruebas locales; 1.2.0 disponible en [Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/). Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
 - **Docs:** [guía de prueba](PRUEBA.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md), [contrato editorial de la IA](skills/anaco-ob/SKILL.md) y [publicación en AMO](docs/amo/README.md).
 - **Licencia:** [MIT](LICENSE).
 

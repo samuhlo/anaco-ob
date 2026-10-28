@@ -1,6 +1,6 @@
 # Política de privacidad · Privacy policy
 
-_Última actualización · Last updated: 2026-10-20_
+_Última actualización · Last updated: 2026-10-27_
 
 ## Español
 
@@ -9,6 +9,7 @@ Anaco no tiene servidores propios y no recoge estadísticas, telemetría ni iden
 **Qué datos maneja**
 
 - **Contenido de las páginas que capturas.** Cuando abres el panel, la extensión lee la pestaña activa para detectar su contenido: texto, imágenes, PDF, vídeos y recursos incrustados. Solo se envía al servicio local cuando eliges preparar una nota. Incluye el título y la dirección de la página capturada.
+- **Cola de enlaces y sesión.** Si solicitas preparar varios enlaces, se guardan localmente los enlaces y sus estados, y se abren en segundo plano para leerlos. El permiso opcional `cookies` se usa para abrir las pestañas en el mismo contenedor; Anaco no lee ni exporta las cookies. Los recursos se intentan leer desde la página para conservar la sesión.
 - **Tu vault de Obsidian.** El servicio local lee tu vault para buscar notas relacionadas, escanear su estructura (carpetas, nombres de archivo y metadatos) y guardar las notas que confirmas. El contenido de tus notas no sale de tu ordenador salvo lo que se describe abajo.
 - **Audio y vídeo.** La transcripción se hace en tu ordenador con Whisper. El audio no se envía a ningún servicio de transcripción.
 
@@ -21,6 +22,8 @@ Solo si eliges un proveedor de IA:
 - **Captura manual.** No se envía nada a ningún proveedor.
 
 Cada proveedor trata esos datos según sus propias condiciones. Las descargas que pides (imágenes, clips, PDF, demos de CodePen y sus librerías) se hacen directamente desde tu navegador a su origen.
+
+**Exploración de cursos.** Al solicitarla, Anaco lee el catálogo de módulos y las páginas internas enlazadas con la sesión del navegador. Guarda localmente títulos, enlaces, jerarquía y selección. Esa exploración no envía contenido a la IA; la preparación empieza solo cuando eliges los enlaces y la solicitas.
 
 **Dónde se guardan**
 
@@ -41,6 +44,7 @@ Anaco has no servers of its own and collects no analytics, telemetry or usage id
 **What data it handles**
 
 - **Content of the pages you capture.** When you open the panel, the extension reads the active tab to detect its content: text, images, PDF, video and embedded resources. It is sent to the local service only when you choose to prepare a note, including the title and address of the captured page.
+- **Link queue and session.** When you request multiple links, their URLs and progress are stored locally and they open in the background for capture. The optional `cookies` permission is used to open tabs in the same container; Anaco does not read or export cookies. Resources are first requested from the page to preserve its session.
 - **Your Obsidian vault.** The local service reads your vault to find related notes, scan its structure (folders, file names and metadata) and save the notes you confirm. The content of your notes stays on your computer except as described below.
 - **Audio and video.** Transcription runs on your computer with Whisper. Audio is not sent to any transcription service.
 
@@ -53,6 +57,8 @@ Only if you choose an AI provider:
 - **Manual capture.** Nothing is sent to any provider.
 
 Each provider handles that data under its own terms. The downloads you request (images, clips, PDF, CodePen demos and their libraries) go directly from your browser to their source.
+
+**Course exploration.** When requested, Anaco reads the module catalog and linked internal pages using the browser session. Titles, links, hierarchy and selections are stored locally. Exploration does not send content to AI; preparation starts only when you select the links and request it.
 
 **Where it is stored**
 

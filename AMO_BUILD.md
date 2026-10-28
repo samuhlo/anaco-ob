@@ -1,4 +1,4 @@
-# Rebuilding Anaco 1.2.0 for Mozilla review
+# Rebuilding Anaco 1.2.3
 
 The source archive contains the browser extension, its local Native Messaging
 companion and build inputs. It excludes development environments, personal test
@@ -26,7 +26,7 @@ npm run lint
 npm run build
 ```
 
-The result is `dist/anaco-ob-1.2.0.zip`. Compare the names and bytes of its
+The result is `dist/anaco-ob-1.2.3.zip`. Compare the names and bytes of its
 uncompressed entries with the submitted add-on. ZIP timestamps may differ.
 No signing key or environment secret is required.
 

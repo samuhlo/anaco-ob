@@ -5,7 +5,7 @@
 <div class="eyebrow"><span data-i18n="welcome_bienvenida">Bienvenida</span></div>
 <h1><span data-i18n="welcome_lo_que_lees">Lo que lees, convertido en notas de Obsidian.</span></h1>
 <p class="onboard-lead"><span data-i18n="welcome_intro">Anaco guarda artículos, vídeos, PDF y cursos como notas revisadas en tu vault. Prepararlo lleva unos minutos y solo se hace una vez.</span></p>
-<div class="row"><button type="button" class="primary" data-go="why"><span data-i18n="welcome_empezar">Empezar</span></button></div>
+<div class="row onboard-actions"><button type="button" class="primary" data-go="why"><span data-i18n="welcome_empezar">Empezar</span></button></div>
 </section>
 
 <section class="onboard-step" data-step="why" hidden>
@@ -16,21 +16,21 @@
 <article class="onboard-tile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7"/><path d="m15 17 2 2 4-4"/></svg><h2><span data-i18n="welcome_la_pieza_local_si">La pieza local sí puede</span></h2><p><span data-i18n="welcome_la_pieza_local_si_texto">Guarda las notas en tu vault, busca relaciones con lo que ya tienes y transcribe audio sin enviarlo fuera.</span></p></article>
 <article class="onboard-tile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/></svg><h2><span data-i18n="welcome_abierta_y_tuya">Abierta y solo tuya</span></h2><p><span data-i18n="welcome_abierta_y_tuya_texto">Es código abierto, no habla con servidores de Anaco y se quita con un comando.</span></p></article>
 </div>
-<div class="row"><button type="button" class="primary" data-go="install"><span data-i18n="welcome_instalarla">Instalarla</span></button><button type="button" class="link" data-go="install" data-already><span data-i18n="welcome_ya_la_tengo">Ya la tengo instalada</span></button></div>
+<div class="row onboard-actions"><button type="button" class="primary" data-go="install"><span data-i18n="welcome_instalarla">Instalarla</span></button><button type="button" class="link" data-go="install" data-already><span data-i18n="welcome_ya_la_tengo">Ya la tengo instalada</span></button></div>
 </section>
 
 <section class="onboard-step" data-step="install" hidden>
 <div class="eyebrow"><span data-i18n="welcome_instalar">Instalar</span></div>
 <h1><span data-i18n="welcome_instalar_la_pieza_local">Instalar la pieza local</span></h1>
 <div id="installAsk"><p class="onboard-lead"><span data-i18n="welcome_instalar_permiso">Con tu permiso, una sola línea en la terminal lo hace todo: trae Python si no lo tienes, instala Anaco y lo conecta con Firefox y Zen. No toca tus notas.</span></p>
-<div class="row"><button type="button" class="primary" id="acceptInstall"><span data-i18n="welcome_si_instalala">Sí, instálala</span></button></div></div>
+<div class="row onboard-actions"><button type="button" class="primary" id="acceptInstall"><span data-i18n="welcome_si_instalala">Sí, instálala</span></button></div></div>
 <ol class="onboard-guide" id="installGuide" hidden>
 <li><h2><span data-i18n="welcome_abre_la_terminal">Abre la terminal</span></h2><p id="terminalHint"></p></li>
 <li><h2><span data-i18n="welcome_copia_esta_linea">Copia esta línea y pégala</span></h2><div class="onboard-command"><code id="installCommand"></code><button type="button" class="primary" id="copyInstall"><span data-i18n="panel_copiar">Copiar</span></button></div><p class="muted"><small><a id="scriptLink" target="_blank" rel="noopener" data-i18n="welcome_ver_que_hace">Ver qué hace esta línea ↗</a></small></p></li>
 <li><h2><span data-i18n="welcome_pulsa_intro_y_espera">Pulsa Intro y espera</span></h2><p><span data-i18n="welcome_tarda_un_par_de_minutos">Tarda uno o dos minutos. Esta página se dará cuenta sola cuando termine.</span></p></li>
 </ol>
 <p class="onboard-status" id="serviceStatus" hidden></p>
-<div class="row" id="installNext" hidden><button type="button" class="primary" data-go="vault"><span data-i18n="welcome_seguir">Seguir</span></button></div>
+<div class="row onboard-actions" id="installNext" hidden><button type="button" class="primary" data-go="vault"><span data-i18n="welcome_seguir">Seguir</span></button></div>
 <details class="onboard-manual"><summary><span data-i18n="welcome_prefiero_a_mano">Prefiero instalarlo a mano</span></summary><p id="platformNote" class="muted"></p><ol id="steps" class="welcome-steps"></ol></details>
 </section>
 
@@ -42,7 +42,7 @@
 <div class="onboard-choices" id="vaultChoices" role="radiogroup"></div>
 <label class="onboard-choice" id="vaultOther"><input type="radio" name="vault" value=""><span><strong><span data-i18n="welcome_otra_carpeta">Otra carpeta</span></strong><input id="vaultPath" placeholder="~/Obsidian/MiVault" data-i18n-placeholder="options_obsidian_mivault" aria-label="Ruta del vault" data-i18n-aria-label="options_ruta_del_vault"></span></label>
 <p class="notice error" id="vaultError" hidden></p>
-<div class="row"><button type="button" class="primary" id="saveVault"><span data-i18n="welcome_usar_este_vault">Usar este vault</span></button></div>
+<div class="row onboard-actions"><button type="button" class="primary" id="saveVault"><span data-i18n="welcome_usar_este_vault">Usar este vault</span></button></div>
 </section>
 
 <section class="onboard-step" data-step="ai" hidden>
@@ -60,7 +60,7 @@ codex login</pre></div>
 <label class="onboard-choice"><input type="radio" name="ai" value="manual"><span><strong><span data-i18n="welcome_sin_ia">Sin IA</span></strong><small><span data-i18n="welcome_sin_ia_texto">Tú escribes la nota; Anaco guarda la página y sus recursos.</span></small></span></label>
 </div>
 <p class="notice error" id="aiError" hidden></p>
-<div class="row"><button type="button" class="primary" id="saveAi"><span data-i18n="welcome_guardar_y_seguir">Guardar y seguir</span></button><button type="button" class="link" data-go="vault"><span data-i18n="welcome_atras">Atrás</span></button></div>
+<div class="row onboard-actions"><button type="button" class="primary" id="saveAi"><span data-i18n="welcome_guardar_y_seguir">Guardar y seguir</span></button><button type="button" class="link" data-go="vault"><span data-i18n="welcome_atras">Atrás</span></button></div>
 </section>
 
 <section class="onboard-step" data-step="done" hidden>

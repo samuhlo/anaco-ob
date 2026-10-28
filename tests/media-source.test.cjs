@@ -10,3 +10,12 @@ test('API requests and URLs merely mentioning a platform are not playable platfo
  assert.equal(media.apiURL('https://youtube.googleapis.com/youtube/v3/videos'),true);
  assert.equal(media.apiURL('https://youtube.googleapis.com/v/abcdefghijk'),false);
 });
+
+test('Drive identity is independent of view/preview and keeps required sharing parameters',()=>{
+ const a=media.driveFile('https://drive.google.com/file/d/lesson_123/preview?usp=sharing&resourcekey=key&authuser=1');
+ const b=media.driveFile('https://drive.google.com/file/d/lesson_123/view?resourcekey=key&authuser=1');
+ assert.deepEqual(a,b);assert.equal(a.id,'lesson_123');
+ assert.equal(new URL(a.download).searchParams.get('resourcekey'),'key');
+ assert.equal(new URL(a.download).searchParams.get('authuser'),'1');
+ assert.equal(media.driveFile('https://example.test/file/d/lesson_123/view'),null);
+});

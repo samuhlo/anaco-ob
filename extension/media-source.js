@@ -12,6 +12,17 @@ globalThis.AnacoObMedia=(()=>{
     }catch{}
     return null;
   }
+  function driveFile(value){
+    try{
+      const u=new URL(value);if(u.hostname!=='drive.google.com')return null;
+      const id=u.pathname.match(/^\/file\/d\/([a-zA-Z0-9_-]+)(?:\/|$)/)?.[1]||(/^\/(?:open|uc)$/.test(u.pathname)?u.searchParams.get('id'):null);
+      if(!id||!/^[a-zA-Z0-9_-]+$/.test(id))return null;
+      const page=new URL('https://drive.google.com/file/d/'+id+'/view');
+      const download=new URL('https://drive.google.com/uc');download.searchParams.set('export','download');download.searchParams.set('id',id);
+      for(const key of ['resourcekey','authuser'])if(u.searchParams.has(key)){page.searchParams.set(key,u.searchParams.get(key));download.searchParams.set(key,u.searchParams.get(key));}
+      return {id,url:page.href,download:download.href};
+    }catch{return null;}
+  }
   function apiURL(value){try{const u=new URL(value);return (u.hostname==='youtube.googleapis.com'||/(^|\.)googleapis\.com$/.test(u.hostname)&&/youtube/i.test(u.pathname)||/(^|\.)youtube\.com$/.test(u.hostname)&&/^\/youtubei\//.test(u.pathname))&&!platformURL(value);}catch{return false;}}
   function label(video,index=0){
     const url=platformURL(video.url),origin=url?.includes('youtube.com')?'YouTube':url?.includes('vimeo.com')?'Vimeo':null;
@@ -19,5 +30,6 @@ globalThis.AnacoObMedia=(()=>{
     if(!title||/^https?:\/\//.test(title)||/^[\w.-]+\.(?:com|net|org)(?:\/.*)?$/.test(title))title=tx('media_video_1',[index+1]);
     return (origin?origin+' · ':'')+title;
   }
-  return {platformURL,apiURL,label};
+  function auxiliaryFrame(value){try{return new URL(value).hostname==='feedback-pa.clients6.google.com';}catch{return false;}}
+  return {platformURL,apiURL,label,auxiliaryFrame,driveFile};
 })();

@@ -67,3 +67,55 @@ La versión 1.1.0 añade **podcasts y entrevistas**. Una conversación de YouTub
 **barra lateral:** simplifica la captura a contenido, intención opcional, organización y una acción principal. Las páginas mixtas permiten elegir texto, PDF, vídeo o lector; los selectores con una sola opción desaparecen. Adjuntos, ajustes y pendientes se despliegan cuando hacen falta. Los ajustes especiales activos se indican incluso estando plegados. Se unifican separación y tamaño de botones, se retira el formulario durante el procesamiento y se prioriza abrir una revisión existente sobre volver a generar. La intención y organización elegidas se conservan al actualizar la detección y al terminar de extraer.
 
 **descartar pendientes:** cada captura y trabajo interrumpido ofrece una × al pasar el cursor o recibir el foco; en pantallas táctiles está siempre visible. El descarte persiste, limpia la revisión y el editor de esa captura y retira sus intentos de generación fallidos. Las notas guardadas y los trabajos activos quedan protegidos.
+
+## 1.2.1 · 2026-10-27 · pruebas locales
+
+El panel mantiene la pestaña donde se abrió al navegar por otras páginas. El icono de Anaco o **Usar la pestaña actual** permiten cambiar de origen explícitamente. Cada ventana conserva su captura; el lateral puede seguir visible al cambiar de pestaña.
+
+**Preparar varios enlaces** procesa hasta 100 enlaces de uno en uno en segundo plano, con la sesión y el contenedor del navegador. Permite pausar, continuar tras reiniciar y reintentar fallos sin repetir una extracción ya completada. Los enlaces que necesitan acceso o autorización quedan señalados y no bloquean los siguientes. Los borradores se abren para revisión de forma explícita y no se guardan automáticamente en el vault. El permiso opcional de cookies permite mantener el contenedor, sin leer ni exportar cookies.
+
+Paquete local: `dist/anaco-ob-1.2.1.zip`. Esta versión todavía no está publicada en AMO.
+
+## 1.2.2 · 2026-10-27 · pruebas locales
+
+Corrige la selección automática de la cola que podía resumir la guía PDF general de un campus en vez del vídeo de la clase. Distingue documentos del contenido y de navegación, espera detecciones estables del recurso solicitado y prioriza vídeos sobre PDF auxiliares. Las actividades URL de Moodle pueden seguir su enlace de contenido autorizado; los marcos con carga diferida se solicitan sin activar la pestaña.
+
+Añade **Reprocesar como vídeos** para recuperar los enlaces no guardados de un lote anterior sin reutilizar sus extracciones equivocadas. Conserva los borradores anteriores y las notas guardadas. Al reabrir el navegador, una cola que estaba terminando de pausar se recupera correctamente en pausa.
+
+## 1.2.3 · 2026-10-27 · pruebas locales
+
+Corrige el bloqueo de clases de Google Drive por un marco auxiliar de Google Feedback. Los permisos incluyen los dominios usados por las descargas de Drive y los mensajes identifican qué dominios faltan. **Autorizar y reintentar fallidos** recupera juntos los enlaces fallidos, conservando los preparados.
+
+El panel se centra en la cola durante la preparación y mantiene los resultados al finalizar, con regreso explícito a la captura individual. Oculta el formulario durante el trabajo y ofrece otra lista al terminar. Los botones de la bienvenida tienen una separación uniforme respecto a los campos y se adaptan a pantallas estrechas.
+
+### Corrección adicional de Drive en la misma 1.2.3
+
+La cola deja de exigir acceso a todos los marcos secundarios cuando la página ya identifica un vídeo que puede extraer. Los marcos de cuentas o API ajenos a la descarga no bloquean ese recurso; se siguen comprobando los permisos de la página y de la descarga seleccionada. Las variantes `/view` y `/preview` de un mismo archivo de Drive se agrupan por su identificador, conservando los parámetros de acceso compartido. Se actualiza el paquete 1.2.3, sin incrementar la versión.
+
+### Edición de la cola y vídeos grandes · misma 1.2.3
+
+Añade controles individuales para quitar enlaces, quitar todos los fallidos y vaciar la cola. Conserva las capturas y notas existentes. Quitar un enlace pendiente durante otra preparación evita que el recorrido de la cola lo procese después.
+
+Distingue la confirmación de descarga de archivos grandes de Google Drive de una página de acceso. Solo sigue el formulario GET alojado en Drive y dirigido al mismo archivo. Amplía la descarga de vídeo a 1 GB, manteniendo 100 MB para PDF. Se actualiza el paquete 1.2.3 sin cambiar la versión.
+
+### Etiqueta obligatoria de vídeo · misma 1.2.3
+
+Toda nota nueva procedente de una captura de vídeo incluye `video` en sus tags, con independencia de la propuesta de IA, la edición manual o las reglas de frontmatter del perfil. Se aplica a la nota principal, las notas derivadas y las divisiones posteriores. Los borradores de vídeo anteriores reciben la etiqueta al previsualizarse y guardarse, sin regeneración. Las demás etiquetas del perfil se conservan.
+
+### Confirmación de Drive con sesión · misma 1.2.3
+
+La descarga reconoce formularios de confirmación GET y POST, con parámetros en la acción o en campos ocultos, incluidos los tokens emitidos por Drive. Mantiene la comprobación del archivo solicitado y del dominio de destino. Si el intento con cookies termina devolviendo HTML, prueba la descarga pública del mismo recurso sin cookies; una respuesta HTML final sigue rechazándose. Las peticiones de Drive no reutilizan respuestas cacheadas.
+
+Los errores conservan un diagnóstico por enlace con fases, métodos, dominios y nombres de campos del formulario. No se guardan cookies, valores de tokens ni HTML de las páginas. El error final de Drive se diferencia ahora de una página de acceso genérica.
+
+### Revisión continua y comprobación del vault · misma 1.2.3
+
+Guardar desde una revisión de la cola avanza a la siguiente propuesta pendiente en la misma pestaña y, al terminar, vuelve a la cola. No abre de nuevo el vídeo. La cabecera incluye la acción de guardar y el progreso de revisión; las filas revisadas y guardadas se destacan en amarillo con una etiqueta explícita. Las propuestas preparadas siguen diferenciadas de las revisadas.
+
+La detección de duplicados comprueba la existencia del archivo registrado. Un registro de una nota borrada no bloquea una captura regenerada; al guardar se actualiza el registro dentro de la transacción. Se conservan las protecciones frente a sobrescrituras y a colecciones parcialmente eliminadas. Una revisión bloqueada vuelve a comprobar el vault al recuperar el foco.
+
+### Relaciones en bloque y exploración de cursos · misma 1.2.3
+
+Añade selección y desmarcado masivos de las conexiones disponibles de la nota activa, sin reactivar evidencias desactualizadas.
+
+Añade un explorador de cursos con catálogo Canvas/AWS Academy, paginación, jerarquía de módulos y secciones, lectura de páginas internas y selección por ramas o enlaces. Mantiene la sesión y el contenedor, conserva el progreso al cerrar el panel y permite detener o reanudar. El contenido bloqueado no se selecciona; los límites o errores se muestran sin ocultar los resultados encontrados. La selección rellena la cola para revisión antes de procesarla. También se evita confundir el `about:blank` transitorio de una pestaña recién creada con un dominio sin permiso.

@@ -974,3 +974,75 @@ Pasan 188 pruebas Python y los 14 archivos de pruebas JavaScript. Se comprueban 
 - Fuentes `dist/anaco-ob-1.2.0-sources.zip`: incluye generador y JSON de traducciones, dependencias fijadas, servicio local y `AMO_BUILD.md`. Reconstrucción aislada desde el ZIP de fuentes: las 48 entradas descomprimidas coinciden byte a byte con el complemento. Las bibliotecas empaquetadas coinciden con las distribuciones npm fijadas.
 - Paquetes Python `anaco_ob-1.2.0-py3-none-any.whl` y `anaco_ob-1.2.0.tar.gz` construidos; el wheel incluye el compilador editorial. Comunicación Native Messaging desde el wheel extraído: respuesta correcta con versión 1.2.0 y lector Luna predeterminado.
 - Notas de versión en español e inglés y notas completas para revisores en `docs/amo/1.2.0-*.txt`. La guía de AMO ahora indica adjuntar fuentes por el generador propio del catálogo, siguiendo los requisitos de Mozilla. La actualización del servicio local se indica expresamente.
+
+## 1.2.1 · panel vinculado y cola de enlaces (2026-10-27)
+
+- `npm test`: 15 archivos de pruebas pasan, incluidas la cola secuencial, sesiones de contenedor, errores de autorización y login, pausa, recuperación tras reiniciar, reintento sin repetir extracción y capturas separadas por ventana.
+- `python3 scripts/i18n.py check`: ambos idiomas completos, sin problemas.
+- `npm run lint`: sin errores; mantiene dos avisos (compatibilidad Android del manifiesto y `innerHTML` de la biblioteca vendorizada).
+- `.venv/bin/python tests/e2e_zen.py --batch`: Zen real con servicio y vault temporales. Dos enlaces preparados y una página de login rechazada; clase protegida recuperada con la cookie de sesión; el panel conserva su origen y la cola continúa al descargar la página del panel. Sin pestañas de revisión automáticas ni desbordamiento horizontal a 390 px. Informe y captura en `.test-artifacts/zen-batch/`.
+- `.venv/bin/python tests/e2e_zen.py`: flujo individual completo (artículo, frase, imagen, revisión, guardado y descarte) correcto con el cambio de vinculación.
+- `npm run build`: paquete local generado. Estos cambios no están publicados en AMO. La prueba con cookie es reproducible; cada plataforma privada real sigue necesitando validación con su sesión y reproductor.
+
+## 1.2.2 · selección del vídeo en lotes de clases (2026-10-27)
+
+La inspección de las capturas locales del fallo confirmó que varios enlaces de clase habían extraído la misma guía general del alumnado de 17 páginas, sin contenido del vídeo.
+
+- `npm test`: 90 pruebas correctas; incluye guía PDF de navegación, reproductor tardío, modo vídeo sin sustitución por texto/PDF, enlace de lanzamiento Moodle y reprocesado sin reutilizar capturas equivocadas ni borrar borradores o notas guardadas.
+- `.venv/bin/python tests/e2e_zen.py --batch-video`: Zen real, perfil y vault temporales. Dos páginas simuladas de Moodle (reproductor que aparece a los 3 segundos y enlace de lanzamiento), ambas con una guía PDF en navegación y subtítulos protegidos por cookie. Se preparan dos capturas de tipo vídeo con el texto de la lección, nunca se descarga la guía. El botón de reprocesar crea nuevas capturas y conserva las anteriores. Informe en `.test-artifacts/zen-batch-video/report.json`.
+- Prueba de versiones y comprobación de traducciones correctas. Linter sin errores, con los dos avisos conocidos.
+- No se ha accedido a la sesión privada real del campus desde el navegador de pruebas. La verificación reproducible cubre la selección del recurso y la carga diferida; los reproductores concretos deben comprobarse al reprocesar la cola del usuario.
+
+## 1.2.3 · permisos y foco de la cola (2026-10-27)
+
+La lectura del estado local de la extensión identificó un enlace fallido que pedía `feedback-pa.clients6.google.com` y otros que pedían `drive.google.com`. No se modificó la cola del usuario durante el diagnóstico.
+
+- `npm test`: 94 pruebas correctas. Nuevos casos: Drive puede completar un reintento tras conceder los permisos sin leer Google Feedback; se incluyen sus dominios de descarga; reintentar todos conserva los borradores ya preparados.
+- `.venv/bin/python tests/e2e_zen.py --batch-video`: extracción y reprocesado correctos, con la captura individual oculta durante la cola y al terminar; volver a la página y reabrir la cola funciona.
+- `.venv/bin/python tests/e2e_zen.py --welcome`: recorrido completo de bienvenida, configuración de vault e IA y avisos. Separación del botón del vault de al menos 20 px y ausencia de desbordamiento a 390 px; acciones de IA con la misma separación. Captura en `.test-artifacts/zen-welcome/welcome-vault-narrow.png`.
+- Se mantiene pendiente verificar la descarga final del vídeo concreto con la sesión real del usuario; el acceso al marco auxiliar y la recuperación de permisos se comprobaron con pruebas controladas.
+
+### Drive real · corrección de la misma 1.2.3
+
+El estado local del intento fallido con enlaces directos señalaba `accounts.google.com`. La reproducción con uno de los enlaces reales en un perfil aislado encontró también marcos de `clients6.google.com` y `youtube.googleapis.com`, además de dos variantes del mismo archivo.
+
+Tras corregir la selección y la identidad del archivo, se verificó con el código de captura y `resourceBytes` de la extensión una descarga completa de **69 185 442 bytes** desde Drive. El recurso se reconoce como un único vídeo y su contenido tiene cabecera MP4 (`ftyp`). La lectura desde el contexto del reproductor falla por CORS y la alternativa autorizada de la extensión obtiene HTTP 200. No se copió la sesión del navegador personal ni se invocaron el servicio nativo, la IA o el guardado de notas en esta comprobación. Los enlaces privados no se incorporan al repositorio.
+
+`npm test`: 98 pruebas correctas, incluidos permisos secundarios no necesarios, identidad Drive view/preview y conservación de `resourcekey` y `authuser`.
+
+### Cola editable y dos vídeos reales grandes · misma 1.2.3
+
+Se comprobó que los dos fallos siguientes de la cola correspondían al formulario de Google Drive «Virus scan warning», con archivos indicados como 134M y 127M, no a un inicio de sesión. Tras el ajuste, el código real de captura y transporte de la extensión descargó completos **140 702 975 bytes** y **132 860 835 bytes**, ambos con cabecera MP4. La ruta registra una única confirmación de Drive y HTTP 200. No se ejecutó IA ni se escribieron notas del usuario en esta comprobación de transporte.
+
+- `npm test`: 104 pruebas correctas, incluidas eliminación individual, vaciado, retirada de pendientes durante un trabajo, límite de vídeo, confirmación de Drive de un solo salto y rechazo de páginas HTML que siguen sin ser medios.
+- `.venv/bin/python tests/e2e_zen.py --batch-video`: recorrido correcto de quitar un resultado, vaciar la cola y preparar una lista nueva; los borradores anteriores permanecen. El parser real de Firefox acepta la confirmación válida de Drive y rechaza otro archivo, otra acción, otro origen y formularios de login.
+- No cambia el número de versión: se reconstruye `dist/anaco-ob-1.2.3.zip`.
+
+### Etiqueta de vídeo · misma 1.2.3
+
+`PYTHONPATH=tests python3 -m unittest test_video_tags test_core test_editorial test_splitting test_profile test_workflow`: 75 pruebas correctas. Los casos nuevos cubren borrador y guardado con edición que elimina tags, etiquetas existentes al alcanzar el límite, perfil sin campo tags o con tags propios, todas las notas de una colección de vídeo, borradores antiguos sin regenerar y ausencia de la etiqueta automática en artículos.
+
+### Variantes de sesión de Drive · misma 1.2.3
+
+Se comprobó que el ZIP abierto por Zen contenía el mismo manifiesto, background y helper de confirmación que el paquete de trabajo. El estado de la cola seguía mostrando errores HTML en varios vídeos; no se obtuvo la respuesta HTML de la sesión personal, por lo que no se afirma haber reproducido esa variante exacta.
+
+- `npm test`: 106 pruebas correctas; incluye confirmación POST y alternativa pública tras recibir HTML con cookies, además del límite de intentos.
+- `.venv/bin/python tests/e2e_zen.py --batch-video`: correcto. El parser real de Firefox valida GET y POST con parámetros en la URL y campos ocultos, rechazando otros archivos, dominios y formularios de login.
+- Con un enlace real de la cola, se leyeron 2048 bytes MP4 por la ruta normal de confirmación GET (HTTP 206). Simulando únicamente la respuesta HTML inicial de una cuenta, la alternativa sin cookies obtuvo otros 2048 bytes MP4 reales del mismo archivo (HTTP 206). No se utilizaron cookies personales ni se invocó el servicio nativo.
+- Un intento de repetir la descarga completa en esta comprobación agotó el tiempo de WebDriver; no cuenta como validación de descarga completa. Las descargas completas documentadas anteriormente corresponden a la comprobación anterior.
+
+### Revisión continua y recreación de notas · misma 1.2.3
+
+Se confirmó un registro histórico cuyo archivo ya no existía y una captura regenerada en estado borrador que compartía su huella. Se retiró únicamente ese registro obsoleto, con copia recuperable en el directorio local `repair-backups`; no se modificaron notas del vault.
+
+- Pruebas del servicio: 60 correctas (`test_deleted_notes`, `test_core`, `test_editorial`, `test_workflow`, `test_video_tags`). Incluyen borrar y recrear, historial conservado si falla la escritura, colisiones con archivos existentes y colecciones parcialmente borradas.
+- Pruebas de la extensión: guardar avanza en la misma pestaña, salta enlaces fallidos y vuelve a la cola al terminar; un guardado fallido no avanza ni marca revisada la nota; volver conserva el borrador.
+- `.venv/bin/python tests/e2e_zen.py --batch`: dos notas guardadas consecutivamente en la misma pestaña, regreso a la cola y filas amarillas. Se regeneró una fuente guardada, se verificó su bloqueo, se eliminó su nota del vault temporal y se volvió a guardar tras actualizar el foco. Capturas en `.test-artifacts/zen-batch/reviewed-queue.png` y `next-review.png`.
+
+### Exploración de cursos y selección de relaciones · misma 1.2.3
+
+- `npm test`: 119 pruebas correctas. Incluye paginación Canvas, listas de ítems incompletas, jerarquía y bloqueo, límites de ámbito, deduplicación, sesión de contenedor al explorar y al importar la selección, interrupción/reanudación y recuperación tras reiniciar. Una pestaña transitoria `about:blank` no produce un falso error de permisos.
+- `.venv/bin/python tests/e2e_zen.py --course-links`: Zen real con un curso Canvas simulado y protegido por cookie. Catálogo e ítems en dos páginas, submódulos con páginas anidadas, enlace cíclico y contenido bloqueado. Se recorren cuatro páginas y se seleccionan cinco enlaces únicos; no empieza la preparación al pasarlos a la lista. La selección y el desmarcado de relaciones externas e internas se comprueban con propuestas verificadas de una IA de pruebas.
+- Revisión visual a 390 px, incluida la lectura de un árbol con cinco niveles. Capturas en `.test-artifacts/zen-course-links/course-tree.png` y `all-relations.png`.
+- El curso privado de AWS suministrado por el usuario no se ha explorado con su sesión real: la comprobación HTTP sin una sesión disponible devuelve 401. La versión local permite explorarlo desde su navegador; no se afirma haber verificado su inventario real.
+- El adaptador sigue la [API de módulos de Canvas](https://developerdocs.instructure.com/services/canvas/resources/modules) y su [paginación mediante Link](https://developerdocs.instructure.com/services/canvas/basics/file.pagination). Si faltan ítems inline, lee su endpoint paginado.

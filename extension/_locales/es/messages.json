@@ -1,4 +1,142 @@
 {
+  "batch_ambiguous": {
+    "message": "Hay varios recursos posibles. Abre la clase y elige el contenido en el panel individual."
+  },
+  "batch_auto": {
+    "message": "Detectar automáticamente"
+  },
+  "batch_back_page": {
+    "message": "Volver a la página"
+  },
+  "batch_busy": {
+    "message": "Hay un trabajo en curso. Espera a que termine o pausa la cola antes de preparar otro contenido."
+  },
+  "batch_clear": {
+    "message": "Vaciar cola"
+  },
+  "batch_clear_failed": {
+    "message": "Quitar fallidos"
+  },
+  "batch_container_permission": {
+    "message": "Autoriza el uso del contenedor para mantener la sesión de esta pestaña."
+  },
+  "batch_help": {
+    "message": "Pega hasta 100 enlaces, uno por línea. Se usa la sesión de la pestaña actual; los enlaces explorados conservan la del curso. Las notas quedarán pendientes de revisión."
+  },
+  "batch_invalid_url": {
+    "message": "Enlace no válido (usa http o https, sin contraseñas): $1"
+  },
+  "batch_login": {
+    "message": "Esta página pide iniciar sesión. Abre el origen, entra en tu cuenta y reintenta."
+  },
+  "batch_mode": {
+    "message": "Contenido de los enlaces"
+  },
+  "batch_new_list": {
+    "message": "Preparar otros enlaces"
+  },
+  "batch_no_content": {
+    "message": "No se ha encontrado el contenido solicitado. Abre el origen y comprueba que la clase está cargada y que has iniciado sesión."
+  },
+  "batch_note": {
+    "message": "Texto de la página"
+  },
+  "batch_open": {
+    "message": "Abrir origen"
+  },
+  "batch_pause": {
+    "message": "Pausar después del actual"
+  },
+  "batch_paused": {
+    "message": "Cola pausada. Puedes continuar después."
+  },
+  "batch_pdf": {
+    "message": "Documento PDF"
+  },
+  "batch_pending_queue": {
+    "message": "Continúa primero la cola pendiente."
+  },
+  "batch_permissions": {
+    "message": "Falta permiso para leer la página o un recurso de la clase. Pulsa Autorizar y reintentar."
+  },
+  "batch_permissions_domains": {
+    "message": "Falta permiso para: $1. Pulsa Autorizar y reintentar."
+  },
+  "batch_reader": {
+    "message": "Libro del visor"
+  },
+  "batch_remove": {
+    "message": "Quitar de la cola"
+  },
+  "batch_remove_running": {
+    "message": "Espera a que termine el enlace actual o cancela su trabajo antes de quitarlo."
+  },
+  "batch_remove_title": {
+    "message": "Quitar de la cola: $1"
+  },
+  "batch_restart_videos": {
+    "message": "Reprocesar como vídeos"
+  },
+  "batch_resume": {
+    "message": "Continuar cola"
+  },
+  "batch_retry": {
+    "message": "Autorizar y reintentar"
+  },
+  "batch_retry_failed": {
+    "message": "Autorizar y reintentar fallidos"
+  },
+  "batch_review": {
+    "message": "Revisar nota"
+  },
+  "batch_settings": {
+    "message": "Se usarán la IA, la intención y la organización elegidas en el panel. Las imágenes y recursos opcionales se pueden añadir en una captura individual."
+  },
+  "batch_start": {
+    "message": "Preparar enlaces"
+  },
+  "batch_status_complete": {
+    "message": "Cola terminada"
+  },
+  "batch_status_discarded": {
+    "message": "Descartada"
+  },
+  "batch_status_failed": {
+    "message": "Necesita atención"
+  },
+  "batch_status_paused": {
+    "message": "En pausa"
+  },
+  "batch_status_pausing": {
+    "message": "Pausando al terminar el actual"
+  },
+  "batch_status_pending": {
+    "message": "Pendiente"
+  },
+  "batch_status_ready": {
+    "message": "Preparada · pendiente de revisión"
+  },
+  "batch_status_running": {
+    "message": "Preparando"
+  },
+  "batch_status_saved": {
+    "message": "Revisada y guardada"
+  },
+  "batch_summary": {
+    "message": "$1 · $2 de $3 preparadas · $4 revisadas"
+  },
+  "batch_title": {
+    "message": "Preparar varios enlaces"
+  },
+  "batch_url_limit": {
+    "message": "Pega entre 1 y 100 enlaces, separados por líneas."
+  },
+  "batch_urls": {
+    "message": "Enlaces de clases o páginas"
+  },
+  "batch_video": {
+    "message": "Vídeo o audio de la clase"
+  },
   "bg_1_2_paginas_recibidas_preparando_el_cont": {
     "message": "$1/$2 páginas recibidas. Preparando el contenido…"
   },
@@ -43,6 +181,9 @@
   },
   "bg_documento_pdf": {
     "message": "Documento PDF"
+  },
+  "bg_drive_download_html": {
+    "message": "Drive ha seguido devolviendo una página HTML después de confirmar la descarga. No se ha recibido el vídeo. El diagnóstico del intento queda guardado en la cola."
   },
   "bg_el_lector_cambio_vuelve_a_detectarlo": {
     "message": "El lector cambió. Vuelve a detectarlo."
@@ -265,6 +406,78 @@
   },
   "capture_video_incrustado": {
     "message": "Vídeo incrustado"
+  },
+  "course_api_fallback": {
+    "message": "No se pudo leer el catálogo completo. Se han buscado los enlaces de la página; puede que falten módulos."
+  },
+  "course_api_scope": {
+    "message": "La paginación del curso apunta fuera de su catálogo. Se ha detenido esa lectura."
+  },
+  "course_api_unavailable": {
+    "message": "El catálogo del curso no está disponible con esta sesión."
+  },
+  "course_busy": {
+    "message": "Ya hay una exploración en curso. Deténla antes de iniciar otra."
+  },
+  "course_depth": {
+    "message": "Niveles de páginas internas"
+  },
+  "course_found": {
+    "message": "$1 páginas exploradas · $2 enlaces encontrados"
+  },
+  "course_help": {
+    "message": "Explora módulos y páginas internas con tu sesión. Después elige qué enlaces preparar."
+  },
+  "course_limit": {
+    "message": "Resultados parciales: se alcanzó la profundidad elegida o el límite de 40 páginas y 500 enlaces. Puedes explorar un módulo concreto por separado."
+  },
+  "course_load_timeout": {
+    "message": "La página tardó demasiado en cargar o listar sus enlaces."
+  },
+  "course_locked": {
+    "message": "Bloqueado en el curso"
+  },
+  "course_open": {
+    "message": "Abrir enlace ↗"
+  },
+  "course_open_course": {
+    "message": "Abrir curso ↗"
+  },
+  "course_paused": {
+    "message": "En pausa: $1 páginas · $2 enlaces encontrados"
+  },
+  "course_resume": {
+    "message": "Autorizar y continuar"
+  },
+  "course_scanning": {
+    "message": "Explorando: $1 páginas · $2 enlaces encontrados"
+  },
+  "course_select_all": {
+    "message": "Seleccionar todos"
+  },
+  "course_select_none": {
+    "message": "Desmarcar todos"
+  },
+  "course_selection_count": {
+    "message": "$1 seleccionados · máximo $2 por lista"
+  },
+  "course_start": {
+    "message": "Explorar curso"
+  },
+  "course_stop": {
+    "message": "Detener exploración"
+  },
+  "course_stopped": {
+    "message": "Exploración detenida. Puedes continuar después."
+  },
+  "course_title": {
+    "message": "Capturar enlaces de un curso"
+  },
+  "course_url": {
+    "message": "Enlace del curso"
+  },
+  "course_use": {
+    "message": "Pasar seleccionados a la cola"
   },
   "detect_anaco_no_tiene_permiso_para_leer_esta_pa": {
     "message": "Anaco no tiene permiso para leer esta página ($1). Pulsa «Permitir lectura» o «Detectar contenido» para concederlo."
@@ -752,6 +965,9 @@
   "panel_avance_del_trabajo": {
     "message": "Avance del trabajo"
   },
+  "panel_bound_page": {
+    "message": "Panel vinculado a: $1"
+  },
   "panel_buscando_subtitulos": {
     "message": "BUSCANDO SUBTÍTULOS"
   },
@@ -1232,6 +1448,9 @@
   "panel_una_nota_con_apartados": {
     "message": "Una nota"
   },
+  "panel_use_active": {
+    "message": "Usar la pestaña actual"
+  },
   "panel_varias_notas_enlazadas_por_temas": {
     "message": "Varias notas enlazadas"
   },
@@ -1580,6 +1799,9 @@
   "review_asistido_por": {
     "message": "Asistido por "
   },
+  "review_back_queue": {
+    "message": "← Volver a la cola"
+  },
   "review_buscando_relaciones_para_cada_tema_y_ent": {
     "message": "Buscando relaciones para cada tema y entre las notas…"
   },
@@ -1600,6 +1822,9 @@
   },
   "review_cerrar_imagen": {
     "message": "Cerrar imagen"
+  },
+  "review_clear_relations": {
+    "message": "Desmarcar todas"
   },
   "review_conexiones_con_tu_conocimiento": {
     "message": "Conexiones con tu conocimiento"
@@ -1814,6 +2039,9 @@
   "review_que_necesita_mejorar_este_apartado": {
     "message": "Qué necesita mejorar este apartado"
   },
+  "review_queue_progress": {
+    "message": "Revisión $1 de $2 · $3 revisadas y guardadas"
+  },
   "review_reducir": {
     "message": "Reducir"
   },
@@ -1841,11 +2069,20 @@
   "review_revisar_nota_anaco": {
     "message": "Revisar nota · Anaco"
   },
+  "review_save_next": {
+    "message": "Guardar y siguiente"
+  },
+  "review_save_queue": {
+    "message": "Guardar y volver a la cola"
+  },
   "review_se_anadira_al_final": {
     "message": "Se añadirá al final"
   },
   "review_selecciona_una_nota_existente": {
     "message": "Selecciona una nota existente"
+  },
+  "review_select_relations": {
+    "message": "Seleccionar todas las relaciones"
   },
   "review_sin_conexiones_con_evidencia_suficiente_": {
     "message": "Sin conexiones con evidencia suficiente. Puedes relacionarla más adelante."

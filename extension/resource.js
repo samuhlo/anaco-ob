@@ -5,7 +5,7 @@ if(!globalThis.AnacoObResource)globalThis.AnacoObResource=(()=>{
   function close(id){const job=jobs.get(id);if(!job)return;jobs.delete(id);clearTimeout(job.timer);job.controller.abort();job.reader?.cancel().catch(()=>{});}
   async function open(url,maxBytes){
     if(!/^https?:$/.test(new URL(url).protocol))throw new Error(tx('resource_direccion_de_recurso_no_admitida'));
-    if(!Number.isInteger(maxBytes)||maxBytes<1||maxBytes>100000000)throw new Error(tx('resource_limite_de_descarga_no_valido'));
+    if(!Number.isInteger(maxBytes)||maxBytes<1||maxBytes>1000000000)throw new Error(tx('resource_limite_de_descarga_no_valido'));
     if(typeof content==='undefined'||typeof content.fetch!=='function')throw new Error(tx('resource_la_lectura_con_el_contexto_del_reproduct'));
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);
     let response;

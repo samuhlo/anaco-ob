@@ -62,6 +62,7 @@ def load_context(app,message):
     parent=copy.deepcopy(drafts[key])
     for field in ('title','context','body','folder','filename','note_type','tags'):
         if field in value:parent[field]=copy.deepcopy(value[field])
+    parent['tags']=app.note_tags(c,parent.get('tags',[]))
     parent['selected_images']=value.get('images',parent.get('selected_images',[]))
     if not isinstance(parent['body'],str) or len(parent['body'])>100000:raise UserError('El contenido de la nota no es válido para proponer una división.')
     return c,drafts,key,fields,parent

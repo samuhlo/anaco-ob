@@ -54,7 +54,7 @@ def publish(app,c,rendered,selected,create):
             else:create(path,value['markdown'].encode());created.append((path,hashes[rel]))
         primary=rendered['source']['relative'] if 'source' in selected else rendered[selected[0]]['relative']
         import datetime
-        app.db.execute('INSERT INTO saves VALUES (?,?,?)',(c['fingerprint'],primary,datetime.datetime.now().isoformat()));app.db.commit()
+        app.db.execute('INSERT INTO saves VALUES (?,?,?) ON CONFLICT(fingerprint) DO UPDATE SET path=excluded.path, created=excluded.created',(c['fingerprint'],primary,datetime.datetime.now().isoformat()));app.db.commit()
     except Exception:
         app.db.rollback()
         conflict=False
