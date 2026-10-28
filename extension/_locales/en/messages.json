@@ -2130,7 +2130,7 @@
     "message": "What this section needs to improve"
   },
   "review_queue_progress": {
-    "message": "Review $1 of $2 · $3 reviewed and saved"
+    "message": "Note $1 of $2 · $3 saved"
   },
   "review_reducir": {
     "message": "Shorten"

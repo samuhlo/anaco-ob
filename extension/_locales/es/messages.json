@@ -2130,7 +2130,7 @@
     "message": "Qué necesita mejorar este apartado"
   },
   "review_queue_progress": {
-    "message": "Revisión $1 de $2 · $3 revisadas y guardadas"
+    "message": "Nota $1 de $2 · $3 guardadas"
   },
   "review_reducir": {
     "message": "Reducir"

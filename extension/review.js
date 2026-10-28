@@ -13,8 +13,8 @@ function publishReview(){
   saveState.label=fromQueue?(queueReview?.next.length?tx('review_save_next'):tx('review_save_queue')):regularSaveLabel;
   $('saveReview').textContent=saveState.label;$('saveReview').disabled=saveState.disabled||revisionBusy||closingReview||$('splitDialog').open||$('revisionDialog').open;
   $('back').textContent=fromQueue?tx('review_back_queue'):tx('review_volver_al_articulo');
-  $('queueReviewProgress').hidden=!queueReview;
-  if(queueReview)$('queueReviewProgress').textContent=tx('review_queue_progress',[queueReview.index,queueReview.total,queueReview.reviewed]);
+  $('queueReviewProgress').hidden=!queueReview;document.body.classList.toggle('in-queue',Boolean(queueReview));
+  if(queueReview){$('queueReviewText').textContent=tx('review_queue_progress',[queueReview.index,queueReview.total,queueReview.reviewed]);$('queueReviewMeter').max=queueReview.total;$('queueReviewMeter').value=queueReview.reviewed;}
   relationSelectionState();
   clearTimeout(reviewStatusTimer);
   reviewStatusTimer=setTimeout(()=>{
