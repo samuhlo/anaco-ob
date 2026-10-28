@@ -8,8 +8,8 @@ Este plan convierte la [auditoría del 28 de octubre](AUDITORIA_2026-10-28.md) e
 | --- | --- | --- | --- | --- |
 | 0 | Auditoría y plan | Todos | Hallazgos y criterios versionados, estado enlazado a PRs reales | Ninguna |
 | 1 | Credenciales y redirecciones | A01, A02 | Cambiar endpoint no reutiliza su clave; ninguna redirección transfiere credenciales a otro destino. Pruebas con servidores locales y claves ficticias | Ninguna |
-| 2 | Integridad de capturas largas | A04, A10 | La captura manual no se recorta silenciosamente; huella calculada sobre toda la transcripción conservada; duplicados anteriores tratados explícitamente | Ninguna |
-| 3 | Aislamiento de vaults | A05 | Cola, subida y trabajo conservan su vault. Cambiarlo no traslada el contenido; el perfil anterior no se hereda por accidente. Reanudación y datos de versiones previas cubiertos | Ninguna |
+| 2 | Integridad de capturas largas | A04, A10 | La captura manual no se recorta silenciosamente; huella calculada sobre toda la transcripción conservada; duplicados anteriores tratados explícitamente | 1 como base de revisión |
+| 3 | Aislamiento de vaults | A05 | Cola, subida y trabajo conservan su vault. Cambiarlo no traslada el contenido; el perfil anterior no se hereda por accidente. Reanudación y datos de versiones previas cubiertos | 2 como base de revisión |
 | 4 | Procesos y lanzadores portables | A03, A11 | Consulta de procesos no destructiva, cancelación de hijos y progreso de transcripción portables; rutas literales en lanzadores. CI en Windows, macOS y Linux | Ninguna |
 | 5 | Plan único de publicación | A06, A15 | Vista previa y guardado incluyen los mismos archivos e índices, aprobación y copias. Se conserva LF/CRLF y se prueban conflictos e interrupciones | Ninguna |
 | 6 | Proveedor explícito y transporte cancelable | A07, A09 | Manual no deriva a Codex implícitamente; proveedor efectivo visible; cancelación, plazo total y tamaño de respuesta acotados | 1 |
@@ -20,19 +20,23 @@ Este plan convierte la [auditoría del 28 de octubre](AUDITORIA_2026-10-28.md) e
 | 11 | Búsqueda incremental de relaciones | A16 | Evitar lecturas repetidas; invalidar al editar/borrar; mantener evidencias literales y aislamiento de vaults; benchmark reproducible de 1.000 y 10.000 notas | 3 |
 | 12 | Verificación de entrega y diagnóstico | Mejoras transversales | E2e de cursos sincronizado con el botón habilitado; matriz funcional por sistema y mínimo Python declarado; artefacto probado verificable; errores con códigos sin datos sensibles | Adaptar a las interfaces finales de 4, 5 y 6 |
 
-Las ramas independientes parten de `main`. Cuando un cambio necesita otro aún pendiente, el PR indicará expresamente su base y dependencia; se evitarán duplicar correcciones o incluir refactorizaciones ajenas al problema.
+Las ramas independientes parten de `main`. Los primeros cambios funcionales se presentan en cadena porque comparten configuración y traducciones: **#16 → #17 → #18**. Cada PR muestra solo su propio cambio respecto del anterior. El plan (#15) es independiente. Cuando se fusione una base, ajustar la base del siguiente PR a `main` si GitHub no lo hace automáticamente; no fusionar estos cambios en orden inverso.
 
 ## Primera tanda
 
-Empezar por las entregas 0, 1, 2 y 3. Son el primer corte de implementación solicitado; el resto permanece en la cola del plan, sin marcarlo como resuelto hasta tener su cambio y verificación. La entrega 4 es la siguiente prioridad por las incompatibilidades de Windows.
+Las entregas 0, 1, 2 y 3 forman el primer corte implementado. Sus PRs están abiertos para revisión; todavía no están fusionados. El resto permanece en la cola del plan, sin marcarlo como resuelto hasta tener su cambio y verificación. La entrega 4 es la siguiente prioridad por las incompatibilidades de Windows.
 
 | Entrega | Estado | PR |
 | --- | --- | --- |
-| Auditoría y plan | Preparado | Pendiente de apertura |
-| Credenciales y redirecciones | En curso | Pendiente |
-| Integridad de capturas largas | Pendiente | Pendiente |
-| Aislamiento de vaults | Pendiente | Pendiente |
+| Auditoría y plan | Abierto | [#15](https://github.com/samuhlo/anaco-ob/pull/15) |
+| Credenciales y redirecciones | Implementado, pendiente de revisión | [#16](https://github.com/samuhlo/anaco-ob/pull/16) |
+| Integridad de capturas largas | Implementado, pendiente de revisión | [#17](https://github.com/samuhlo/anaco-ob/pull/17) |
+| Aislamiento de vaults | Implementado, pendiente de revisión | [#18](https://github.com/samuhlo/anaco-ob/pull/18) |
 | Resto de entregas | Planificado | Pendiente |
+
+Validación local de la integración: 231 pruebas Python, 129 JavaScript, i18n correcto, ZIP construido y Mozilla sin errores, con las dos advertencias previas. Zen real supera el flujo de proveedor compatible en #16 y la cola de vídeos en la integración. El endurecimiento final para subidas antiguas se volvió a comprobar con las siete regresiones de aislamiento. Los estados de CI vigentes se consultan en cada PR.
+
+Decisiones de compatibilidad que requieren atención al revisar: la captura manual mayor de 100.000 caracteres se rechaza conservando staging; las colas y subidas antiguas sin vault explícito requieren recrear la cola o reimportar, conservando sus archivos y capturas. No se inventa una propiedad basándose en el vault seleccionado al reintentar.
 
 ## Condiciones de cada PR
 
