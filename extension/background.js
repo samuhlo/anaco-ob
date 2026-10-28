@@ -15,6 +15,18 @@ async function panelSource(windowId) {
   }
   return panelSources.get(windowId);
 }
+async function resumeCapture(message) {
+  const c=await native({action:"load",id:message.id});
+  if(workClaim||pendingDiscard)throw new Error(tx('bg_ya_hay_un_trabajo_en_curso'));
+  if(c.status==='discarded'||c.status==='saved')throw new Error(tx('bg_captura_ya_no_pendiente'));
+  const {sources={}}=await browser.storage.local.get("sources");c.source=sources[c.id];
+  // The panel that resumes a capture shows it, even when its source tab is gone.
+  if(Number.isInteger(message.windowId))panelSources.set(message.windowId,{tabId:c.source?.tabId,windowId:message.windowId,url:c.source?.url});
+  await browser.storage.local.set({editorFields:null,operationError:"",pageContext:{...c.source,status:"ready"}});
+  await publishCapture(c,c.draft?{capture:c,draft:c.draft,folders:(await native({action:"status"})).folders}:null);
+  if(c.draft&&c.status==="draft")await openReview(c.id);
+  return c;
+}
 async function panelCapture(windowId) {
   const source=await panelSource(windowId);
   const state=await browser.storage.local.get(['currentCapture','draftResult','pageContext']);
@@ -920,15 +932,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
   if (message.type === "detectActive") return detectActive(message);
   if (message.type === "captureActive") return browser.tabs.query({active:true,currentWindow:true}).then(([tab]) => capture(tab, message.input));
   if (message.type === "capturePdfActive") return browser.tabs.query({active:true,currentWindow:true}).then(([tab]) => capturePdf(tab));
-  if (message.type === "resume") return native({action:"load",id:message.id}).then(async c => {
-    if(workClaim||pendingDiscard)throw new Error(tx('bg_ya_hay_un_trabajo_en_curso'));
-    if(c.status==='discarded'||c.status==='saved')throw new Error(tx('bg_captura_ya_no_pendiente'));
-    const {sources={}}=await browser.storage.local.get("sources");c.source=sources[c.id];
-    await browser.storage.local.set({editorFields:null,operationError:"",pageContext:{...c.source,status:"ready"}});
-    await publishCapture(c,c.draft?{capture:c,draft:c.draft,folders:(await native({action:"status"})).folders}:null);
-    if(c.draft&&c.status==="draft")await openReview(c.id);
-    return c;
-  });
+  if (message.type === "resume") return resumeCapture(message);
 });
 
 function AnacoObBatchBusy(){return Boolean(globalThis.AnacoObBatch?.busy());}

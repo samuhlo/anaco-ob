@@ -283,7 +283,7 @@ async function refresh() {
     for(const c of status.pending){
       const row=document.createElement('div');row.className='pending-row';row.dataset.capture=c.id;
       const b=document.createElement('button');b.className='pending-item pending-resume';b.textContent=c.title+' · '+c.kind;
-      b.addEventListener('click',run(async()=>browser.runtime.sendMessage({type:'resume',id:c.id})));
+      b.addEventListener('click',run(async()=>browser.runtime.sendMessage({type:'resume',id:c.id,windowId:panelWindowId})));
       row.append(b,pendingDismiss({id:c.id},c.title));$('pending').append(row);
     }
     pendingControls();

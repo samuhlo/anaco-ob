@@ -357,8 +357,11 @@ def main():
             answer=driver.execute_async_script('const done=arguments[arguments.length-1]; browser.runtime.sendMessage(arguments[0]).then(result=>done({ok:true,result}),error=>done({ok:false,error:error.message}));',value)
             assert answer["ok"],answer
             return answer["result"]
+        def window_id():
+            return driver.execute_async_script('const done=arguments[arguments.length-1];browser.windows.getCurrent().then(w=>done(w.id));')
         if args.pending:
-            message({'type':'resume','id':other_capture['id']})
+            # Like the panel button, resuming names the window whose panel shows the capture.
+            message({'type':'resume','id':other_capture['id'],'windowId':window_id()})
             driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({workSources:{[arguments[0]]:{title:"Extracción fallida del podcast"}}}).then(done);','b'*32)
             driver.execute_script('const f=document.createElement("iframe");f.id="pending-frame";f.src=location.href;f.style="position:fixed;inset:0 auto auto 0;width:300px;height:1000px;border:0;z-index:1000";document.body.append(f);')
             pending_frame=driver.find_element(By.ID,'pending-frame');driver.switch_to.frame(pending_frame)
@@ -979,7 +982,7 @@ def main():
             review_tab=driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("reviewSessions").then(s=>done(s.reviewSessions[arguments[0]].tabId));',capture_id)
             driver.execute_async_script('const done=arguments[arguments.length-1];browser.tabs.remove(arguments[0]).then(done);',review_tab)
             wait.until(lambda d:not d.find_element(By.ID,'reviewWorkspace').is_displayed() and d.find_element(By.ID,'captureWorkspace').is_displayed())
-            message({'type':'resume','id':capture_id});open_review();review_handle=driver.current_window_handle
+            message({'type':'resume','id':capture_id,'windowId':window_id()});open_review();review_handle=driver.current_window_handle
             wait.until(lambda d:review_status().get('canSave'))
             driver.switch_to.window(panel_handle)
             wait.until(lambda d:d.find_element(By.ID,'reviewWorkspace').is_displayed() and d.find_element(By.ID,'reviewSave').is_enabled())
@@ -1036,7 +1039,7 @@ def main():
             assert driver.find_element(By.ID,'ui_language').get_attribute('value')=='en' and driver.title=='Options · Anaco',driver.title
             driver.save_screenshot(str(out/'options-en.png'))
             driver.get(panel_url)
-            wait.until(lambda d:'LOCAL SERVICE CONNECTED' in d.find_element(By.ID,'connection').text)
+            wait.until(lambda d:d.find_element(By.ID,'connection').text.upper()=='CONNECTED')
             # Content scripts get the language from the background: the capture warning comes back in English.
             (ROOT/'tests/fixtures/language.html').write_text('<!doctype html><meta charset="utf-8"><title>Language test</title><article><h1>Language test</h1>'+'<p>Active recall strengthens memory when you study.</p>'*12+'<iframe srcdoc="<p>Embedded</p>" width="300" height="200"></iframe></article>')
             captured=capture({},url.replace('article.html','language.html'))

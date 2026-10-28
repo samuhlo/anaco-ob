@@ -256,3 +256,16 @@ test('Drive submits POST confirmation fields only to the validated download targ
  const result=await vm.runInContext('resourceBytes("https://drive.google.com/uc?id=lesson",null)',ctx);
  assert.equal(result.size,5);assert.equal(calls[1].method,'POST');assert.equal(calls[1].body,'uuid=test-token');
 });
+test('resuming a pending capture shows it in the panel that asked for it, even without its source tab',async()=>{
+ const {ctx,data}=app();ctx.a=tab(1);ctx.scanTab=async value=>capture(value.id);
+ const stored={'pending-2':{...capture(2),id:'pending-2',status:'pending'},'imported-3':{...capture(3),id:'imported-3',status:'pending'}};
+ ctx.native=async m=>m.action==='load'?structuredClone(stored[m.id]):{folders:[]};
+ data.sources={'pending-2':{tabId:2,url:tab(2).url,windowId:1}};
+ await vm.runInContext('bindPanel(a);capture(a)',ctx);
+ await vm.runInContext('resumeCapture({id:"pending-2",windowId:1})',ctx);
+ let own=await vm.runInContext('panelCapture(1)',ctx);
+ assert.equal(own.currentCapture.id,'pending-2');assert.equal(own.panelSource.tabId,2);
+ await vm.runInContext('resumeCapture({id:"imported-3",windowId:1})',ctx);
+ own=await vm.runInContext('panelCapture(1)',ctx);
+ assert.equal(own.currentCapture.id,'imported-3');
+});
