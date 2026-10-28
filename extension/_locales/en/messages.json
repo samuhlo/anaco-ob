@@ -450,16 +450,43 @@
     "message": "The course catalog is unavailable with this session."
   },
   "course_busy": {
-    "message": "An exploration is already running. Stop it before starting another."
+    "message": "A search is already running. Stop it before starting another."
   },
   "course_depth": {
-    "message": "Internal page depth"
+    "message": "Search depth"
+  },
+  "course_depth_1": {
+    "message": "This page only"
+  },
+  "course_depth_3": {
+    "message": "3 levels · recommended"
+  },
+  "course_depth_5": {
+    "message": "5 levels · large course"
   },
   "course_found": {
-    "message": "$1 pages explored · $2 links found"
+    "message": "$1 pages read · $2 links"
   },
   "course_help": {
-    "message": "Explore modules and internal pages using your session. Then choose which links to prepare."
+    "message": "Finds modules and internal pages with your session. Then you choose which links to prepare."
+  },
+  "course_kind_file": {
+    "message": "File"
+  },
+  "course_kind_group": {
+    "message": "$1 links"
+  },
+  "course_kind_link": {
+    "message": "Link"
+  },
+  "course_kind_module": {
+    "message": "Module"
+  },
+  "course_kind_page": {
+    "message": "Page"
+  },
+  "course_kind_video": {
+    "message": "Video"
   },
   "course_limit": {
     "message": "Partial results: the selected depth or the limit of 40 pages and 500 links was reached. You can explore a specific module separately."
@@ -470,47 +497,65 @@
   "course_locked": {
     "message": "Locked in the course"
   },
-  "course_open": {
-    "message": "Open link ↗"
-  },
   "course_open_course": {
     "message": "Open course ↗"
   },
+  "course_open_title": {
+    "message": "Open in another tab: $1"
+  },
   "course_paused": {
-    "message": "Paused: $1 pages · $2 links found"
+    "message": "$1 pages read · $2 links"
   },
   "course_resume": {
     "message": "Authorize and continue"
   },
   "course_scanning": {
-    "message": "Exploring: $1 pages · $2 links found"
+    "message": "$1 pages read · $2 links"
   },
   "course_select_all": {
-    "message": "Select all"
+    "message": "All"
   },
   "course_select_none": {
-    "message": "Clear all"
+    "message": "None"
   },
   "course_selection_count": {
-    "message": "$1 selected · up to $2 per list"
+    "message": "$1 of $2 selected"
+  },
+  "course_selection_limit": {
+    "message": "$1 selected: the limit per queue is $2"
   },
   "course_start": {
-    "message": "Explore course"
+    "message": "Find links"
+  },
+  "course_start_again": {
+    "message": "Search again"
+  },
+  "course_state_done": {
+    "message": "Complete"
+  },
+  "course_state_partial": {
+    "message": "Partial"
+  },
+  "course_state_paused": {
+    "message": "Paused"
+  },
+  "course_state_running": {
+    "message": "Searching"
   },
   "course_stop": {
-    "message": "Stop exploring"
+    "message": "Stop searching"
   },
   "course_stopped": {
-    "message": "Exploration stopped. You can continue later."
-  },
-  "course_title": {
-    "message": "Collect course links"
+    "message": "Search stopped. You can continue later."
   },
   "course_url": {
     "message": "Course URL"
   },
   "course_use": {
-    "message": "Use selected links in queue"
+    "message": "Add to the queue"
+  },
+  "course_use_count": {
+    "message": "Add $1 to the queue"
   },
   "detect_anaco_no_tiene_permiso_para_leer_esta_pa": {
     "message": "Anaco has no permission to read this page ($1). Press «Allow reading» or «Detect content» to grant it."

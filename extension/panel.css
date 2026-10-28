@@ -120,20 +120,32 @@
 .batch-items li[data-state=failed] .batch-meta em{color:var(--error)}
 .batch-items li[data-state=discarded]>strong{color:var(--muted);text-decoration:line-through}
 @media(prefers-reduced-motion:reduce){.batch-items li[data-state=running] .batch-dot{animation:none}}
-.course-explorer{margin:14px 0 20px;padding:14px;border:1px solid var(--tint-line);border-radius:16px;background:var(--tint)}
-.course-explorer>summary{font-weight:600;cursor:pointer}
-.course-actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
-.course-tree{max-height:440px;overflow:auto;margin:12px 0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px}
-.course-node .course-node{margin:8px 0 8px 10px;padding-left:8px;border-left:1px solid var(--line)}
-.course-node label{display:inline-flex;gap:8px;align-items:flex-start;margin:4px 0;max-width:100%;color:var(--text);cursor:pointer}
-.course-node input{flex:none;margin-top:4px}
-.course-node span{overflow-wrap:anywhere}.course-node a,.course-node small{display:block;font-size:11px;margin:0 0 5px 24px}
-/* Keep deep module trees readable in a narrow sidebar; indentation is capped. */
-.course-node .course-node{margin-left:6px;padding-left:6px}
-.course-node .course-node .course-node .course-node{margin-left:0;padding-left:0;border-left:0}
-.course-node>summary{display:grid;grid-template-columns:12px minmax(0,1fr);gap:0 4px;list-style:none;cursor:pointer}
-.course-node>summary:before{content:"▸";grid-column:1;grid-row:1;margin-top:5px;color:var(--muted)}
-.course-node[open]>summary:before{content:"▾"}
-.course-node>summary>label{grid-column:2;min-width:0;font-weight:500}
-.course-node>summary :is(a,small){grid-column:2;margin-left:24px}
-.course-node span{min-width:0;overflow-wrap:break-word;word-break:normal}
+/* [UI] Course search: one selection bar, compact rows, the open link is an icon. */
+.panel-page #courseExplorer>label:first-child{margin-top:0}
+.course-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}
+.course-actions>button{margin:0}
+.course-actions>button.primary{flex:1 1 100%}
+.panel-page #courseResult{margin:4px 0 8px}
+.course-warnings .hint{margin:4px 0}
+.course-selbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 6px;font-size:var(--fs-small)}
+.course-selbar>span:first-child{font-weight:600}
+.course-selbar .danger{font-weight:600}
+.course-selbar button{margin:0}
+.course-tree{max-height:min(52vh,440px);overflow:auto;overscroll-behavior:contain;margin:0 0 12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:4px 0}
+.course-row{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:0 6px;align-items:start;padding:6px 10px}
+.course-node>summary{list-style:none;cursor:pointer}
+.course-node>summary::-webkit-details-marker{display:none}
+.course-node{margin:0}
+.course-node>summary:before{content:"";grid-column:1;width:6px;height:6px;margin:6px 0 0 2px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(-45deg)}
+.course-node[open]>summary:before{transform:rotate(45deg)}
+.course-row>label{grid-column:2;display:flex;gap:8px;align-items:flex-start;margin:0;min-width:0;color:var(--text);font-size:12.5px;font-weight:450;cursor:pointer}
+.course-node>summary>label{font-weight:600}
+.course-node input{flex:none;margin-top:2px}
+.course-node label>span{min-width:0;overflow-wrap:break-word}
+.course-node label small{display:block;font-size:var(--fs-meta);font-weight:400}
+.course-go{grid-column:3;font-size:12px;color:var(--muted);text-decoration:none;padding:0 2px;opacity:.7}
+.course-go:hover,.course-go:focus-visible{color:var(--text);opacity:1}
+/* Indentation is capped so deep trees stay readable in a narrow sidebar. */
+.course-node .course-node{margin-left:12px;border-left:1px solid var(--line)}
+.course-node .course-node .course-node .course-node{margin-left:0;border-left:0}
+.course-node:has(>.course-row>label>input:disabled){opacity:.6}

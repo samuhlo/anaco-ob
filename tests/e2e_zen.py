@@ -850,6 +850,8 @@ def main():
             return handle
         if args.course_links:
             c=capture({})
+            field('modeBatch').click();field('sourceCourse').click()
+            wait.until(lambda d:d.find_element(By.ID,'courseURL').is_displayed() and not d.find_element(By.ID,'batchURLs').is_displayed())
             field('courseURL').send_keys(url.replace('article.html','courses/42/modules#module_1'))
             field('courseStart').click()
             driver.set_context('chrome')
@@ -873,8 +875,17 @@ def main():
             driver.set_window_size(390,1000)
             driver.execute_script('document.querySelectorAll("#courseTree details").forEach(d=>d.open=true);document.getElementById("courseSelection").scrollIntoView()')
             assert driver.execute_script('return document.documentElement.scrollWidth<=innerWidth')
+            # Once links are listed, adding them is the only primary action.
+            primaries=[b.get_attribute('id') for b in driver.find_elements(By.CSS_SELECTOR,'#courseExplorer button.primary') if b.is_displayed()]
+            assert primaries==['courseUse'],primaries
+            assert field('courseUse').text=='Añadir 5 a la cola'
+            assert driver.find_element(By.ID,'courseCount').text=='5 de 5 elegidos'
+            assert not driver.find_elements(By.XPATH,'//*[@id="courseTree"]//a[contains(.,"Abrir enlace")]')
             driver.save_screenshot(str(out/'course-tree.png'))
             field('courseUse').click()
+            wait.until(lambda d:d.find_element(By.ID,'batchURLs').is_displayed())
+            assert driver.find_element(By.ID,'sourcePaste').get_attribute('aria-pressed')=='true'
+            assert field('batchStart').text=='Preparar 5 enlaces'
             links=driver.find_element(By.ID,'batchURLs').get_attribute('value').splitlines()
             assert len(links)==5 and len(set(links))==5,links
             assert any('/pages/nested' in v for v in links) and not any('/pages/locked' in v for v in links)
@@ -894,7 +905,7 @@ def main():
             wait.until(lambda d:review_status().get('canSave'))
             assert not driver.find_elements(By.CSS_SELECTOR,'#relations input:not(:disabled):not(:checked),#newRelations input:not(:disabled):not(:checked)')
             driver.save_screenshot(str(out/'all-relations.png'))
-            report={'passed':True,'canvas_pagination':True,'nested_pages':True,'locked_items_excluded':True,'session_preserved':True,'unique_selected_links':len(links),'selection_does_not_start_processing':True,'bulk_external_and_internal_relations':True}
+            report={'passed':True,'canvas_pagination':True,'nested_pages':True,'locked_items_excluded':True,'session_preserved':True,'unique_selected_links':len(links),'selection_does_not_start_processing':True,'single_primary_action':True,'selection_fills_paste_view':True,'bulk_external_and_internal_relations':True}
             (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
 
         if args.review_menu:

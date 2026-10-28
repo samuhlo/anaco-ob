@@ -450,16 +450,43 @@
     "message": "El catálogo del curso no está disponible con esta sesión."
   },
   "course_busy": {
-    "message": "Ya hay una exploración en curso. Deténla antes de iniciar otra."
+    "message": "Ya hay una búsqueda en curso. Detenla antes de iniciar otra."
   },
   "course_depth": {
-    "message": "Niveles de páginas internas"
+    "message": "Profundidad de la búsqueda"
+  },
+  "course_depth_1": {
+    "message": "Solo esta página"
+  },
+  "course_depth_3": {
+    "message": "3 niveles · recomendado"
+  },
+  "course_depth_5": {
+    "message": "5 niveles · curso grande"
   },
   "course_found": {
-    "message": "$1 páginas exploradas · $2 enlaces encontrados"
+    "message": "$1 páginas leídas · $2 enlaces"
   },
   "course_help": {
-    "message": "Explora módulos y páginas internas con tu sesión. Después elige qué enlaces preparar."
+    "message": "Busca módulos y páginas internas con tu sesión. Después eliges qué enlaces preparar."
+  },
+  "course_kind_file": {
+    "message": "Archivo"
+  },
+  "course_kind_group": {
+    "message": "$1 enlaces"
+  },
+  "course_kind_link": {
+    "message": "Enlace"
+  },
+  "course_kind_module": {
+    "message": "Módulo"
+  },
+  "course_kind_page": {
+    "message": "Página"
+  },
+  "course_kind_video": {
+    "message": "Vídeo"
   },
   "course_limit": {
     "message": "Resultados parciales: se alcanzó la profundidad elegida o el límite de 40 páginas y 500 enlaces. Puedes explorar un módulo concreto por separado."
@@ -470,47 +497,65 @@
   "course_locked": {
     "message": "Bloqueado en el curso"
   },
-  "course_open": {
-    "message": "Abrir enlace ↗"
-  },
   "course_open_course": {
     "message": "Abrir curso ↗"
   },
+  "course_open_title": {
+    "message": "Abrir en otra pestaña: $1"
+  },
   "course_paused": {
-    "message": "En pausa: $1 páginas · $2 enlaces encontrados"
+    "message": "$1 páginas leídas · $2 enlaces"
   },
   "course_resume": {
     "message": "Autorizar y continuar"
   },
   "course_scanning": {
-    "message": "Explorando: $1 páginas · $2 enlaces encontrados"
+    "message": "$1 páginas leídas · $2 enlaces"
   },
   "course_select_all": {
-    "message": "Seleccionar todos"
+    "message": "Todos"
   },
   "course_select_none": {
-    "message": "Desmarcar todos"
+    "message": "Ninguno"
   },
   "course_selection_count": {
-    "message": "$1 seleccionados · máximo $2 por lista"
+    "message": "$1 de $2 elegidos"
+  },
+  "course_selection_limit": {
+    "message": "$1 elegidos: el máximo por cola es $2"
   },
   "course_start": {
-    "message": "Explorar curso"
+    "message": "Buscar enlaces"
+  },
+  "course_start_again": {
+    "message": "Buscar de nuevo"
+  },
+  "course_state_done": {
+    "message": "Completa"
+  },
+  "course_state_partial": {
+    "message": "Parcial"
+  },
+  "course_state_paused": {
+    "message": "En pausa"
+  },
+  "course_state_running": {
+    "message": "Buscando"
   },
   "course_stop": {
-    "message": "Detener exploración"
+    "message": "Detener búsqueda"
   },
   "course_stopped": {
-    "message": "Exploración detenida. Puedes continuar después."
-  },
-  "course_title": {
-    "message": "Capturar enlaces de un curso"
+    "message": "Búsqueda detenida. Puedes continuar después."
   },
   "course_url": {
     "message": "Enlace del curso"
   },
   "course_use": {
-    "message": "Pasar seleccionados a la cola"
+    "message": "Añadir a la cola"
+  },
+  "course_use_count": {
+    "message": "Añadir $1 a la cola"
   },
   "detect_anaco_no_tiene_permiso_para_leer_esta_pa": {
     "message": "Anaco no tiene permiso para leer esta página ($1). Pulsa «Permitir lectura» o «Detectar contenido» para concederlo."
