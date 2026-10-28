@@ -33,8 +33,8 @@ Las entregas 0, 1, 2 y 3 forman el primer corte implementado. Sus PRs están abi
 | Integridad de capturas largas | Implementado, pendiente de revisión | [#17](https://github.com/samuhlo/anaco-ob/pull/17) |
 | Aislamiento de vaults | Implementado, pendiente de revisión | [#18](https://github.com/samuhlo/anaco-ob/pull/18) |
 | Procesos portables | Implementado, CI en tres sistemas superada | [#19](https://github.com/samuhlo/anaco-ob/pull/19) |
-| Rutas de lanzadores | Implementado, comprobando el lanzador Windows final | [#20](https://github.com/samuhlo/anaco-ob/pull/20) |
-| Recuperación de registros dañados | Implementado, pendiente de CI de la base | [#21](https://github.com/samuhlo/anaco-ob/pull/21) |
+| Rutas de lanzadores | Implementado, CI en tres sistemas superada | [#20](https://github.com/samuhlo/anaco-ob/pull/20) |
+| Recuperación de registros dañados | Implementado y probado en Zen, CI del último texto pendiente | [#21](https://github.com/samuhlo/anaco-ob/pull/21) |
 | Resto de entregas | Planificado | Pendiente |
 
 Validación local de la integración: 231 pruebas Python, 129 JavaScript, i18n correcto, ZIP construido y Mozilla sin errores, con las dos advertencias previas. Zen real supera el flujo de proveedor compatible en #16 y la cola de vídeos en la integración. El endurecimiento final para subidas antiguas se volvió a comprobar con las siete regresiones de aislamiento. Los estados de CI vigentes se consultan en cada PR.
