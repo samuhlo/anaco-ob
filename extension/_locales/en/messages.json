@@ -924,7 +924,7 @@
     "message": "Saved path"
   },
   "options_se_guarda_solo_en_el_servicio_local_de_t": {
-    "message": "It is stored only in the local service on your computer."
+    "message": "Stored only in the local service. When changing the base URL, enter the new server’s key; the previous key is not reused."
   },
   "options_se_leen_todas_las_paginas_del_libro_y_de": {
     "message": "Every page of the book is read and then synthesized together. Completed batches are kept if a retry is needed."

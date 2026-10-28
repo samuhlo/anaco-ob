@@ -136,7 +136,7 @@ async function loadAi(){
 function aiServices(){
   for(const service of AnacoObProviders.SERVICES)(service.local?$('aiLocal'):$('aiService')).add(new Option(service.name,service.id));
   $('aiLocalModel').value=AnacoObProviders.find('ollama').model;
-  $('aiService').onchange=keyLink;
+  $('aiService').onchange=()=>{$('aiKey').value='';keyLink();};
   $('aiLocal').onchange=()=>{$('aiLocalModel').value=AnacoObProviders.find($('aiLocal').value).model;};
   for(const input of document.querySelectorAll('input[name="ai"]'))input.addEventListener('change',aiDetails);
 }
@@ -147,7 +147,7 @@ $('saveAi').onclick=async()=>{
   if(kind==='service'||kind==='local'){
     const service=AnacoObProviders.find(kind==='service'?$('aiService').value:$('aiLocal').value);
     values={provider:'openai',api_base:service.base,api_model:kind==='local'?$('aiLocalModel').value.trim():service.model,api_vision_model:''};
-    // An empty key keeps the stored one; local servers need none.
+    // An empty key keeps the stored one only for the same endpoint.
     if(kind==='service')values.api_key=$('aiKey').value.trim();
   }
   $('saveAi').disabled=true;$('aiError').hidden=true;

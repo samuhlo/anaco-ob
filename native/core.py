@@ -60,6 +60,26 @@ def normalized_url(value):
     return urlunsplit((parsed.scheme, parsed.netloc.lower(), parsed.path or "/", urlencode(sorted(query)), ""))
 
 
+def api_endpoint(value):
+    """Canonical credential scope: scheme, host, port and exact API base path."""
+    try:
+        if not isinstance(value, str) or len(value) > 500 or re.search(r"\s", value):
+            raise ValueError
+        parsed = urlsplit(value)
+        if (parsed.scheme not in ('http', 'https') or not parsed.hostname
+                or parsed.username is not None or parsed.password is not None
+                or parsed.query or parsed.fragment):
+            raise ValueError
+        host = parsed.hostname.encode('idna').decode().lower()
+        host = '[' + host + ']' if ':' in host else host
+        port = parsed.port
+        if port is not None and port != (443 if parsed.scheme == 'https' else 80):
+            host += ':' + str(port)
+        return urlunsplit((parsed.scheme, host, parsed.path.rstrip('/'), '', ''))
+    except (ValueError, UnicodeError) as exc:
+        raise UserError('La URL base de la IA debe ser http o https, con un servidor válido y sin credenciales, parámetros ni fragmentos.') from exc
+
+
 def safe_path(vault, relative):
     relative = clean(relative, 1000)
     parts = PurePosixPath(relative)
@@ -238,6 +258,7 @@ class App:
 
     def set_config(self, values):
         cfg = self.config()
+        previous_endpoint = cfg['api_base']
         for key in ("vault", "vault_mode", "note_structure", "model", "reading_model", "vision_model", "reasoning_effort", "describe_images", "vision_policy", "reader_batch_pages", "pdf_page_limit", "pdf_visual_pages", "video_minutes", "video_frames", "asr_model", "provider", "api_base", "api_model", "api_vision_model", "note_language"):
             if key in values:
                 cfg[key] = values[key]
@@ -267,8 +288,13 @@ class App:
         cfg["vault"] = str(vault)
         if cfg["provider"] not in PROVIDERS:
             raise UserError("Proveedor desconocido.")
-        if not re.fullmatch(r"https?://[^\s]+", clean(cfg["api_base"], 500)):
-            raise UserError("La URL base de la IA debe empezar por http:// o https://.")
+        cfg['api_base'] = api_endpoint(cfg['api_base'])
+        try:
+            same_endpoint = api_endpoint(previous_endpoint) == cfg['api_base']
+        except UserError:
+            same_endpoint = False
+        if not same_endpoint and not values.get('api_key'):
+            cfg.pop('api_key', None)
         for key in ("api_model", "api_vision_model"):
             if cfg[key] and not re.fullmatch(r"[\w.:/@+-]{1,120}", clean(cfg[key], 200)):
                 raise UserError("Identificador de modelo no válido.")

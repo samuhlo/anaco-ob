@@ -924,7 +924,7 @@
     "message": "Ruta guardada"
   },
   "options_se_guarda_solo_en_el_servicio_local_de_t": {
-    "message": "Se guarda solo en el servicio local de tu ordenador."
+    "message": "Se guarda solo en el servicio local. Al cambiar la URL base, introduce la clave del nuevo servidor; la anterior no se reutiliza."
   },
   "options_se_leen_todas_las_paginas_del_libro_y_de": {
     "message": "Se leen todas las páginas del libro y después se sintetizan juntas. Los lotes completados se conservan si hay que reintentar."

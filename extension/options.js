@@ -129,7 +129,11 @@ $("api_service").addEventListener("change", () => {
   }
   serviceHint();
 });
-$("api_base").addEventListener("input", event => { if (event.isTrusted) { $("api_service").value = AnacoObProviders.match($("api_base").value); serviceHint(); } });
+$("api_base").addEventListener("input", event => {
+  // A key entered for one destination must not travel with a later URL change.
+  $("api_key").value = "";
+  if (event.isTrusted) { $("api_service").value = AnacoObProviders.match($("api_base").value); serviceHint(); }
+});
 function applyProvider() {
   $("api_service").value = AnacoObProviders.match($("api_base").value);
   serviceHint();
