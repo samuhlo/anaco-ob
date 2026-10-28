@@ -1851,7 +1851,7 @@
     "message": "Trabajo"
   },
   "recovery_notice": {
-    "message": "No se pueden leer $1 registros locales. Sus archivos originales siguen guardados. Puedes continuar con las demás capturas y volver a capturar las fuentes afectadas."
+    "message": "Registros locales que no se pueden leer: $1. Sus archivos originales siguen guardados. Puedes continuar con las demás capturas y volver a capturar las fuentes afectadas."
   },
   "recovery_unknown_id": {
     "message": "sin identificador verificable"

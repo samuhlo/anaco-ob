@@ -371,7 +371,7 @@ def main():
             field('refresh').click()
             wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'.pending-dismiss'))==5)
             wait.until(lambda d:d.find_element(By.ID,'storageNotice').is_displayed())
-            assert '1 registros locales' in driver.find_element(By.ID,'storageNoticeText').text
+            assert 'no se pueden leer: 1' in driver.find_element(By.ID,'storageNoticeText').text
             assert damaged_capture_path.read_bytes()==b'{broken'
             capture_selector=f'[data-capture="{pending_capture["id"]}"]'
             job_selector=f'[data-job="{"b"*32}"]'

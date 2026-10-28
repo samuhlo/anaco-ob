@@ -1851,7 +1851,7 @@
     "message": "Job"
   },
   "recovery_notice": {
-    "message": "Cannot read $1 local records. Their original files are still saved. You can continue with the other captures and capture the affected sources again."
+    "message": "Unreadable local records: $1. Their original files are still saved. You can continue with the other captures and capture the affected sources again."
   },
   "recovery_unknown_id": {
     "message": "with no verifiable identifier"
