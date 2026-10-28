@@ -43,8 +43,14 @@ def uninstall(args):
 def doctor(args):
     """Print what is installed and what is missing, with the fix for each."""
     checks = [("Python " + ".".join(map(str, sys.version_info[:3])), sys.version_info >= (3, 11), "Instala Python 3.11 o superior.")]
-    launcher = Path(args.state) / ("native-host.bat" if installer.system() == "win32" else "native-host")
-    checks.append(("Servicio registrado", launcher.exists(), "Ejecuta: anaco-ob install"))
+    launcher = Path(args.state) / "native-host"
+    if installer.system() == "win32":
+        try:
+            manifest = json.loads((Path(args.state) / (installer.HOST_NAME + '.json')).read_text(encoding='utf-8'))
+            launcher = Path(manifest['path'])
+        except (OSError, ValueError, KeyError, TypeError):
+            launcher = Path(args.state) / 'native-host.bat'
+    checks.append(("Servicio registrado", launcher.is_file(), "Ejecuta: anaco-ob install"))
     checks.append(("Codex (IA con ChatGPT)", bool(shutil.which("codex")), "Opcional: instala Codex y ejecuta 'codex login', o usa otro proveedor."))
     for tool, purpose in (("pdftotext", "PDF"), ("ffmpeg", "vídeo y audio"), ("yt-dlp", "vídeos de plataformas")):
         checks.append((f"{tool} ({purpose})", bool(shutil.which(tool)), f"Opcional: instala {tool} para {purpose}."))

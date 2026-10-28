@@ -39,7 +39,7 @@ El paquete `anaco-ob` (`pyproject.toml`) incluye los módulos de `native/` y el 
 | :--- | :--- | :--- |
 | **Linux** | `$XDG_DATA_HOME/anaco-ob` o `~/.local/share/anaco-ob` | `~/.mozilla/native-messaging-hosts/` y `~/.config/zen/native-messaging-hosts/` |
 | **macOS** | `~/Library/Application Support/anaco-ob` | `~/Library/Application Support/Mozilla/NativeMessagingHosts/` y `…/zen/NativeMessagingHosts/` |
-| **Windows** | `%APPDATA%\anaco-ob` | `HKCU\Software\Mozilla\NativeMessagingHosts\org.samuh.anaco_ob` y lanzador `.bat` |
+| **Windows** | `%APPDATA%\anaco-ob` | `HKCU\Software\Mozilla\NativeMessagingHosts\org.samuh.anaco_ob` y lanzador `.exe` |
 
 La bienvenida ofrece una sola línea: `scripts/install.sh` (Linux y macOS) o `scripts/install.ps1` (Windows). Instalan `uv` si falta, que trae su propio Python, después el paquete desde el zip del repositorio (sin git) con `uv tool install --python 3.12`, lo añaden al PATH y ejecutan `anaco-ob install`. `ANACO_OB_SOURCE` cambia el origen del paquete. La extensión no puede ejecutar programas: la página espera consultando `settings` cada 3 s, que responde aunque falte el vault.
 
@@ -93,6 +93,8 @@ La salida JSONL del transcriptor se lee mediante un hilo y una cola acotada, com
 
 ## Rutas de los lanzadores
 
-El lanzador POSIX escapa cada argumento con `shlex.quote`, de modo que dólares, acentos graves y comillas de una ruta no se ejecutan como shell. El lanzador Windows mantiene un `.bat` ASCII con expansión retardada desactivada y usa PowerShell sin perfil para arrancar Python mediante `ProcessStartInfo`, pasando rutas Unicode como datos. Copia los streams binarios con `CopyToAsync` y cierra la entrada del hijo al llegar a EOF. No utiliza una tubería de objetos de PowerShell para transportar mensajes. Las pruebas y el smoke instalado poseen también el árbol completo del lanzador, de modo que un timeout no deja hijos bloqueando los pipes.
+El lanzador POSIX escapa cada argumento con `shlex.quote`, de modo que dólares, acentos graves y comillas de una ruta no se ejecutan como shell. En Windows el instalador genera un ejecutable .NET pequeño, con rutas Unicode como datos y copias asíncronas de stdin/stdout/stderr binarios, vaciando cada mensaje y cerrando la entrada al llegar a EOF. No intervienen cmd.exe ni PowerShell en la comunicación con el navegador. Las rutas pueden contener `%` y `!` sin expansión.
 
-Windows no admite `%` ni `!` en la carpeta de datos que contiene el `.bat`: `cmd.exe` puede expandirlos antes de entrar en el script. El instalador lo rechaza antes de escribir el lanzador y permite elegir otra carpeta con `anaco-ob --state RUTA install`. Las rutas de Python y del módulo host sí se transportan literalmente, incluidos esos caracteres. La CI añade una transferencia binaria a través del lanzador real en los tres sistemas, con rutas de prueba que incluyen espacios, Unicode y metacaracteres.
+Windows PowerShell y .NET Framework se usan únicamente para compilar ese ejecutable durante la instalación. Su nombre incluye un hash de su fuente y rutas: una reinstalación idéntica lo reutiliza y una actualización crea otro nombre para no reemplazar un ejecutable abierto. El manifiesto apunta al ejecutable correspondiente y `doctor` comprueba ese destino. La desinstalación retira los ejecutables con el nombre generado y el lanzador antiguo `.bat`.
+
+La CI prueba bytes 0–255, mensajes persistentes antes de cerrar stdin, espacios, Unicode y metacaracteres a través del lanzador real. Las pruebas y el smoke instalado poseen el árbol completo del lanzador para que un timeout no deje hijos reteniendo pipes.

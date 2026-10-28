@@ -1,10 +1,10 @@
 import json
-import base64
 import os
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "native"))
 from installer import default_state, install, uninstall, HOST_NAME, EXTENSION_ID
@@ -27,6 +27,10 @@ class InstallerTest(unittest.TestCase):
         self.home = Path(self.temp.name) / "home"
         self.home.mkdir()
         self.state = Path(self.temp.name) / "state"
+        if os.name != 'nt':
+            fake = patch('windows_launcher.compile_launcher', side_effect=lambda source, target: target.write_bytes(b'MZ fixture'))
+            fake.start()
+            self.addCleanup(fake.stop)
 
     def tearDown(self):
         self.temp.cleanup()
@@ -59,12 +63,12 @@ class InstallerTest(unittest.TestCase):
         for folder in ("Library/Application Support/Mozilla/NativeMessagingHosts", "Library/Application Support/zen/NativeMessagingHosts"):
             self.check_manifest(self.home / folder / f"{HOST_NAME}.json", self.state / "native-host")
 
-    def test_windows_uses_a_batch_launcher_and_the_user_registry(self):
+    def test_windows_uses_a_native_launcher_and_the_user_registry(self):
         registry = FakeRegistry()
         result = install(self.state, platform="win32", home=self.home, registry=registry)
-        launcher = self.state / "native-host.bat"
-        payload = launcher.read_text().split('-EncodedCommand ', 1)[1].splitlines()[0]
-        self.assertIn('ANACO_OB_STATE', base64.b64decode(payload).decode('utf-16-le'))
+        launcher = Path(result['launcher'])
+        self.assertEqual(launcher.suffix, '.exe')
+        self.assertEqual(launcher.read_bytes()[:2], b'MZ')
         manifest = self.state / f"{HOST_NAME}.json"
         self.check_manifest(manifest, launcher)
         self.assertEqual(Path(registry.values[rf"Software\Mozilla\NativeMessagingHosts\{HOST_NAME}"]).resolve(), manifest.resolve())

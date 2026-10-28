@@ -4,12 +4,11 @@ Writes a launcher and the Native Messaging manifests for the current user only.
 Never touches browser profiles or vault notes.
 """
 import json
-import base64
 import os
 from pathlib import Path
 import shutil
 import shlex
-import subprocess
+import re
 import sys
 
 HOST_NAME = "org.samuh.anaco_ob"
@@ -58,41 +57,8 @@ def launcher(state, platform=None):
     host = Path(__file__).resolve().with_name("host.py")
     state = Path(state).resolve()
     if system(platform) == "win32":
-        # The browser starts the batch through cmd.exe before our script runs.
-        # Expansion in the entry-point path cannot be escaped by the script.
-        if any(char in str(state) for char in '%!\r\n'):
-            raise ValueError('La carpeta de datos de Windows no puede contener % ni !. Elige otra con anaco-ob --state RUTA install.')
-        path = state / "native-host.bat"
-        # cmd.exe must never parse literal installation paths (% and ! expand
-        # even inside quotes). Keep the batch ASCII and launch through the
-        # Unicode ProcessStartInfo API with explicit binary stream forwarding.
-        literal = lambda value: "'" + str(value).replace("'", "''") + "'"
-        script = (
-            "$ErrorActionPreference='Stop';"
-            "$info=New-Object System.Diagnostics.ProcessStartInfo;"
-            f"$info.FileName={literal(sys.executable)};"
-            f"$info.Arguments={literal(subprocess.list2cmdline([str(host)]))};"
-            "$info.UseShellExecute=$false;$info.CreateNoWindow=$true;"
-            "$info.RedirectStandardInput=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;"
-            f"$info.EnvironmentVariables['ANACO_OB_STATE']={literal(state)};"
-            "$child=[System.Diagnostics.Process]::Start($info);"
-            # Buffer size 1 prevents a small native message waiting for EOF or
-            # another 4 KB of input before reaching the persistent Python host.
-            "$inputPipe=New-Object System.IO.FileStream($child.StandardInput.BaseStream.SafeFileHandle,[System.IO.FileAccess]::Write,1,$false);"
-            "$inputCopy=[Console]::OpenStandardInput().CopyToAsync($inputPipe);"
-            "$outputCopy=$child.StandardOutput.BaseStream.CopyToAsync([Console]::OpenStandardOutput());"
-            "$errorCopy=$child.StandardError.BaseStream.CopyToAsync([Console]::OpenStandardError());"
-            "$inputClosed=$false;"
-            "while(-not $child.HasExited){"
-            "if(-not $inputClosed -and $inputCopy.IsCompleted){$inputPipe.Dispose();$child.StandardInput.Close();$inputClosed=$true;}"
-            "$null=$child.WaitForExit(50);}"
-            "$outputCopy.GetAwaiter().GetResult();$errorCopy.GetAwaiter().GetResult();exit $child.ExitCode"
-        )
-        encoded = base64.b64encode(script.encode('utf-16-le')).decode('ascii')
-        path.write_bytes(('@echo off\r\nsetlocal DisableDelayedExpansion\r\n'
-                          '"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" '
-                          '-NoLogo -NoProfile -NonInteractive -EncodedCommand ' + encoded +
-                          '\r\nexit /b %errorlevel%\r\n').encode('ascii'))
+        from windows_launcher import launcher as windows_launcher
+        return windows_launcher(state, sys.executable, host)
     else:
         path = state / "native-host"
         quote = lambda value: shlex.quote(str(value))
@@ -138,7 +104,9 @@ def uninstall(state, platform=None, home=None, registry=None, purge=False):
         targets = [state / f"{HOST_NAME}.json"]
     else:
         targets = [home / folder / f"{HOST_NAME}.json" for folder in FOLDERS[kind]]
-    for target in targets + [state / "native-host", state / "native-host.bat"]:
+    executables = [path for path in state.glob('native-host-*.exe')
+                   if re.fullmatch(r'native-host-[a-f0-9]{16}\.exe', path.name)]
+    for target in targets + [state / "native-host", state / "native-host.bat"] + executables:
         if target.exists():
             target.unlink()
             removed.append(str(target))
