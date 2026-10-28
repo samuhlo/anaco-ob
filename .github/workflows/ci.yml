@@ -59,6 +59,23 @@ jobs:
       - run: python scripts/smoke_native_host.py
       - run: anaco-ob uninstall --purge
 
+  process-lifecycle:
+    # Exercise real process trees and JSONL pipes, not just installation.
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m unittest discover -s tests -p test_processes.py -v
+      - run: python -m unittest discover -s tests -p test_transcription_progress.py -v
+
   bootstrap:
     # The one-line install shown on the welcome page, from this checkout, on each system.
     runs-on: ${{ matrix.os }}

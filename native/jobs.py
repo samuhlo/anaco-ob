@@ -3,11 +3,11 @@ import json
 import os
 from pathlib import Path
 import re
-import signal
 import subprocess
 import time
 from core import UserError,json_dump
 from translation import t
+from processes import ManagedProcess, process_info
 
 class Cancelled(UserError):
     def __init__(self):super().__init__(t('Trabajo cancelado. Puedes reanudarlo desde Trabajos recuperables.'))
@@ -15,12 +15,9 @@ class Cancelled(UserError):
 def running(value):
     if value.get('status')!='running':return False
     pid=value.get('pid')
-    if not isinstance(pid,int) or pid<=0:return False
-    try:os.kill(pid,0)
-    except ProcessLookupError:return False
-    except PermissionError:return True
-    except (OSError,ValueError):return False
-    return True
+    alive, identity = process_info(pid)
+    expected = value.get('process_identity')
+    return alive and (not expected or not identity or expected == identity)
 
 class Job:
     def __init__(self,app,identifier):
@@ -39,7 +36,7 @@ class Job:
     def check_vault(self):
         if self.vault != str(self.app.vault()):raise UserError('El trabajo pertenece a otro vault.')
     def start(self,message):
-        self.check_vault();self.check();self.update(status='running',pid=os.getpid(),action=message.get('action'),request={k:v for k,v in message.items() if k not in ('requestId','data','capture')})
+        self.check_vault();self.check();self.update(status='running',pid=os.getpid(),process_identity=process_info(os.getpid())[1],action=message.get('action'),request={k:v for k,v in message.items() if k not in ('requestId','data','capture')})
     def cancel(self):
         self.check_vault();self.load();(self.directory/'cancel').touch(mode=0o600);return {'cancel_requested':True}
     def assert_inactive(self):
@@ -79,9 +76,8 @@ def pending(app):
 
 def run_command(command,check,timeout=300,input=None,text=False):
     """Kill the process group, including downloader/ffmpeg children, on cancellation."""
-    process=subprocess.Popen(command,stdin=subprocess.PIPE if input is not None else None,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=text,start_new_session=True)
     deadline=time.monotonic()+timeout;data=input
-    try:
+    with ManagedProcess(command,stdin=subprocess.PIPE if input is not None else subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=text) as process:
         while True:
             check()
             if time.monotonic()>deadline:raise subprocess.TimeoutExpired(command,timeout)
@@ -89,6 +85,3 @@ def run_command(command,check,timeout=300,input=None,text=False):
                 out,err=process.communicate(input=data,timeout=min(.2,max(.01,deadline-time.monotonic())))
                 return subprocess.CompletedProcess(command,process.returncode,out,err)
             except subprocess.TimeoutExpired:data=None
-    finally:
-        if process.poll() is None:
-            os.killpg(process.pid,signal.SIGKILL);process.communicate()
