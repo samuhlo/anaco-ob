@@ -1,0 +1,1 @@
+Anaco 1.3.2 adds daily and manual update checks, a sidebar notice and an Updates section in Options. Update the extension through Mozilla and the local service from the plugin while keeping your data. Automatic checks can be disabled. Older companion versions need a one-time upgrade to 1.3.2 using the installation guide to enable in-plugin service updates.

@@ -1093,3 +1093,11 @@ Se fusionan las siete PR en `main`, en orden de dependencia y con sus CI individ
 La matriz de CI incluye extensión, servicio Python 3.12/3.13, instalación y bootstrap en Linux/macOS/Windows y procesos/lanzadores en esos tres sistemas con Python 3.11/3.13. El estado del commit de publicación se consulta en [GitHub Actions](https://github.com/samuhlo/anaco-ob/actions/workflows/ci.yml).
 
 Esta beta se publica como prerelease de GitHub con ZIP sin firma de Mozilla, fuentes y SHA-256. Los límites pendientes A06/A07/A09/A12/A13/A14/A15/A16 siguen en el [plan de estabilización](PLAN_ESTABILIZACION.md); estas pruebas no los declaran resueltos ni evalúan calidad editorial con proveedores reales.
+
+## 1.3.2 · actualizaciones (2026-10-30)
+
+- 139 pruebas Node y 261 pruebas Python (una omitida); comprobación de catálogos bilingües sin problemas.
+- Actualizador: versiones numéricas, exclusión de prereleases y tags ajenos, ausencia de release estable, opt-out y caché diaria, fallo de red, migración del servicio antiguo, bloqueo durante trabajo y peticiones pendientes, reconexión, exclusión mutua, fallo de descarga, versión instalada incorrecta y restauración del registro tras fallo.
+- `python scripts/smoke_updater.py`: instalación real del paquete local en un entorno separado, cambio del lanzador y respuesta Native Messaging con la versión 1.3.2; configuración intacta. Fuente y HOME de registro aislados. Esta prueba local es Linux; la matriz multiplataforma del instalador sigue en CI.
+- `.venv/bin/python scripts/smoke_updates_ui.py`: Zen real con HOME, perfil y vault temporales; consulta manual con metadatos controlados, conexión nativa real, botones de ambas piezas, desactivación persistente, aviso en el panel, error de red y diseño sin desbordamiento a 420 px. Capturas en `.test-artifacts/updates/`.
+- Validador Mozilla: cero errores; permanecen las dos advertencias previas (Android y DOMPurify). La publicación de GitHub contiene un ZIP sin firma; publicar la extensión firmada en AMO es un paso separado.

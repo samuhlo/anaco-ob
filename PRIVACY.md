@@ -1,6 +1,6 @@
 # Política de privacidad · Privacy policy
 
-_Última actualización · Last updated: 2026-10-28_
+_Última actualización · Last updated: 2026-10-30_
 
 ## Español
 
@@ -15,7 +15,7 @@ Anaco no tiene servidores propios y no recoge estadísticas, telemetría ni iden
 
 **Cuándo salen datos de tu ordenador**
 
-Solo si eliges un proveedor de IA:
+El contenido de las capturas y notas solo se envía si eliges un proveedor de IA:
 
 - **Codex (ChatGPT).** Se envían a OpenAI, con tu sesión de Codex, la captura que preparas, fragmentos de las notas candidatas para relacionarlas y los documentos de instrucciones que el perfil del vault selecciona. Al pedir una propuesta de perfil con IA se envían estadísticas agregadas del vault y los documentos que marques.
 - **Proveedor compatible con OpenAI.** Lo mismo, al servicio que configures (Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter u otro). Si es un modelo local, como Ollama o LM Studio, nada sale de tu ordenador. La clave API se guarda solo en la configuración del servicio local y la extensión no la recibe. Al cambiar la URL base se elimina la clave anterior salvo que introduzcas una nueva. Las peticiones de IA no siguen redirecciones.
@@ -24,6 +24,8 @@ Solo si eliges un proveedor de IA:
 Cada proveedor trata esos datos según sus propias condiciones. Las descargas que pides (imágenes, clips, PDF, demos de CodePen y sus librerías) se hacen directamente desde tu navegador a su origen.
 
 **Exploración de cursos.** Al solicitarla, Anaco lee el catálogo de módulos y las páginas internas enlazadas con la sesión del navegador. Guarda localmente títulos, enlaces, jerarquía y selección. Esa exploración no envía contenido a la IA; la preparación empieza solo cuando eliges los enlaces y la solicitas.
+
+**Actualizaciones.** Por defecto se consulta una vez al día la información pública de versiones en addons.mozilla.org y api.github.com, sin cookies, capturas, notas, claves ni identificadores de uso. Esos servidores reciben los datos de conexión normales (por ejemplo, tu IP). Puedes desactivar la comprobación automática en Opciones y buscar manualmente. Solo al pulsar actualizar se abre Mozilla para instalar la extensión o se descarga el servicio desde GitHub; el gestor de paquetes también puede descargar herramientas de construcción desde PyPI. Los entornos del servicio se guardan en `runtimes/` dentro de su carpeta de datos. El entorno anterior se conserva.
 
 **Dónde se guardan**
 
@@ -50,7 +52,7 @@ Anaco has no servers of its own and collects no analytics, telemetry or usage id
 
 **When data leaves your computer**
 
-Only if you choose an AI provider:
+Capture and note content is sent only if you choose an AI provider:
 
 - **Codex (ChatGPT).** The capture you prepare, excerpts of candidate notes to relate them and the instruction documents selected by the vault profile are sent to OpenAI through your Codex session. Asking the AI for a vault profile sends aggregated vault statistics and the documents you select.
 - **OpenAI-compatible provider.** The same, to the service you configure (Claude, Gemini, OpenAI, MiniMax, Qwen, OpenRouter or another). With a local model such as Ollama or LM Studio, nothing leaves your computer. The API key is stored only in the local service settings and never reaches the extension. Changing the base URL removes the previous key unless you enter a new one. AI requests do not follow redirects.
@@ -59,6 +61,8 @@ Only if you choose an AI provider:
 Each provider handles that data under its own terms. The downloads you request (images, clips, PDF, CodePen demos and their libraries) go directly from your browser to their source.
 
 **Course exploration.** When requested, Anaco reads the module catalog and linked internal pages using the browser session. Titles, links, hierarchy and selections are stored locally. Exploration does not send content to AI; preparation starts only when you select the links and request it.
+
+**Updates.** By default, public release metadata is checked once a day at addons.mozilla.org and api.github.com, without cookies, captures, notes, keys or usage identifiers. These servers receive normal connection data (such as your IP address). You can disable automatic checks in Options and check manually. Only clicking update opens Mozilla to install the extension or downloads the service from GitHub; the package manager may also download build tools from PyPI. Service environments are stored under `runtimes/` in the service data folder. The previous environment is retained.
 
 **Where it is stored**
 

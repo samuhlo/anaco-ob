@@ -7,7 +7,7 @@
 <br /><br />
 
   <img src="https://img.shields.io/badge/STATUS-BETA-FFCA40?style=for-the-badge&labelColor=000000" alt="Status" />
-  <img src="https://img.shields.io/badge/VERSIÓN-1.3.1_BETA_1-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
+  <img src="https://img.shields.io/badge/VERSIÓN-1.3.2-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
   <img src="https://img.shields.io/badge/LICENCIA-MIT-FFCA40?style=for-the-badge&labelColor=000000" alt="Licencia MIT" />
   <br/>
   <img src="https://img.shields.io/badge/Zen_·_Firefox-0C0011?style=for-the-badge&logo=firefoxbrowser&logoColor=FFCA40&labelColor=000000" alt="Zen y Firefox" />
@@ -19,7 +19,7 @@
   <img src="https://img.shields.io/badge/Whisper_local-0C0011?style=for-the-badge&labelColor=000000" alt="Whisper local" />
   <br/><br/>
 
-[Descargar beta 1.3.1](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.1-beta.1) ·
+[Descargar 1.3.2](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.2) ·
 [Guía de prueba](PRUEBA.md) ·
 [Historial](docs/HISTORIAL.md) ·
 [Validación](docs/VALIDACION.md) ·
@@ -128,23 +128,25 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 
 ## // 06_ INICIO_RÁPIDO
 
-### Beta 1.3.1 · primera entrega de estabilización
+### 1.3.2 · actualizaciones desde Anaco
 
-La [beta 1.3.1](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.1-beta.1) incorpora las PR [#15–#21](docs/PLAN_ESTABILIZACION.md): protege las claves al cambiar de servidor de IA y bloquea redirecciones, conserva las capturas manuales largas y la identidad completa de las transcripciones, mantiene cada cola y subida en su vault de origen, corrige procesos y lanzadores en Windows/macOS/Linux y permite seguir trabajando cuando hay registros dañados.
+**Opciones → Actualizaciones** muestra las versiones de la extensión y el servicio local. Anaco consulta cada día los canales estables de Mozilla y GitHub y avisa en el panel cuando hay una versión nueva. Puedes desactivar las consultas automáticas o usar **Buscar actualizaciones**.
 
-La extensión y el servicio usan la versión **1.3.1**; el tag **v1.3.1-beta.1** identifica esta prerelease. El ZIP de GitHub **no está firmado por Mozilla**: para probarlo, descomprímelo y carga su `manifest.json` desde `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal**. La carga temporal dura hasta cerrar el navegador. El canal de AMO se instala desde la ficha enlazada debajo.
+**Actualizar extensión** abre Mozilla Add-ons para completar la instalación con la confirmación del navegador. **Actualizar servicio local** instala la versión estable de GitHub en un entorno separado, comprueba la versión y reconecta el navegador. Conserva configuración, capturas, transcripciones y notas; espera a que termine cualquier trabajo antes de actualizar. Si falla la descarga o la comprobación, sigue disponible el servicio anterior.
 
-Actualiza también el servicio a la misma beta. Con [uv](https://docs.astral.sh/uv/) instalado, estas órdenes sirven en Linux, macOS y PowerShell y fijan el código al tag de la entrega:
+La extensión y el servicio usan **1.3.2**. El ZIP de GitHub **no está firmado por Mozilla**: para probarlo, descomprímelo y carga su `manifest.json` desde `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal**. La carga temporal dura hasta cerrar el navegador. La versión firmada se instala desde AMO cuando esté publicada allí.
+
+Si tu servicio es anterior a 1.3.2, actualízalo una vez desde la guía de instalación o con estas órdenes. Las siguientes actualizaciones ya se pueden iniciar desde Opciones:
 
 ```sh
-uv tool install --force --python 3.12 "anaco-ob @ https://github.com/samuhlo/anaco-ob/archive/refs/tags/v1.3.1-beta.1.zip"
+uv tool install --force --python 3.12 "anaco-ob @ https://github.com/samuhlo/anaco-ob/archive/refs/tags/v1.3.2.zip"
 anaco-ob install
 anaco-ob doctor
 ```
 
 Se conservan configuración, capturas y notas. Las colas antiguas sin vault registrado requieren crear otra cola con sus enlaces; las subidas antiguas requieren volver a importar. Sus archivos se conservan. Si cambias de servidor de IA, introduce de nuevo la clave para ese destino. En Windows, el instalador necesita Windows PowerShell y .NET Framework para generar el lanzador local.
 
-**Límites conocidos de la beta:** siguen pendientes los índices con CRLF y su inclusión en la revisión, la selección explícita del proveedor en herramientas de revisión, la cancelación inmediata de peticiones al proveedor compatible, mejoras de accesibilidad, limpieza de almacenamiento y búsqueda incremental. La bienvenida todavía instala desde `main`; usa las órdenes anteriores para fijar esta beta. Consulta el [plan de estabilización](docs/PLAN_ESTABILIZACION.md) antes de probarla con tu vault habitual.
+**Límites conocidos:** siguen pendientes los índices con CRLF y su inclusión en la revisión, la selección explícita del proveedor en herramientas de revisión, la cancelación inmediata de peticiones al proveedor compatible, mejoras de accesibilidad, limpieza de almacenamiento y búsqueda incremental. La bienvenida todavía instala desde `main`; usa las órdenes anteriores para fijar esta versión. Consulta el [plan de estabilización](docs/PLAN_ESTABILIZACION.md) antes de probarla con tu vault habitual.
 
 ### Instalación desde Mozilla Add-ons
 
@@ -207,7 +209,7 @@ docs/          # Historial, validación, notas técnicas y capturas
 
 ## // 08_ TESTS · DOCS · ESTADO · LICENCIA
 
-- **Estado:** [1.3.1 beta 1 en GitHub](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.1-beta.1), con extensión y fuentes verificables. El complemento firmado se distribuye por [Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/). Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
+- **Estado:** [1.3.2 en GitHub](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.2), con extensión y fuentes verificables. El complemento firmado se distribuye por [Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/). Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
 - **Docs:** [plan de estabilización](docs/PLAN_ESTABILIZACION.md), [guía de prueba](PRUEBA.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md), [contrato editorial de la IA](skills/anaco-ob/SKILL.md) y [publicación en AMO](docs/amo/README.md).
 - **Licencia:** [MIT](LICENSE).
 

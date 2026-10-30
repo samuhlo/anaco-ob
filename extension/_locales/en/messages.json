@@ -2521,5 +2521,74 @@
   },
   "welcome_ya_la_tengo": {
     "message": "I already have it"
+  },
+  "updates_title": {
+    "message": "Updates"
+  },
+  "updates_extension": {
+    "message": "Extension"
+  },
+  "updates_service": {
+    "message": "Local service"
+  },
+  "updates_help": {
+    "message": "The extension updates through Mozilla with browser confirmation. The local service installs from the latest stable GitHub release and keeps your data."
+  },
+  "updates_auto": {
+    "message": "Check for updates automatically every day"
+  },
+  "updates_privacy": {
+    "message": "Checks with Mozilla and GitHub do not send your captures, notes or keys. You can turn them off and check manually."
+  },
+  "updates_check": {
+    "message": "Check for updates"
+  },
+  "updates_install_extension": {
+    "message": "Update extension ↗"
+  },
+  "updates_install_service": {
+    "message": "Update local service"
+  },
+  "updates_migration": {
+    "message": "To enable service updates, install version 1.3.2 or later once using the installation guide."
+  },
+  "updates_view": {
+    "message": "View updates ↗"
+  },
+  "updates_available": {
+    "message": "Anaco updates are available."
+  },
+  "updates_busy": {
+    "message": "Wait for the current work to finish before updating."
+  },
+  "updates_check_first": {
+    "message": "Check for updates before installing."
+  },
+  "updates_reconnect": {
+    "message": "The updated service is not responding yet. Restart the browser and check again."
+  },
+  "updates_installing": {
+    "message": "Updating the local service… This may take several minutes."
+  },
+  "updates_unknown": {
+    "message": "Unavailable"
+  },
+  "updates_check_error": {
+    "message": "Could not check. Try again."
+  },
+  "updates_current": {
+    "message": "Up to date"
+  },
+  "updates_unpublished": {
+    "message": "No stable release published"
+  },
+  "updates_checking": {
+    "message": "Checking for updates…"
+  },
+  "updates_checked": {
+    "message": "Last checked: $1"
+  },
+  "updates_not_checked": {
+    "message": "Updates have not been checked yet."
   }
 }

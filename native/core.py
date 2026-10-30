@@ -25,7 +25,7 @@ DEFAULT_VAULT = Path.home() / "Second_Brain"
 from installer import default_state
 from translation import n, set_language, set_note_language, t, writing_rule
 # Must match extension/manifest.json: the panel compares them to spot an outdated service.
-VERSION = "1.3.1"
+VERSION = "1.3.2"
 STATE = Path(os.environ.get("ANACO_OB_STATE") or os.environ.get("ZEN_BRAIN_STATE") or default_state())
 STOP = set("para como este esta esto estas estos sobre desde entre donde cuando porque pero una uno unos unas del los las por con sin que sus son ser mas muy hay the and for with from that this into your you have has not".split())
 
@@ -894,6 +894,12 @@ class App:
         except Exception:
             set_note_language("es")
         action = message.get("action")
+        if action == 'update_info':
+            from updater import info
+            return info()
+        if action == 'install_update':
+            from updater import install
+            return install(self, message.get('version'))
         if action == 'source_context':
             from provenance import sanitize
             c = self.load(message['id'])

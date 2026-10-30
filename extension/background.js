@@ -130,12 +130,16 @@ browser.storage.local.get(["operation","activeWork"]).then(({operation,activeWor
 });
 function native(message, timeoutMs=2400000) {
   return new Promise((resolve, reject) => {
+    if(globalThis.AnacoObUpdates?.busy()&&!['install_update','update_info'].includes(message.action)){
+      reject(new Error(tx('updates_installing')));return;
+    }
     if(['configure','profile_save'].includes(message.action)&&(workClaim||globalThis.AnacoObBatch?.busy())){
       reject(new Error(tx('bg_configure_work_active')));return;
     }
     if(['capture','draft','revise','propose_split','refresh_links','upload_begin','upload_chunk','upload_finish','finish_asset','video_url','subtitles'].includes(message.action)||message.action?.startsWith('reader_'))try{checkWork();}catch(error){reject(error);return;}
     if (!port) {
       port = browser.runtime.connectNative(HOST);
+      const connection = port;
       port.onMessage.addListener(response => {
         const pending = requests.get(response.requestId);
         if (!pending) return;
@@ -144,6 +148,7 @@ function native(message, timeoutMs=2400000) {
         response.ok ? pending.resolve(response.result) : pending.reject(new Error(response.error));
       });
       port.onDisconnect.addListener(() => {
+        if(port !== connection)return;
         const error = port?.error?.message || tx('bg_no_se_pudo_conectar_con_el_servicio_loca');
         port = null;
         for (const pending of requests.values()) { clearTimeout(pending.timer); pending.reject(new Error(error)); }
@@ -875,6 +880,11 @@ browser.runtime.onMessage.addListener((message, sender) => {
     return;
   }
   if (sender.id !== browser.runtime.id || !sender.url?.startsWith(browser.runtime.getURL(""))) return;
+  if(message.type==='checkUpdates')return AnacoObUpdates.check(Boolean(message.force));
+  if(message.type==='installServiceUpdate')return AnacoObUpdates.installService();
+  if(message.type==='installExtensionUpdate')return AnacoObUpdates.extension();
+  if(globalThis.AnacoObUpdates?.busy()&&!['openOptions','returnFromOptions','reviewStatus','sidebarPolicy'].includes(message.type))return Promise.reject(new Error(tx('updates_installing')));
+  if(message.type==='native'&&message.message?.action==='install_update')return Promise.reject(new Error(tx('updates_check_first')));
   if(message.type==='panelCapture')return panelCapture(message.windowId);
   if(message.type==='batchStart')return AnacoObBatch.start(message);
   if(message.type==='courseStart')return AnacoObCourses.start(message);

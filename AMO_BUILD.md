@@ -1,4 +1,4 @@
-# Rebuilding Anaco 1.3.1 beta 1
+# Rebuilding Anaco 1.3.2
 
 The source archive contains the browser extension, its local Native Messaging
 companion and build inputs. It excludes development environments, personal test
@@ -27,7 +27,7 @@ npm run lint
 npm run build
 ```
 
-The result is `dist/anaco-ob-1.3.1.zip`. Compare the names and bytes of its
+The result is `dist/anaco-ob-1.3.2.zip`. Compare the names and bytes of its
 uncompressed entries with the submitted add-on. ZIP timestamps may differ.
 No signing key or environment secret is required.
 
@@ -37,9 +37,13 @@ of marked 18.1.1 and DOMPurify 3.4.17 into `extension/vendor/`.
 JSON files. There is no first-party JavaScript bundler, transpiler, minifier or
 obfuscator. Third-party source links and account-free testing instructions are
 in `docs/amo/1.3.0-reviewer-notes.txt` (the previous AMO submission materials).
-This beta adds the fixes and limitations recorded in `docs/HISTORIAL.md` and
-`docs/PLAN_ESTABILIZACION.md`; it is distributed unsigned as GitHub prerelease
-`v1.3.1-beta.1`, with extension and companion version 1.3.1.
+This release adds stable update checks and in-plugin companion updates. The
+extension checks the public Mozilla and GitHub APIs daily (disable in Options).
+Only version metadata is requested, without cookies or user content. The extension
+update button opens the official AMO listing; Firefox handles installation and signing.
+The native companion installs the official stable tagged Python package in a separate
+virtual environment, verifies its version, then switches the Native Messaging launcher.
+No remote code is loaded into the extension. See `docs/amo/1.3.2-reviewer-notes.txt`.
 
 ## Source archive
 
@@ -66,7 +70,7 @@ Optional PDF/media processing requires external tools; transcription uses a
 separate Faster Whisper environment installed only on user request.
 
 Existing users need to update the companion as well as the browser extension.
-The pinned beta installation command is in README.md. The welcome-page
+The pinned installation command is in README.md. The welcome-page
 installer still follows main. Both retain local settings and captures. On Windows,
 installation requires Windows PowerShell and .NET Framework to compile the
 native launcher locally; the extension build does not need them.

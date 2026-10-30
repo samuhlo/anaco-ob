@@ -2521,5 +2521,74 @@
   },
   "welcome_ya_la_tengo": {
     "message": "Ya la tengo instalada"
+  },
+  "updates_title": {
+    "message": "Actualizaciones"
+  },
+  "updates_extension": {
+    "message": "Extensión"
+  },
+  "updates_service": {
+    "message": "Servicio local"
+  },
+  "updates_help": {
+    "message": "La extensión se actualiza desde Mozilla con la confirmación del navegador. El servicio local se instala desde la última versión estable de GitHub y conserva tus datos."
+  },
+  "updates_auto": {
+    "message": "Buscar actualizaciones automáticamente cada día"
+  },
+  "updates_privacy": {
+    "message": "Las consultas a Mozilla y GitHub no envían tus capturas, notas ni claves. Puedes desactivarlas y buscar manualmente."
+  },
+  "updates_check": {
+    "message": "Buscar actualizaciones"
+  },
+  "updates_install_extension": {
+    "message": "Actualizar extensión ↗"
+  },
+  "updates_install_service": {
+    "message": "Actualizar servicio local"
+  },
+  "updates_migration": {
+    "message": "Para activar las actualizaciones del servicio, instala una vez la versión 1.3.2 o posterior desde la guía de instalación."
+  },
+  "updates_view": {
+    "message": "Ver actualizaciones ↗"
+  },
+  "updates_available": {
+    "message": "Hay actualizaciones de Anaco disponibles."
+  },
+  "updates_busy": {
+    "message": "Espera a que termine el trabajo antes de actualizar."
+  },
+  "updates_check_first": {
+    "message": "Busca actualizaciones antes de instalar."
+  },
+  "updates_reconnect": {
+    "message": "El servicio actualizado aún no responde. Reinicia el navegador y vuelve a comprobar."
+  },
+  "updates_installing": {
+    "message": "Actualizando el servicio local… Puede tardar varios minutos."
+  },
+  "updates_unknown": {
+    "message": "No disponible"
+  },
+  "updates_check_error": {
+    "message": "No se pudo comprobar. Reintenta la búsqueda."
+  },
+  "updates_current": {
+    "message": "Al día"
+  },
+  "updates_unpublished": {
+    "message": "Sin versión estable publicada"
+  },
+  "updates_checking": {
+    "message": "Buscando actualizaciones…"
+  },
+  "updates_checked": {
+    "message": "Última comprobación: $1"
+  },
+  "updates_not_checked": {
+    "message": "Todavía no se han buscado actualizaciones."
   }
 }
