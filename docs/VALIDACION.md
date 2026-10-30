@@ -1096,8 +1096,10 @@ Esta beta se publica como prerelease de GitHub con ZIP sin firma de Mozilla, fue
 
 ## 1.3.2 · actualizaciones (2026-10-30)
 
-- 139 pruebas Node y 261 pruebas Python (una omitida); comprobación de catálogos bilingües sin problemas.
+- 139 pruebas Node y 263 pruebas Python (una omitida); comprobación de catálogos bilingües sin problemas.
 - Actualizador: versiones numéricas, exclusión de prereleases y tags ajenos, ausencia de release estable, opt-out y caché diaria, fallo de red, migración del servicio antiguo, bloqueo durante trabajo y peticiones pendientes, reconexión, exclusión mutua, fallo de descarga, versión instalada incorrecta y restauración del registro tras fallo.
 - `python scripts/smoke_updater.py`: instalación real del paquete local en un entorno separado, cambio del lanzador y respuesta Native Messaging con la versión 1.3.2; configuración intacta. Fuente y HOME de registro aislados. Esta prueba local es Linux; la matriz multiplataforma del instalador sigue en CI.
 - `.venv/bin/python scripts/smoke_updates_ui.py`: Zen real con HOME, perfil y vault temporales; consulta manual con metadatos controlados, conexión nativa real, botones de ambas piezas, desactivación persistente, aviso en el panel, error de red y diseño sin desbordamiento a 420 px. Capturas en `.test-artifacts/updates/`.
 - Validador Mozilla: cero errores; permanecen las dos advertencias previas (Android y DOMPurify). La publicación de GitHub contiene un ZIP sin firma; publicar la extensión firmada en AMO es un paso separado.
+
+La primera ejecución de CI detectó una carrera previa de limpieza de procesos en macOS/Python 3.11: `killpg` devolvía EPERM tras finalizar el hijo y ocultaba el error original de una transcripción inválida. Se comprueba que el hijo haya terminado antes de tolerar ese caso; un proceso vivo sigue propagando el error. Dos pruebas específicas cubren ambas situaciones.

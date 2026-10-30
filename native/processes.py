@@ -68,6 +68,12 @@ class ManagedProcess:
                 os.killpg(self.process.pid, signal.SIGKILL)
             except ProcessLookupError:
                 pass
+            except PermissionError:
+                # macOS can return EPERM for an already exited process group.
+                # Reap the child to distinguish that race from a live process
+                # we genuinely cannot terminate.
+                if self.process.poll() is None:
+                    raise
         if self.process:
             # Also covers failure to assign a suspended Windows process.
             if self.process.poll() is None:

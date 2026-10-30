@@ -8,6 +8,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'native'))
 from jobs import Cancelled, running, run_command
@@ -102,3 +103,28 @@ class ProcessLifecycleTest(unittest.TestCase):
         result = run_progress([sys.executable, '-c', code], updates.append)
         self.assertEqual(result, events[-1]['result'])
         self.assertNotIn('text', updates[0])
+
+
+class ExitedGroupTest(unittest.TestCase):
+    @unittest.skipIf(os.name == 'nt', 'POSIX process groups only')
+    def test_macos_exited_group_permission_error_does_not_mask_original_error(self):
+        from processes import ManagedProcess
+        managed = ManagedProcess.__new__(ManagedProcess)
+        managed.job, managed.stopped = None, False
+        managed.process = Mock(pid=12345)
+        managed.process.poll.return_value = 0
+        with patch('processes.os.killpg', side_effect=PermissionError('exited group')):
+            managed.stop()
+        managed.process.wait.assert_called_once()
+        managed.process.kill.assert_not_called()
+
+    @unittest.skipIf(os.name == 'nt', 'POSIX process groups only')
+    def test_permission_denied_for_a_live_group_is_not_ignored(self):
+        from processes import ManagedProcess
+        managed = ManagedProcess.__new__(ManagedProcess)
+        managed.job, managed.stopped = None, False
+        managed.process = Mock(pid=12345)
+        managed.process.poll.return_value = None
+        with patch('processes.os.killpg', side_effect=PermissionError('live group')):
+            with self.assertRaises(PermissionError):
+                managed.stop()
