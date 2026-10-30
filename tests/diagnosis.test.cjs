@@ -35,7 +35,7 @@ test('a healthy status has no problems; version and AI issues carry their fix',(
   assert.deepEqual([...diagnosis.status(ok,'1.0.0')],[]);
   const problems=diagnosis.status({version:'0.11.0',ai:{provider:'codex',ready:false,message:'No encuentro Codex.'}},'1.0.0');
   assert.deepEqual([...problems.map(p=>p.kind)],['version','ai']);
-  assert.match(problems[0].text,/línea de instalación/);assert.equal(problems[0].action,'welcome');
+  assert.match(problems[0].text,/Opciones → Actualizaciones/);assert.equal(problems[0].action,'options');
   assert.equal(problems[1].action,'options');
 });
 

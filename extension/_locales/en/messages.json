@@ -615,7 +615,7 @@
     "message": "Install pipx (you need Python 3.11 or later)"
   },
   "diag_la_extension_es_la_1_y_el_servicio_la_2_": {
-    "message": "The extension is $1 and the service is $2. To update the service, run the install line from the welcome page again."
+    "message": "The extension is $1 and the service is $2. Open Options → Updates to check versions and update them."
   },
   "diag_la_ia_no_esta_lista": {
     "message": "The AI is not ready"

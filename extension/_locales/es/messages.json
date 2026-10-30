@@ -615,7 +615,7 @@
     "message": "Instala pipx (necesitas Python 3.11 o superior)"
   },
   "diag_la_extension_es_la_1_y_el_servicio_la_2_": {
-    "message": "La extensión es la $1 y el servicio la $2. Para actualizar el servicio, vuelve a ejecutar la línea de instalación de la bienvenida."
+    "message": "La extensión es la $1 y el servicio la $2. Abre Opciones → Actualizaciones para comprobar las versiones y actualizarlas."
   },
   "diag_la_ia_no_esta_lista": {
     "message": "La IA no está lista"
