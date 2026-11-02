@@ -30,13 +30,13 @@ def resolve(c, proposed=()):
         facts['origen'] = 'Profesora'
         facts.pop('curso_fuente', None)
     # Moodle codes join the module with underscores (…_ZE3IFC005500_MP5160_A), so \b is not enough.
-    for pattern, key in ((r'(?<![A-Za-z0-9])MP\d{4}(?!\d)', 'modulo'), (r'(?<![A-Za-z0-9])UD\s*0*\d+(?!\d)', 'unidad_didactica')):
+    # Spellings of one unit (UD02, UD 2) are compared once normalized.
+    for pattern, key, normal in ((r'(?<![A-Za-z0-9])MP\d{4}(?!\d)', 'modulo', str.upper),
+                                 (r'(?<![A-Za-z0-9])UD\s*0*\d+(?!\d)', 'unidad_didactica', lambda m: 'UD' + str(int(re.search(r'\d+', m)[0])).zfill(2))):
         # The user's own intent ("apuntes de MP5160") names module and unit; the transcript does not.
-        matches = set(re.findall(pattern, text + '\n' + c.get('intent', ''), re.I))
+        matches = {normal(m) for m in re.findall(pattern, text + '\n' + c.get('intent', ''), re.I)}
         if len(matches) == 1:
-            facts[key] = matches.pop().upper().replace(' ', '')
-    if facts.get('unidad_didactica'):
-        facts['unidad_didactica'] = 'UD' + re.search(r'\d+', facts['unidad_didactica'])[0].zfill(2)
+            facts[key] = matches.pop()
     if facts.get('curso_fuente'):
         numbers = set(re.findall(r'\b(?:Module|Módulo|Modulo)\s+0*(\d+)\b', text, re.I))
         if len(numbers) == 1:
@@ -164,6 +164,20 @@ def number(app, notes):
         if last[folder] is not None:
             last[folder] += 1
             note['filename'] = f'{last[folder]:02d} - ' + note['filename']
+
+
+def renumber(app, folder, name, reserved=None):
+    """A queued draft keeps its 'NN - ' place unless another note took that number meanwhile.
+
+    reserved -> numbers already given to other notes of the same collection, by folder."""
+    m, path = re.match(r'(\d{2}) - ', name), app.vault() / folder
+    if not m or not path.is_dir():
+        return name
+    own = reserved.setdefault(folder, set()) if reserved is not None else set()
+    taken = own | {int(x[1]) for p in path.glob('*.md') if p.name != name and (x := re.match(r'(\d{2}) - ', p.name))}
+    number = max(taken) + 1 if int(m[1]) in taken else int(m[1])
+    own.add(number)
+    return f'{number:02d} - ' + name[m.end():]
 
 
 def route(app, c, fallback, folders):

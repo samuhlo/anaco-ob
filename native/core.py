@@ -746,6 +746,9 @@ class App:
         if folder not in self.capture_folders(c):
             raise UserError("El destino no existe o no respeta la estructura del vault.")
         name = clean(fields.get("filename", original["filename"]), 180)
+        if c.get('provenance'):
+            from provenance import renumber
+            name = renumber(self, folder, name)
         from editorial import format_pages
         requested=fields.get('note_type',original.get('note_type'))
         if 'folder' in fields and folder!=original['folder'] and 'note_type' not in fields:requested=None
@@ -994,6 +997,13 @@ class App:
             c=self.load(message['id'])
             if c['status']!='draft' or not c.get('draft'):raise UserError('La captura no tiene una propuesta pendiente.')
             folders=self.capture_folders(c)
+            if c.get('provenance'):
+                # Notes saved since this draft was queued may have taken its number.
+                from provenance import renumber
+                notes=[c['draft'],*c.get('bundle',{}).get('notes',[])];before=[n['filename'] for n in notes]
+                reserved={}
+                for n in notes:n['filename']=renumber(self,n['folder'],n['filename'],reserved)
+                if before!=[n['filename'] for n in notes]:self.store(c)
             public=self.public(c);public.pop('update_targets',None)
             # Review receives rendered content separately; avoid duplicating
             # the capture text, drafts and relationship evidence in its reply.

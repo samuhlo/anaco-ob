@@ -136,6 +136,21 @@ class ProvenanceTest(unittest.TestCase):
         _, second = self.course_draft('UD02-Apartado07.mp4', '07_Clases', topic='Multicloud')
         self.assertEqual(second['filename'], '02 - UD2 · Apartado 7 Multicloud.md')
 
+    def test_queued_drafts_of_a_new_unit_take_consecutive_numbers_when_saved(self):
+        root = self.units('MP5160')
+        first, _ = self.course_draft('UD02-Apartado06.mp4', '07_Clases')
+        second, draft = self.course_draft('UD02-Apartado07.mp4', '07_Clases', topic='Multicloud')
+        self.assertTrue(draft['filename'].startswith('01 - '))
+        self.app.save(first['id'], {})
+        review = self.app.handle({'action':'review_data','id':second['id']})
+        self.assertEqual(review['draft']['filename'], '02 - UD2 · Apartado 7 Multicloud.md')
+        self.assertIn('orden_lectura: 2', self.app.preview(second['id'], {})['markdown'])
+        self.assertEqual(self.app.save(second['id'], {})['relative'], root + '/UD02/02 - UD2 · Apartado 7 Multicloud.md')
+
+    def test_a_unit_written_two_ways_is_still_one_unit(self):
+        facts = resolve({'title':'MP5160_A: Vídeo-UD02-Apartado6','context':'','source_context':{'breadcrumbs':'UD 2 - Modelos de despliegue'}})
+        self.assertEqual(facts['unidad_didactica'], 'UD02')
+
     def test_units_of_another_course_are_not_taken_by_topic(self):
         first, second = self.units('MP5160'), self.units('MP5161')
         _, draft = self.course_draft('UD02-Apartado06.mp4', '07_Clases')

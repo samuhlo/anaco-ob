@@ -140,13 +140,16 @@ class Editorial:
         if not isinstance(selected,list) or not selected or len(selected)!=len(set(selected)) or any(k not in drafts for k in selected):raise UserError('Selecciona las notas que quieres guardar.')
         if active not in drafts or not isinstance(merged,dict) or any(k not in drafts or v not in selected or k in selected or k==v for k,v in merged.items()):raise UserError('La integración de notas no es válida.')
         canonical=lambda k:merged.get(k,k)
-        paths={};effective={};groups={k:[k]+[old for old,target in merged.items() if target==k] for k in drafts}
+        paths={};effective={};reserved={};groups={k:[k]+[old for old,target in merged.items() if target==k] for k in drafts}
         for key in dict.fromkeys([*selected,active]):
             d=drafts[key];value=edits.get(key,{})
             if not isinstance(value,dict):raise UserError('Campos de nota no válidos.')
             folder=value.get('folder',d['folder'])
             if folder not in self.app.capture_folders(c):raise UserError('Destino no admitido.')
             typ=profile.note_type(folder,value.get('note_type',d.get('note_type')),derived=key!='source');name=value.get('filename',d['filename'])
+            if c.get('provenance'):
+                from provenance import renumber
+                name=renumber(self.app,folder,name,reserved)
             profile.validate_filename(name,typ,folder);paths[key]=value.get('target_path') if value.get('save_mode')=='append' else folder+'/'+name
             if not isinstance(paths[key],str) or any(ch in paths[key] for ch in '[]|#^'):raise UserError('Ruta no válida para Obsidian.')
             effective[key]={**value,'note_type':typ}
