@@ -1000,10 +1000,10 @@ class App:
             if c.get('provenance'):
                 # Notes saved since this draft was queued may have taken its number.
                 from provenance import renumber
-                notes=[c['draft'],*c.get('bundle',{}).get('notes',[])];before=[n['filename'] for n in notes]
+                notes=[c['draft'],*c.get('bundle',{}).get('notes',[])];before=[note['filename'] for note in notes]
                 reserved={}
-                for n in notes:n['filename']=renumber(self,n['folder'],n['filename'],reserved)
-                if before!=[n['filename'] for n in notes]:self.store(c)
+                for note in notes:note['filename']=renumber(self,note['folder'],note['filename'],reserved)
+                if before!=[note['filename'] for note in notes]:self.store(c)
             public=self.public(c);public.pop('update_targets',None)
             # Review receives rendered content separately; avoid duplicating
             # the capture text, drafts and relationship evidence in its reply.

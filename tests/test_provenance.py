@@ -147,6 +147,12 @@ class ProvenanceTest(unittest.TestCase):
         self.assertIn('orden_lectura: 2', self.app.preview(second['id'], {})['markdown'])
         self.assertEqual(self.app.save(second['id'], {})['relative'], root + '/UD02/02 - UD2 · Apartado 7 Multicloud.md')
 
+    def test_subtitles_reach_the_service_beside_the_review_renumbering(self):
+        # review_data and subtitles share one dispatcher; a loop variable once shadowed its n() there.
+        c = self.app.handle({'action':'subtitles','url':'https://course.example/lesson','title':'Lesson video',
+                             'text':'WEBVTT\n\n00:00.000 --> 00:04.000\nVIDEO LESSON TRANSCRIPT.\n'})
+        self.assertIn('VIDEO LESSON TRANSCRIPT', c['text'])
+
     def test_a_unit_written_two_ways_is_still_one_unit(self):
         facts = resolve({'title':'MP5160_A: Vídeo-UD02-Apartado6','context':'','source_context':{'breadcrumbs':'UD 2 - Modelos de despliegue'}})
         self.assertEqual(facts['unidad_didactica'], 'UD02')
