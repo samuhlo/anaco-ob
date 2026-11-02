@@ -53,6 +53,9 @@ def resolve(c, proposed=()):
         key, value, quote = item.get('field'), item.get('value', ''), item.get('evidence', '')
         if key in FIELDS and isinstance(value, str) and isinstance(quote, str) and value and quote and quote in bank and value.casefold() in quote.casefold():
             facts.setdefault(key, value[:300])
+    # The model may write the unit in words ("Unidad didáctica 2", "UD 2 - Modelos…").
+    if facts.get('unidad_didactica') and (unit := re.search(r'\b(?:UD|Unidad(?:\s+did[aá]ctica)?)\s*0*(\d+)', facts['unidad_didactica'], re.I)):
+        facts['unidad_didactica'] = 'UD' + unit[1].zfill(2)
     for label, pattern in (('caso de estudio', r'caso (?:de estudio|práctico)|case study'), ('demostración', r'demostraci[oó]n|\bdemo\b'), ('introducción', r'introducci[oó]n|introduction'), ('repaso', r'repaso|wrap.up|review')):
         if re.search(pattern, text, re.I):
             facts.setdefault('tipo_recurso', label)
@@ -109,6 +112,9 @@ def unit_route(app, c, fallback, folders):
     Without a known module the single compatible tree is used only if the model
     pointed at it or at one of its ancestors: a "UD2" alone never moves a course."""
     f = c['provenance']
+    wanted = re.fullmatch(r'UD(\d+)', f['unidad_didactica'])
+    if not wanted:
+        return None
     containers = {}
     for folder in folders:
         parent, _, name = folder.rpartition('/')
@@ -132,10 +138,13 @@ def unit_route(app, c, fallback, folders):
         container, units, notes = fits[0]
     else:
         return None
-    wanted = int(f['unidad_didactica'][2:])
+    wanted = int(wanted[1])
     width = len(re.search(r'\d+', units[0].rpartition('/')[2])[0])
     folder = next((u for u in units if int(re.search(r'\d+', u.rpartition('/')[2])[0]) == wanted), container + '/UD' + str(wanted).zfill(width))
     if folder not in folders:
+        # A unit folder the profile does not allow keeps the model's reviewable choice.
+        if not app.vault_profile().rule(folder, required=False):
+            return None
         c['planned_folders'] = [folder]
     for key in ('curso', 'asignatura', 'modulo', 'origen', 'asignatura_nota'):
         value = next((n[key] for n in notes if n.get(key)), None)

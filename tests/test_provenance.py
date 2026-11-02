@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -152,6 +153,48 @@ class ProvenanceTest(unittest.TestCase):
         c = self.app.handle({'action':'subtitles','url':'https://course.example/lesson','title':'Lesson video',
                              'text':'WEBVTT\n\n00:00.000 --> 00:04.000\nVIDEO LESSON TRANSCRIPT.\n'})
         self.assertIn('VIDEO LESSON TRANSCRIPT', c['text'])
+
+    def test_a_collection_renumbered_at_save_keeps_distinct_numbers_and_working_links(self):
+        root = self.units('MP5160')
+        unit = root + '/UD01'
+        c = self.app.stage({'kind':'video','url':'https://drive.google.com/file/d/UD01-Apartado02.mp4/view','title':'UD01-Apartado02.mp4',
+                            'text':'Transcripción sobre políticas de permisos y roles temporales en la nube','source_context':{'resource_title':'UD01-Apartado02.mp4'}})
+        child = lambda key, topic: {'id':key,'folder':unit,'title':topic,'body':'Desarrollo de ' + topic,'tags':[],'relations':[],
+                                    'source_evidence':'políticas de permisos y roles temporales','links':[{'id':'source','reason':'Vuelve a la síntesis del vídeo'}]}
+        result = {'title':'Permisos','context':'Clase','body':'Síntesis','folder':unit,'tags':[],'relations':[],
+                  'notes':[child('politicas','Políticas de permisos'), child('roles','Roles temporales')]}
+        with patch.object(self.app, 'codex_generate', return_value=result):
+            self.app.draft(c['id'], provider='codex', note_structure='linked')
+        # Another capture takes 02 while this collection waits in the queue.
+        (self.vault / unit / '02 - UD1 · Otro apartado.md').write_text('---\ntipo: apunte\n---\n# Otro\n')
+        saved = self.app.save(c['id'], {})
+        names = [Path(p).name for p in saved['paths']]
+        self.assertEqual(len({n[:2] for n in names}), len(names), names)
+        for path in saved['paths']:
+            for link in re.findall(r'\[\[([^\]|#]+)', (self.vault / path).read_text()):
+                if link.startswith('07_Clases'):
+                    self.assertTrue((self.vault / (link + '.md')).is_file(), link)
+
+    def test_a_new_unit_the_profile_does_not_allow_keeps_the_allowed_destination(self):
+        root = self.units('MP5160')
+        from vault_profile import install
+        profile = json.loads((self.vault / '99_Recursos/anaco/perfil.json').read_text())
+        for rule in profile['destinations']:
+            if rule['pattern'] == '07_Clases/**':
+                rule['pattern'] = root + '/UD01'
+        install(self.app, profile, '99_Recursos/anaco/perfil.json')
+        _, draft = self.course_draft('UD02-Apartado06.mp4', root + '/UD01')
+        self.assertEqual(draft['folder'], root + '/UD01')
+
+    def test_a_unit_named_in_words_by_the_model_still_routes(self):
+        root = self.units('MP5160')
+        c = self.app.stage({'kind':'video','url':'https://drive.google.com/file/d/x/view','title':'Vídeo de la Unidad didáctica 2',
+                            'text':'Transcripción','source_context':{}})
+        result = {'title':'Nube híbrida','context':'Clase','body':'Transcripción','folder':'07_Clases','tags':[],'relations':[],
+                  'provenance':[{'field':'unidad_didactica','value':'Unidad didáctica 2','evidence':'Vídeo de la Unidad didáctica 2'}]}
+        with patch.object(self.app, 'codex_generate', return_value=result):
+            draft = self.app.draft(c['id'], provider='codex')['draft']
+        self.assertEqual(draft['folder'], root + '/UD02')
 
     def test_a_unit_written_two_ways_is_still_one_unit(self):
         facts = resolve({'title':'MP5160_A: Vídeo-UD02-Apartado6','context':'','source_context':{'breadcrumbs':'UD 2 - Modelos de despliegue'}})

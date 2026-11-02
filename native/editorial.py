@@ -152,7 +152,8 @@ class Editorial:
                 name=renumber(self.app,folder,name,reserved)
             profile.validate_filename(name,typ,folder);paths[key]=value.get('target_path') if value.get('save_mode')=='append' else folder+'/'+name
             if not isinstance(paths[key],str) or any(ch in paths[key] for ch in '[]|#^'):raise UserError('Ruta no válida para Obsidian.')
-            effective[key]={**value,'note_type':typ}
+            # render receives the number chosen here, so files and internal links agree.
+            effective[key]={**value,'note_type':typ,'filename':name}
             if value.get('save_mode')=='append':effective[key]['relations']=[p for p in value.get('relations',[]) if p!=paths[key]]
         if len({paths[k] for k in selected})!=len(selected):raise UserError('Dos notas utilizarían el mismo archivo.')
         excluded=set()
