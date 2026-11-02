@@ -2590,5 +2590,8 @@
   },
   "updates_not_checked": {
     "message": "Todavía no se han buscado actualizaciones."
+  },
+  "review_carpeta_nueva": {
+    "message": "(carpeta nueva)"
   }
 }

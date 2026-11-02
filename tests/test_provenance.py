@@ -15,6 +15,8 @@ class ProvenanceTest(unittest.TestCase):
         for rule in profile['destinations']:
             if rule['pattern'].startswith('07_Clases'):
                 rule['pattern'] = '07_Clases/**'
+                # As in the user's vault, notes are named by their title.
+                rule['filenames'] = {'apunte': '{title}.md'}
         install(self.app, profile, '99_Recursos/anaco/perfil.json')
     tearDown = test_core.CoreTest.tearDown
 
@@ -94,6 +96,57 @@ class ProvenanceTest(unittest.TestCase):
         self.assertEqual(title({'provenance':{'curso_fuente':'Curso de especialización - Recursos y servicios en la nube.', 'seccion_fuente':'Vídeo-UD02-Apartado6'}}, 'Portabilidad'), 'Portabilidad')
         aws = resolve({'title':'Module 2 - Section 3','context':'','source_context':{'catalog':'AWS Academy Cloud Foundations'}})
         self.assertEqual(title({'provenance':aws}, 'AWS Organizations'), 'AWS Cloud Foundations · M02 · S03 · AWS Organizations')
+
+    def units(self, module):
+        """A module whose teacher notes live in numbered unit folders, as in the user's vault."""
+        root = '07_Clases/02_Master_Nube/' + module + ' - Módulo/teoria/01_Profesora'
+        unit = self.vault / root / 'UD01'
+        unit.mkdir(parents=True)
+        facts = {'tipo':'apunte','curso':'Master Nube','asignatura':'Módulo ' + module,'modulo':module,'origen':'Profesora de ' + module,
+                 'unidad_didactica':'UD01','orden_lectura':1,'asignatura_nota':'[[' + module + ']]'}
+        (unit / '01 - UD1 · Primer apartado.md').write_text('---\n' + '\n'.join(k + ': ' + json.dumps(v, ensure_ascii=False) for k, v in facts.items()) + '\n---\n# UD1 · Primer apartado\n')
+        (self.vault / root / 'index.md').write_text('---\ntipo: indice\n---\n# Profesora\n')
+        return root
+
+    def course_draft(self, title, folder, intent='', topic='Nube híbrida'):
+        c = self.app.stage({'kind':'video','url':'https://drive.google.com/file/d/' + title + '/view','title':title,'text':'Transcripción sobre ' + topic,
+                            'source_context':{'resource_title':title}})
+        result = {'title':topic,'context':'Clase','body':'Transcripción sobre ' + topic,'folder':folder,'tags':[],'relations':[]}
+        with patch.object(self.app, 'codex_generate', return_value=result):
+            return c, self.app.draft(c['id'], intent=intent, provider='codex')['draft']
+
+    def test_a_new_unit_goes_next_to_the_previous_ones_with_their_metadata_and_numbering(self):
+        root = self.units('MP5160')
+        c, draft = self.course_draft('UD02-Apartado06.mp4', '07_Clases')
+        self.assertEqual(draft['folder'], root + '/UD02')
+        self.assertEqual(draft['filename'], '01 - UD2 · Apartado 6 Nube híbrida.md')
+        self.assertIn(root + '/UD02', self.app.handle({'action':'review_data','id':c['id']})['folders'])
+        markdown = self.app.preview(c['id'], {})['markdown']
+        for line in ('curso: "Master Nube"', 'asignatura: "Módulo MP5160"', 'modulo: "MP5160"', 'origen: "Profesora de MP5160"', 'unidad_didactica: "UD02"', 'orden_lectura: 1'):
+            self.assertIn(line, markdown)
+        # A failed save leaves no empty unit folder behind.
+        with patch('publication.replace_checked', side_effect=UserError('conflict')):
+            with self.assertRaises(UserError): self.app.save(c['id'], {})
+        self.assertFalse((self.vault / root / 'UD02').exists())
+        saved = self.app.save(c['id'], {})
+        self.assertEqual(saved['relative'], root + '/UD02/01 - UD2 · Apartado 6 Nube híbrida.md')
+        _, second = self.course_draft('UD02-Apartado07.mp4', '07_Clases', topic='Multicloud')
+        self.assertEqual(second['filename'], '02 - UD2 · Apartado 7 Multicloud.md')
+
+    def test_units_of_another_course_are_not_taken_by_topic(self):
+        first, second = self.units('MP5160'), self.units('MP5161')
+        _, draft = self.course_draft('UD02-Apartado06.mp4', '07_Clases')
+        self.assertEqual(draft['folder'], '07_Clases')
+        # The user's own intent names the module.
+        _, draft = self.course_draft('UD02-Apartado06.mp4', '07_Clases', intent='Apuntes de MP5161', topic='Otro tema')
+        self.assertEqual(draft['folder'], second + '/UD02')
+        # A folder the model chose outside the unit tree is respected.
+        other = self.vault / '07_Clases/01_Habilitacion/Tema'
+        other.mkdir(parents=True)
+        _, draft = self.course_draft('UD02-Apartado06.mp4', '07_Clases/01_Habilitacion/Tema', topic='Tercer tema')
+        self.assertEqual(draft['folder'], '07_Clases/01_Habilitacion/Tema')
+        self.assertNotIn(' - ', draft['filename'][:5])
+        self.assertTrue(first)
 
     def test_index_write_failure_rolls_back_note_and_retains_original(self):
         folder=self.group('teoria/AWS/02',{'origen':'AWS Academy','curso_fuente':'AWS Academy Cloud Foundations','modulo_aws':2})

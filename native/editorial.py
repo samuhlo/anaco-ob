@@ -145,7 +145,7 @@ class Editorial:
             d=drafts[key];value=edits.get(key,{})
             if not isinstance(value,dict):raise UserError('Campos de nota no válidos.')
             folder=value.get('folder',d['folder'])
-            if folder not in profile.destinations():raise UserError('Destino no admitido.')
+            if folder not in self.app.capture_folders(c):raise UserError('Destino no admitido.')
             typ=profile.note_type(folder,value.get('note_type',d.get('note_type')),derived=key!='source');name=value.get('filename',d['filename'])
             profile.validate_filename(name,typ,folder);paths[key]=value.get('target_path') if value.get('save_mode')=='append' else folder+'/'+name
             if not isinstance(paths[key],str) or any(ch in paths[key] for ch in '[]|#^'):raise UserError('Ruta no válida para Obsidian.')

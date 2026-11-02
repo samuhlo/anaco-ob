@@ -341,6 +341,11 @@ class App:
     def folders(self):
         return self.vault_profile().destinations()
 
+    def capture_folders(self, c):
+        """Destinations plus the unit folder a course capture proposes to create on save."""
+        profile = self.vault_profile()
+        return sorted(set(profile.destinations()) | {f for f in c.get('planned_folders', []) if profile.rule(f, required=False)})
+
     def guide(self):
         """Editorial context for the model: the plugin contract and the vault's own instructions."""
         texts, _ = self.vault_profile().instructions()
@@ -629,7 +634,8 @@ class App:
                       "body": "## "+self.vault_profile().section("summary")+"\n\n" + (c["text"] if c["kind"] in ("article","pdf","video") else n("Escribe aquí tu interpretación o descripción."))}
             if len(result['body']) > 100000:
                 raise UserError('La captura manual supera el límite de edición de 100.000 caracteres. Sigue pendiente: importa un rango más corto o elige IA para elaborar un resumen.')
-        from provenance import resolve, title as context_title, route
+        from provenance import resolve, title as context_title, route, number
+        c.pop('planned_folders', None)
         c['provenance'] = resolve(c, result.get('provenance', []))
         result['folder'] = route(self, c, result['folder'], folders)
         result['title'] = context_title(c, result['title'])
@@ -655,7 +661,7 @@ class App:
         if provider!="manual" and any(i not in described for i in visual):
             raise UserError("La IA no devolvió descripciones para todas las imágenes seleccionadas. La captura sigue pendiente; regenera o selecciona menos imágenes.")
         title = clean(result["title"], 300).strip() or c["title"]
-        folder = result["folder"] if result["folder"] in folders else folders[0]
+        folder = result["folder"] if result["folder"] in self.capture_folders(c) else folders[0]
         from editorial import Editorial
         editorial=Editorial(self)
         valid=editorial.validate_relations(c,result.get('relations',[]),candidates)
@@ -671,11 +677,12 @@ class App:
                  "assisted": provider != "manual" or bool(reused_model), "profile_hash": self.guide()["hash"]}
         draft['provider']=provider
         draft=editorial.build(c,result,draft,candidates,folders)
+        number(self,[draft,*c.get('bundle',{}).get('notes',[])])
         from conversation import shape
         shape(c,result,draft,self.vault_profile())
         c.update({"draft": draft, "status": "draft"})
         self.store(c)
-        return {"capture": self.public(c), "draft": draft, "folders": folders,
+        return {"capture": self.public(c), "draft": draft, "folders": self.capture_folders(c),
                 "duplicate": self.duplicate(c), "candidate_count": len(candidates)}
 
     def tags(self, values):
@@ -736,7 +743,7 @@ class App:
         original = c["draft"]
         profile = self.vault_profile()
         folder = clean(fields.get("folder", original["folder"]), 1000)
-        if folder not in profile.destinations():
+        if folder not in self.capture_folders(c):
             raise UserError("El destino no existe o no respeta la estructura del vault.")
         name = clean(fields.get("filename", original["filename"]), 180)
         from editorial import format_pages
@@ -793,6 +800,9 @@ class App:
                                   "relations": related})
         from provenance import properties
         fm.update(properties(c))
+        # The vault reads its course notes in file order: the number is the reading order.
+        if c.get('provenance') and (order := re.match(r'(\d{2}) - ', name)):
+            fm['orden_lectura'] = int(order[1])
         # Source tags are mandatory even when a vault profile overrides or omits tags.
         if c["kind"] == "video":
             tags = fm.get("tags", [])
@@ -983,12 +993,12 @@ class App:
             from linking import review_candidates
             c=self.load(message['id'])
             if c['status']!='draft' or not c.get('draft'):raise UserError('La captura no tiene una propuesta pendiente.')
-            folders=self.folders()
+            folders=self.capture_folders(c)
             public=self.public(c);public.pop('update_targets',None)
             # Review receives rendered content separately; avoid duplicating
             # the capture text, drafts and relationship evidence in its reply.
             for key in ('text','draft','bundle'):public.pop(key,None)
-            return {'capture':public,'draft':c['draft'],'bundle':c.get('bundle'),'folders':folders,'note_types':profile.labels(),'types_by_folder':{f:profile.types_for(f) for f in folders},'rules_by_folder':{f:{'default':profile.default_type(f),'derived':profile.default_type(f,derived=True),'filenames':profile.patterns(f)} for f in folders},'relation_kinds':list(RELATION_KINDS),'candidates':review_candidates(self,c)}
+            return {'capture':public,'draft':c['draft'],'bundle':c.get('bundle'),'folders':folders,'planned_folders':c.get('planned_folders',[]),'note_types':profile.labels(),'types_by_folder':{f:profile.types_for(f) for f in folders},'rules_by_folder':{f:{'default':profile.default_type(f),'derived':profile.default_type(f,derived=True),'filenames':profile.patterns(f)} for f in folders},'relation_kinds':list(RELATION_KINDS),'candidates':review_candidates(self,c)}
         if action=='revise':
             from editing import revise
             return revise(self,message)

@@ -41,7 +41,7 @@ def publish(app,c,rendered,selected,create):
             if digest(raw)!=expected:raise UserError('No se puede recuperar la versión anterior de la nota.')
             create(backup,raw)
     c['save_intent']={'hashes':hashes,'updates':updates,'date':c.get('_save_date')};app.store(c)
-    created=[];amended=[];app.db.execute('BEGIN IMMEDIATE')
+    created=[];amended=[];made=[];app.db.execute('BEGIN IMMEDIATE')
     try:
         if app.duplicate(c):raise UserError('La propuesta se guardó en otra ventana.')
         for rel,raw in {rel:raw for k in selected for rel,raw in rendered[k]['assets']}.items():
@@ -54,7 +54,11 @@ def publish(app,c,rendered,selected,create):
             if rel in recovered:continue
             if rel in updates:
                 replace_checked(path,updates[rel],value['markdown'].encode());amended.append((path,rel))
-            else:create(path,value['markdown'].encode());created.append((path,hashes[rel]))
+            else:
+                # Only the unit folder proposed in review is created; any other missing folder is an error.
+                if not path.parent.exists() and path.parent.relative_to(vault).as_posix() in c.get('planned_folders',[]):
+                    path.parent.mkdir();made.append(path.parent)
+                create(path,value['markdown'].encode());created.append((path,hashes[rel]))
         primary=rendered['source']['relative'] if 'source' in selected else rendered[selected[0]]['relative']
         import datetime
         app.db.execute('INSERT INTO saves VALUES (?,?,?) ON CONFLICT(fingerprint) DO UPDATE SET path=excluded.path, created=excluded.created',(c['fingerprint'],primary,datetime.datetime.now().isoformat()));app.db.commit()
@@ -67,6 +71,8 @@ def publish(app,c,rendered,selected,create):
         for path,expected in reversed(created):
             if path.exists() and digest(path.read_bytes())==expected:path.unlink()
             elif path.exists():conflict=True
+        for folder in made:
+            if not any(folder.iterdir()):folder.rmdir()
         if conflict:raise UserError('Un archivo cambió durante la recuperación. Se ha conservado ese cambio; la versión anterior está en las copias locales de la captura.')
         raise
     return primary

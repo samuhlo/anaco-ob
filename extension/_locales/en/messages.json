@@ -2590,5 +2590,8 @@
   },
   "updates_not_checked": {
     "message": "Updates have not been checked yet."
+  },
+  "review_carpeta_nueva": {
+    "message": "(new folder)"
   }
 }

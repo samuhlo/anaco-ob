@@ -16,7 +16,11 @@ Se mantienen las propiedades del perfil y se añaden `fuente_url`, `fuente_titul
 
 `modulo` sigue siendo el código académico; `modulo_aws` identifica el módulo interno de AWS. `seccion_fuente` conserva la numeración explícita. `fuente_catalog_position` conserva una posición proporcionada por el catálogo: no se convierte en sección ni en `orden_lectura`.
 
-La selección determinista de carpeta requiere una coincidencia única con metadatos de notas existentes en destinos admitidos por el perfil. Se hereda la pertenencia académica de ese destino. Si no hay coincidencia única, permanece la propuesta revisable del flujo habitual. No se crean carpetas automáticamente. La búsqueda y validación de relaciones sigue usando candidatas y extractos de ambas notas.
+La selección determinista de carpeta requiere una coincidencia única con metadatos de notas existentes en destinos admitidos por el perfil. Se hereda la pertenencia académica de ese destino. Si no hay coincidencia única, permanece la propuesta revisable del flujo habitual. La búsqueda y validación de relaciones sigue usando candidatas y extractos de ambas notas.
+
+Las unidades siguen la forma de sus hermanas. Si un módulo guarda sus apuntes en carpetas `UD01`, `UD02`…, una captura de la UD2 va a la `UD02` de ese módulo, y si aún no existe se propone crearla al lado. La revisión la marca como «(carpeta nueva)» y solo se crea al guardar; si el guardado falla, no queda vacía. `curso`, `asignatura`, `modulo`, `origen` y `asignatura_nota` se toman de las notas de las unidades hermanas. El módulo sale de la página, del título o de la intención escrita por el usuario («apuntes de MP5160»). Si no se conoce, el árbol de unidades solo se usa cuando es el único compatible y la IA eligió una carpeta antepasada o interior a él: una «UD2» sin más nunca lleva una nota a otro curso.
+
+Donde las notas hermanas se nombran `NN - título`, la nota nueva continúa la numeración; en una unidad nueva empieza en `01`. `orden_lectura` sale de ese número de archivo, también si se cambia en la revisión. Sin hermanas numeradas no se añade número ni `orden_lectura`.
 
 Al guardar, se añade un enlace al `index.md` más cercano, sin reemplazar tablas ni numerarlas de nuevo. El enlace identifica la sección conocida y deja el orden de lectura pendiente de revisión. Nota e índice se publican con comprobación de cambios concurrentes, recuperación y copia del índice anterior en el estado local de Anaco (`update-backups/<captura>/`).
 
@@ -28,7 +32,7 @@ Los títulos siguientes simulan una propuesta editorial; el reconocimiento de pr
 
 | Título | Propiedades contextuales | Ruta de la futura nota |
 | --- | --- | --- |
-| UD1 · Apartado 5: Infraestructura física y recursos lógicos | `origen: Profesora`, `modulo: MP5160`, `unidad_didactica: UD01`, `seccion_fuente: "5"`, `tipo_recurso: clase`, alojamiento Drive | `teoria/01_Profesora/UD01/<título>.md` |
+| UD1 · Apartado 5: Infraestructura física y recursos lógicos | `origen: Profesora`, `modulo: MP5160`, `unidad_didactica: UD01`, `seccion_fuente: "5"`, `tipo_recurso: clase`, alojamiento Drive | `teoria/01_Profesora/UD01/NN - <título>.md` |
 | AWS Cloud Foundations · M02 · S03 · AWS Organizations | `origen: AWS Academy`, `curso_fuente: AWS Academy Cloud Foundations`, `modulo: MP5160`, `modulo_aws: 2`, `seccion_fuente: "3"`, `tipo_recurso: clase` | `teoria/02_AWS_Academy_Cloud_Foundations/02_Economía_y_facturación/<título>.md` |
 | AWS Cloud Foundations · M02 · Caso Delaware North · Evaluación de la migración | Mismo curso y módulo; `tipo_recurso: caso de estudio`; sin `seccion_fuente`; `contexto_pendiente` explica la ausencia | `teoria/02_AWS_Academy_Cloud_Foundations/02_Economía_y_facturación/<título>.md` |
 | Comparación de recursos físicos y virtuales | URL y título originales; sin origen, curso ni sección atribuidos; `contexto_pendiente` señala lo desconocido | Destino propuesto por el perfil y confirmado en revisión; no se atribuye a MP5160 por tratar sobre cloud |

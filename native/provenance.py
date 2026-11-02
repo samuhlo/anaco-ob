@@ -31,7 +31,8 @@ def resolve(c, proposed=()):
         facts.pop('curso_fuente', None)
     # Moodle codes join the module with underscores (…_ZE3IFC005500_MP5160_A), so \b is not enough.
     for pattern, key in ((r'(?<![A-Za-z0-9])MP\d{4}(?!\d)', 'modulo'), (r'(?<![A-Za-z0-9])UD\s*0*\d+(?!\d)', 'unidad_didactica')):
-        matches = set(re.findall(pattern, text, re.I))
+        # The user's own intent ("apuntes de MP5160") names module and unit; the transcript does not.
+        matches = set(re.findall(pattern, text + '\n' + c.get('intent', ''), re.I))
         if len(matches) == 1:
             facts[key] = matches.pop().upper().replace(' ', '')
     if facts.get('unidad_didactica'):
@@ -96,10 +97,81 @@ def title(c, value):
     return (' · '.join(parts) + ': ' + rest)[:300] if rest else ' · '.join(parts)
 
 
+def notes_in(app, folder):
+    from vault_scan import frontmatter
+    return [frontmatter(p.read_text(errors='replace')) for p in sorted((app.vault() / folder).glob('*.md')) if not p.is_symlink()]
+
+
+def unit_route(app, c, fallback, folders):
+    """The UDnn folder beside the unit folders of the same module, created when missing.
+
+    MOTIVE -> a new unit has no notes yet, so only its siblings can say where it goes.
+    Without a known module the single compatible tree is used only if the model
+    pointed at it or at one of its ancestors: a "UD2" alone never moves a course."""
+    f = c['provenance']
+    containers = {}
+    for folder in folders:
+        parent, _, name = folder.rpartition('/')
+        if parent and re.fullmatch(r'UD\d+', name, re.I):
+            containers.setdefault(parent, []).append(folder)
+    fits = []
+    for container, units in sorted(containers.items()):
+        notes = [n for unit in units for n in notes_in(app, unit)]
+        modules = {str(n.get('modulo', '')).casefold() for n in notes}
+        if f.get('modulo') and f['modulo'].casefold() not in modules | {m.casefold() for m in re.findall(r'MP\d{4}', container)}:
+            continue
+        if f.get('origen') and notes and not any(str(n.get('origen', '')).startswith(f['origen']) for n in notes):
+            continue
+        fits.append((container, units, notes))
+    near = [x for x in fits if fallback == x[0] or fallback.startswith(x[0] + '/')]
+    if f.get('modulo') and len(fits) == 1:
+        container, units, notes = fits[0]
+    elif len(near) == 1:
+        container, units, notes = near[0]
+    elif len(fits) == 1 and fits[0][0].startswith(fallback + '/'):
+        container, units, notes = fits[0]
+    else:
+        return None
+    wanted = int(f['unidad_didactica'][2:])
+    width = len(re.search(r'\d+', units[0].rpartition('/')[2])[0])
+    folder = next((u for u in units if int(re.search(r'\d+', u.rpartition('/')[2])[0]) == wanted), container + '/UD' + str(wanted).zfill(width))
+    if folder not in folders:
+        c['planned_folders'] = [folder]
+    for key in ('curso', 'asignatura', 'modulo', 'origen', 'asignatura_nota'):
+        value = next((n[key] for n in notes if n.get(key)), None)
+        if value:
+            f.setdefault(key, value)
+    return folder
+
+
+def number(app, notes):
+    """Continue the 'NN - ' file numbering where sibling notes already use it."""
+    profile, last = app.vault_profile(), {}
+    for note in notes:
+        folder = note['folder']
+        if not profile.pattern(folder, note['note_type']).startswith('{title}') or re.match(r'\d{2} - ', note['filename']):
+            continue
+        if folder not in last:
+            path = app.vault() / folder
+            names = [p.name for p in path.glob('*.md')] if path.is_dir() else []
+            if not names and path.parent.is_dir():
+                # A new unit folder follows the numbering of the units beside it.
+                names = [p.name for sibling in path.parent.iterdir() if sibling.is_dir() and re.fullmatch(r'UD\d+', sibling.name, re.I) for p in sibling.glob('*.md')]
+                found = [0] if any(re.match(r'\d{2} - ', n) for n in names) else []
+            else:
+                found = [int(m[1]) for n in names if (m := re.match(r'(\d{2}) - ', n))]
+            last[folder] = max(found) if found else None
+        if last[folder] is not None:
+            last[folder] += 1
+            note['filename'] = f'{last[folder]:02d} - ' + note['filename']
+
+
 def route(app, c, fallback, folders):
     """Reuse a unique existing group, supported by its notes' source metadata."""
     from vault_scan import frontmatter
     f = c.get('provenance', {})
+    if f.get('unidad_didactica') and (folder := unit_route(app, c, fallback, folders)):
+        return folder
     keys = [k for k in ('curso_fuente', 'modulo_aws', 'unidad_didactica', 'modulo') if f.get(k)]
     if not keys or not f.get('origen'):
         return fallback

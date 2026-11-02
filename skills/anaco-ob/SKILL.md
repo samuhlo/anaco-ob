@@ -53,3 +53,5 @@ para casos, incluye empresa/situación y análisis (p. ej. Delaware North y eval
 de la migración). Evita títulos genéricos como Introducción o Caso práctico.
 Si falta contexto, usa el tema específico conocido e indica la incertidumbre.
 Reutiliza destinos existentes por origen y módulo; no mezcles cursos por tema.
+Si el módulo guarda sus unidades en carpetas UD01, UD02…, elige la carpeta de
+esas unidades aunque falte la de la unidad nueva: la aplicación la propone al lado.

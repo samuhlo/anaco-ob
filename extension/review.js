@@ -255,7 +255,7 @@ async function init(){
   data=await send({type:'reviewData',id:captureId});queueReview=data.queueReview;fromQueue=Boolean(queueReview);document.title=data.draft.title+' · Anaco';
   drafts={source:data.draft,...Object.fromEntries((data.bundle?.notes||[]).map(note=>[note.id,note]))};selected=new Set(Object.keys(drafts));
   for(const [id,draft] of Object.entries(drafts))edits[id]={title:draft.title,context:draft.context,body:draft.body,folder:draft.folder,filename:draft.filename,note_type:draft.note_type||(draft.folder.startsWith('07_Clases/')?'resumen':'fuente_externa'),tags:draft.tags,images:draft.selected_images||[],captions:{},relations:[]};
-  for(const folder of data.folders){const option=document.createElement('option');option.value=folder;option.textContent=folder;$('folder').append(option);}
+  for(const folder of data.folders){const option=document.createElement('option');option.value=folder;option.textContent=folder+(data.planned_folders?.includes(folder)?' '+tx('review_carpeta_nueva'):'');$('folder').append(option);}
   let edited;try{edited=JSON.parse(localStorage.getItem('editor:'+captureId)||'null');}catch{}
   if(edited?.id===captureId){
     if(edited.fields.notes){for(const [id,value] of Object.entries(edited.fields.notes))if(edits[id])edits[id]={...edits[id],...value};selected=new Set((edited.fields.selected_notes||[]).filter(id=>drafts[id]));activeNote=drafts[edited.fields.active_note]?edited.fields.active_note:'source';mergedInto=edited.fields.merged_into||{};history=edited.history||[];}
