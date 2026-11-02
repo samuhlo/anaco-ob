@@ -47,7 +47,8 @@ Devuelve provenance como lista de field/value/evidence, con valores literales y
 extractos que demuestren pertenencia, no simples menciones temáticas. Omite lo
 incierto. No deduzcas curso u origen solo por el tema. Nunca atribuyas a una demo
 una sección ausente ni uses su posición en la cola como sección u orden de lectura.
-El título debe identificar curso, módulo y sección conocidos sin redundancia;
+El título debe identificar la unidad y la sección conocidas sin redundancia, como
+las notas hermanas (p. ej. «UD2 · Apartado 6: …»); la carpeta ya indica el curso;
 para casos, incluye empresa/situación y análisis (p. ej. Delaware North y evaluación
 de la migración). Evita títulos genéricos como Introducción o Caso práctico.
 Si falta contexto, usa el tema específico conocido e indica la incertidumbre.

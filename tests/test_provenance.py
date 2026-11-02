@@ -39,7 +39,7 @@ class ProvenanceTest(unittest.TestCase):
         professor = self.group('teoria/01_Profesora/UD01', {'origen':'Profesora de MP5160','unidad_didactica':'UD01','modulo':'MP5160'})
         aws = self.group('teoria/02_AWS/02_Economia', {'origen':'AWS Academy','curso_fuente':'AWS Academy Cloud Foundations','modulo_aws':2,'modulo':'MP5160'})
         cases = [
-            ('Apartado 05', 'MP5160 > Profesora > UD01', 'Infraestructura física y recursos lógicos', professor, 'Apartado 05'),
+            ('Apartado 05', 'MP5160 > Profesora > UD01', 'Infraestructura física y recursos lógicos', professor, 'UD1 · Apartado 5: Infraestructura'),
             ('Module 2 - Section 3', 'AWS Academy Cloud Foundations', 'AWS Organizations', aws, 'M02 · S03'),
             ('Module 2 - Case study Delaware North', 'AWS Academy Cloud Foundations', 'Caso Delaware North · Evaluación de la migración', aws, 'M02'),
             ('Servicios cloud', '', 'Comparación de recursos físicos y virtuales', None, None),
@@ -77,6 +77,23 @@ class ProvenanceTest(unittest.TestCase):
         self.assertEqual(resolve(c,[{'field':'modulo_aws','value':'2','evidence':'inventado'}]),{})
         c['source_context']={'catalog':'AWS Cloud Foundations > Module 2 > Module 3'}
         self.assertNotIn('modulo_aws',resolve(c))
+
+    def test_titles_take_only_numbered_sections_and_never_a_long_course_name(self):
+        from provenance import title
+        drive = {'title':'UD02-Apartado07-8.mp4','context':'','source_context':{'resource_title':'UD02-Apartado07-8.mp4','page_title':'UD02-Apartado07-8.mp4 - Google Drive'}}
+        facts = resolve(drive)
+        self.assertEqual((facts['unidad_didactica'], facts['seccion_fuente']), ('UD02', '7–8'))
+        self.assertEqual(title({'provenance':facts}, 'Multicloud frente a nube híbrida'), 'UD2 · Apartados 7 y 8: Multicloud frente a nube híbrida')
+        # The model already wrote the unit and section: nothing is repeated.
+        self.assertEqual(title({'provenance':facts}, 'UD2 · Apartados 7 y 8: multicloud'), 'UD2 · Apartados 7 y 8: multicloud')
+        moodle = resolve({'title':'135_36019402_ZE3IFC005500_MP5160_A: Vídeo-UD02-Apartado6 | FP A DISTANCIA','context':'','source_context':{}})
+        self.assertEqual((moodle['modulo'], moodle['unidad_didactica'], moodle['seccion_fuente']), ('MP5160', 'UD02', '6'))
+        # Textual sections and model-supplied course names stay in metadata only.
+        textual = {'unidad_didactica':'UD02', 'seccion_fuente':'apartados siete y ocho de los apuntes', 'curso_fuente':'Curso de especialización - Recursos y servicios en la nube.'}
+        self.assertEqual(title({'provenance':textual}, 'Gobernanza híbrida'), 'UD2: Gobernanza híbrida')
+        self.assertEqual(title({'provenance':{'curso_fuente':'Curso de especialización - Recursos y servicios en la nube.', 'seccion_fuente':'Vídeo-UD02-Apartado6'}}, 'Portabilidad'), 'Portabilidad')
+        aws = resolve({'title':'Module 2 - Section 3','context':'','source_context':{'catalog':'AWS Academy Cloud Foundations'}})
+        self.assertEqual(title({'provenance':aws}, 'AWS Organizations'), 'AWS Cloud Foundations · M02 · S03 · AWS Organizations')
 
     def test_index_write_failure_rolls_back_note_and_retains_original(self):
         folder=self.group('teoria/AWS/02',{'origen':'AWS Academy','curso_fuente':'AWS Academy Cloud Foundations','modulo_aws':2})

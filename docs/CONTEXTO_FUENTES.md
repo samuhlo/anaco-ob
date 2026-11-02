@@ -28,12 +28,14 @@ Los títulos siguientes simulan una propuesta editorial; el reconocimiento de pr
 
 | Título | Propiedades contextuales | Ruta de la futura nota |
 | --- | --- | --- |
-| MP5160 · Profesora · UD01 · Apartado 05 · Infraestructura física y recursos lógicos | `origen: Profesora`, `modulo: MP5160`, `unidad_didactica: UD01`, `seccion_fuente: "05"`, `tipo_recurso: clase`, alojamiento Drive | `teoria/01_Profesora/UD01/<título>.md` |
+| UD1 · Apartado 5: Infraestructura física y recursos lógicos | `origen: Profesora`, `modulo: MP5160`, `unidad_didactica: UD01`, `seccion_fuente: "5"`, `tipo_recurso: clase`, alojamiento Drive | `teoria/01_Profesora/UD01/<título>.md` |
 | AWS Cloud Foundations · M02 · S03 · AWS Organizations | `origen: AWS Academy`, `curso_fuente: AWS Academy Cloud Foundations`, `modulo: MP5160`, `modulo_aws: 2`, `seccion_fuente: "3"`, `tipo_recurso: clase` | `teoria/02_AWS_Academy_Cloud_Foundations/02_Economía_y_facturación/<título>.md` |
 | AWS Cloud Foundations · M02 · Caso Delaware North · Evaluación de la migración | Mismo curso y módulo; `tipo_recurso: caso de estudio`; sin `seccion_fuente`; `contexto_pendiente` explica la ausencia | `teoria/02_AWS_Academy_Cloud_Foundations/02_Economía_y_facturación/<título>.md` |
 | Comparación de recursos físicos y virtuales | URL y título originales; sin origen, curso ni sección atribuidos; `contexto_pendiente` señala lo desconocido | Destino propuesto por el perfil y confirmado en revisión; no se atribuye a MP5160 por tratar sobre cloud |
 
 En los cuatro casos se conserva la URL y el título originales. Una demostración sin sección conocida recibe el mismo tratamiento que el caso: no se rellena un hueco en la numeración.
+
+El título solo antepone lo que distingue la nota de sus hermanas, con la forma del vault: `UD2 · Apartado 6: …` en las unidades y `AWS Cloud Foundations · M02 · S03 · …` en AWS Academy. La sección entra en el título solo si es numérica: un nombre de archivo como `UD02-Apartado07-8.mp4` da `Apartados 7 y 8`, mientras que una sección escrita en texto («apartados siete y ocho de los apuntes») queda solo en `seccion_fuente`. El nombre de otro curso no se antepone nunca.
 
 ## Validación y alcance
 

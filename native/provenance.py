@@ -5,6 +5,7 @@ from urllib.parse import urlsplit
 
 FIELDS = ('origen', 'curso_fuente', 'modulo_aws', 'modulo_fuente', 'unidad_didactica',
           'seccion_fuente', 'tipo_recurso', 'fuente_autor', 'modulo')
+SECTION = r'\b(?:Section|Sección|Seccion|Apartados?)\s*(\d+(?:\s*(?:y|–|-)\s*\d+)?)\b'
 
 
 def sanitize(value):
@@ -28,7 +29,8 @@ def resolve(c, proposed=()):
     if re.search(r'profesora', text, re.I):
         facts['origen'] = 'Profesora'
         facts.pop('curso_fuente', None)
-    for pattern, key in ((r'\bMP\d{4}\b', 'modulo'), (r'\bUD\s*0*\d+\b', 'unidad_didactica')):
+    # Moodle codes join the module with underscores (…_ZE3IFC005500_MP5160_A), so \b is not enough.
+    for pattern, key in ((r'(?<![A-Za-z0-9])MP\d{4}(?!\d)', 'modulo'), (r'(?<![A-Za-z0-9])UD\s*0*\d+(?!\d)', 'unidad_didactica')):
         matches = set(re.findall(pattern, text, re.I))
         if len(matches) == 1:
             facts[key] = matches.pop().upper().replace(' ', '')
@@ -38,7 +40,8 @@ def resolve(c, proposed=()):
         numbers = set(re.findall(r'\b(?:Module|Módulo|Modulo)\s+0*(\d+)\b', text, re.I))
         if len(numbers) == 1:
             facts['modulo_aws'] = numbers.pop()
-    sections = set(re.findall(r'\b(?:Section|Sección|Seccion|Apartados?)\s+(\d+(?:\s*(?:y|–|-)\s*\d+)?)\b', text, re.I))
+    # Drive files are named like "UD02-Apartado07-8.mp4": the number may follow the label directly.
+    sections = {numbered(m) for m in re.findall(SECTION, text, re.I)}
     if len(sections) == 1:
         facts['seccion_fuente'] = sections.pop()
     # Model-supplied facts require both the value and a literal supporting excerpt.
@@ -57,18 +60,40 @@ def resolve(c, proposed=()):
     return facts
 
 
+def numbered(value):
+    """'07-8' -> '7–8'; None when the section is not written with numbers."""
+    m = re.search(SECTION, value, re.I) or re.fullmatch(r'\s*(\d+(?:\s*(?:y|–|-)\s*\d+)?)\s*', value)
+    if not m:
+        return None
+    return '–'.join(str(int(n)) for n in re.findall(r'\d+', m[1]))
+
+
 def title(c, value):
+    """Prefix only what identifies the note among its siblings, as the vault names them."""
     f = c.get('provenance', {})
-    parts = []
-    if f.get('origen') == 'Profesora':
-        parts = [f.get('modulo'), 'Profesora', f.get('unidad_didactica')]
-    elif f.get('curso_fuente'):
+    section = numbered(f.get('seccion_fuente', ''))
+    if f.get('origen') == 'AWS Academy' and f.get('curso_fuente'):
         parts = [f['curso_fuente'].replace('AWS Academy', 'AWS')]
-    if f.get('modulo_aws'):
-        parts.append('M' + str(f['modulo_aws']).zfill(2))
-    if f.get('seccion_fuente'):
-        parts.append(('Apartado ' if f.get('origen') == 'Profesora' else 'S') + f['seccion_fuente'].zfill(2))
-    return ' · '.join([p for p in parts if p and p.casefold() not in value.casefold()] + [value])[:300]
+        if f.get('modulo_aws'):
+            parts.append('M' + str(f['modulo_aws']).zfill(2))
+        if section:
+            parts.append('S' + section.zfill(2))
+        return ' · '.join([p for p in parts if p.casefold() not in value.casefold()] + [value])[:300]
+    unit = re.fullmatch(r'UD0*(\d+)', f.get('unidad_didactica', ''))
+    if not unit:
+        return value[:300]
+    parts = ['UD' + unit[1]]
+    numbers = section.split('–') if section else []
+    if numbers:
+        parts.append(('Apartados ' + ' y '.join(numbers)) if len(numbers) > 1 else 'Apartado ' + numbers[0])
+    # Markers the model already wrote at the start are rebuilt once, in the vault's order.
+    marker = r'(?:UD\s*0*' + unit[1] + r'|Apartados?\s*0*' + (r'\s*(?:y|–|-)\s*0*'.join(numbers) if numbers else r'\d+') + r')\b\s*[·:—–-]?\s*'
+    rest = value
+    while (m := re.match(marker, rest, re.I)):
+        rest = rest[m.end():]
+    if numbers and re.search(r'\bApartados?\s*0*' + numbers[0] + r'\b', rest, re.I):
+        parts.pop()
+    return (' · '.join(parts) + ': ' + rest)[:300] if rest else ' · '.join(parts)
 
 
 def route(app, c, fallback, folders):
