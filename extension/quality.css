@@ -9,7 +9,7 @@ html,body{min-width:0;width:100%;margin:0}main,.review-main,.review-grid,.review
 .panel-page .work-heading>div{min-width:0;max-width:100%}
 .panel-page #workElapsed{white-space:nowrap}
 .panel-page :is(#operation,#workDetail,#workHint,#workStage){white-space:normal;overflow-wrap:anywhere}
-.review-menu-note{display:flex;gap:8px;align-items:flex-start;margin:8px 0;min-width:0}.review-menu-note>input{flex:0 0 16px;margin-top:12px}.review-menu-note>button{flex:1;min-width:0;text-align:left;font-size:12px}.review-menu-note>button[aria-current=true]{border-color:var(--accent);background:var(--tint);box-shadow:0 0 0 1px var(--accent)}#reviewMenuTitle{margin:10px 0;overflow-wrap:anywhere}#reviewSave{display:block;width:100%;margin-top:12px}#reviewWorkspace .edit-actions>button{flex:1 1 110px;font-size:12px}
+.review-menu-note{display:flex;gap:8px;align-items:flex-start;margin:8px 0;min-width:0}.review-menu-note>input{flex:0 0 16px;margin-top:12px}.review-menu-note>button{flex:1;min-width:0;text-align:left;font-size:12px;border-radius:12px;padding:8px 12px}.review-menu-note>button[aria-current=true]{border-color:var(--accent);background:var(--tint);box-shadow:0 0 0 1px var(--accent)}#reviewMenuTitle{margin:10px 0;overflow-wrap:anywhere}#reviewSave{display:block;width:100%;margin-top:12px}#reviewWorkspace .edit-actions>button{flex:1 1 110px;font-size:12px}
 .review-menu-note small{display:block;font-size:10px;margin-top:3px}
 .review-menu-notes{max-height:40vh;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:4px}
 

@@ -50,9 +50,18 @@ async function reviewStatus(message,sender){
   const tab=await browser.tabs.get(sender.tab.id).catch(()=>null);
   if(tab?.url!==expected)return;
   if(sender.tab.active)for(const value of Object.values(reviewSessions))if(value.windowId===sender.tab.windowId)value.tabActive=false;
+  for(const [id,value] of Object.entries(reviewSessions))if(value.tabId===sender.tab.id&&id!==message.id)delete reviewSessions[id];
   reviewSessions[message.id]={...message.status,id:message.id,tabId:sender.tab.id,windowId:sender.tab.windowId,instance:message.instance,tabActive:Boolean(sender.tab.active),updatedAt:Date.now()};
   await browser.storage.local.set({reviewSessions:{...reviewSessions}});
   return true;
+}
+// The tab goes on to the next queued note: its session waits for that review so the
+// sidebar assistant does not fall back to the page, and its error, for a moment.
+async function handOverReviewTab(tabId,nextId){
+  const [previous]=Object.values(reviewSessions).filter(value=>value.tabId===tabId);
+  for(const [id,value] of Object.entries(reviewSessions))if(value.tabId===tabId)delete reviewSessions[id];
+  if(previous)reviewSessions[nextId]={...previous,id:nextId,notes:[],busy:true,updatedAt:Date.now()};
+  await browser.storage.local.set({reviewSessions:{...reviewSessions}});
 }
 async function clearReviewTab(tabId){
   let changed=false;
@@ -283,6 +292,8 @@ async function performCapture(tab, input = {}, {automatic = false, fresh = true}
   if(AnacoObBatchBusy()){if(automatic)return null;throw new Error(tx('batch_busy'));}
   if (automatic && tab?.url?.startsWith(browser.runtime.getURL(''))) return null;
   if(workClaim){if(automatic)return (await browser.storage.local.get('currentCapture')).currentCapture;throw new Error(tx('bg_la_captura_actual_sigue_procesandose_pue'));}
+  // A tab that is still opening has no page yet; its load triggers the next detection.
+  if (automatic && (!tab?.url || tab.url === 'about:blank')) return null;
   const sequence = ++detectionSequence;
   if (!tab?.id || !/^(https?:|file:)/.test(tab.url || '')) {
     if (automatic && tab?.url?.startsWith(browser.runtime.getURL(''))) return null;
@@ -582,7 +593,7 @@ async function finishQueueReview(message,sender){
   }
   if(nextId)reviews[nextId]=existing?.id||sender.tab.id;
   await browser.storage.local.set({reviews});
-  await clearReviewTab(sender.tab.id);
+  if(nextId&&!existing)await handOverReviewTab(sender.tab.id,nextId);else await clearReviewTab(sender.tab.id);
   if(existing){
     await browser.tabs.update(existing.id,{active:true});
     if(existing.windowId!==sender.tab.windowId)await browser.windows.update(existing.windowId,{focused:true});

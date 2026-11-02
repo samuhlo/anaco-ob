@@ -294,3 +294,29 @@ test('an automatic detection after binding cannot replace a selection capture st
  release({...capture(1),kind:'quote',text:'Selected words'});await quote;await automatic;
  assert.equal(data.currentCapture.kind,'quote');assert.equal(data.currentCapture.text,'Selected words');
 });
+test('a tab that is still opening shows no error while its page loads',async()=>{
+ const {ctx,data}=app();data.pageContext={tabId:7,url:'https://course.example/page-7',status:'ready'};
+ ctx.opening={id:7,url:'about:blank',windowId:1};
+ await vm.runInContext('capture(opening,{},{automatic:true})',ctx);
+ assert.equal(data.pageContext.status,'ready');
+ // An explicit capture of a page that is not a web page still explains why.
+ await vm.runInContext('capture(opening)',ctx);
+ assert.equal(data.pageContext.status,'error');
+});
+test('saving a queued review keeps the assistant on the tab that goes on to the next note',async()=>{
+ const {ctx,data}=app(),review=id=>'moz-extension://test/review.html?capture='+id;
+ let current=review('c1');ctx.browser.tabs.get=async id=>({id,url:current});
+ ctx.browser.tabs.update=async(id,change)=>{current=change.url||current;};
+ ctx.native=async({id})=>({id,status:'draft',draft:{}});
+ ctx.AnacoObBatch={reviewContext:async()=>({next:['c2']}),reviewed:async()=>{}};
+ ctx.sender={tab:{id:5,windowId:1,active:true},url:review('c1')};
+ await vm.runInContext('reviewStatus({id:"c1",status:{title:"Nota 1",notes:[]},instance:"i"},sender)',ctx);
+ await vm.runInContext('finishQueueReview({id:"c1",decision:"save"},sender)',ctx);
+ assert.equal(current,review('c2'));
+ assert.equal(data.reviewSessions.c1,undefined);
+ assert.equal(data.reviewSessions.c2.tabId,5);assert.equal(data.reviewSessions.c2.busy,true);
+ // The next review's own status replaces the handed-over one.
+ ctx.sender={tab:{id:5,windowId:1,active:true},url:review('c2')};
+ await vm.runInContext('reviewStatus({id:"c2",status:{title:"Nota 2",notes:[]},instance:"j"},sender)',ctx);
+ assert.equal(data.reviewSessions.c2.title,'Nota 2');assert.equal(Object.keys(data.reviewSessions).length,1);
+});
