@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 
 FIELDS = ('origen', 'curso_fuente', 'modulo_aws', 'modulo_fuente', 'unidad_didactica',
           'seccion_fuente', 'tipo_recurso', 'fuente_autor', 'modulo')
-SECTION = r'\b(?:Section|Sección|Seccion|Apartados?)\s*(\d+(?:\s*(?:y|–|-)\s*\d+)?)\b'
+SECTION = r'\b(?:Section|Sección|Seccion|Apartados?|(?-i:Ap))\s*(\d+(?:\s*(?:y|–|-)\s*\d+)?)\b'
 
 
 def sanitize(value):

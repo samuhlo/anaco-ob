@@ -39,7 +39,7 @@ Los títulos siguientes simulan una propuesta editorial; el reconocimiento de pr
 
 En los cuatro casos se conserva la URL y el título originales. Una demostración sin sección conocida recibe el mismo tratamiento que el caso: no se rellena un hueco en la numeración.
 
-El título solo antepone lo que distingue la nota de sus hermanas, con la forma del vault: `UD2 · Apartado 6: …` en las unidades y `AWS Cloud Foundations · M02 · S03 · …` en AWS Academy. La sección entra en el título solo si es numérica: un nombre de archivo como `UD02-Apartado07-8.mp4` da `Apartados 7 y 8`, mientras que una sección escrita en texto («apartados siete y ocho de los apuntes») queda solo en `seccion_fuente`. El nombre de otro curso no se antepone nunca.
+El título solo antepone lo que distingue la nota de sus hermanas, con la forma del vault: `UD2 · Apartado 6: …` en las unidades y `AWS Cloud Foundations · M02 · S03 · …` en AWS Academy. La sección entra en el título solo si es numérica: un nombre de archivo como `UD02-Apartado07-8.mp4` da `Apartados 7 y 8` y `UD2-Ap4.mp4` da `Apartado 4`, mientras que una sección escrita en texto («apartados siete y ocho de los apuntes») queda solo en `seccion_fuente`. El nombre de otro curso no se antepone nunca.
 
 ## Validación y alcance
 

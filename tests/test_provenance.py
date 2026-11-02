@@ -88,6 +88,9 @@ class ProvenanceTest(unittest.TestCase):
         self.assertEqual(title({'provenance':facts}, 'Multicloud frente a nube híbrida'), 'UD2 · Apartados 7 y 8: Multicloud frente a nube híbrida')
         # The model already wrote the unit and section: nothing is repeated.
         self.assertEqual(title({'provenance':facts}, 'UD2 · Apartados 7 y 8: multicloud'), 'UD2 · Apartados 7 y 8: multicloud')
+        # The teacher also abbreviates: UD2-Ap4.mp4.
+        self.assertEqual(resolve({'title':'UD2-Ap4.mp4','context':'','source_context':{}})['seccion_fuente'], '4')
+        self.assertNotIn('seccion_fuente', resolve({'title':'AP 3 notas','context':'','source_context':{}}))
         moodle = resolve({'title':'135_36019402_ZE3IFC005500_MP5160_A: Vídeo-UD02-Apartado6 | FP A DISTANCIA','context':'','source_context':{}})
         self.assertEqual((moodle['modulo'], moodle['unidad_didactica'], moodle['seccion_fuente']), ('MP5160', 'UD02', '6'))
         # Textual sections and model-supplied course names stay in metadata only.
