@@ -1,0 +1,5 @@
+Anaco 1.3.3 changes how course notes are placed and named in the user's vault, and fixes queue review transitions.
+No new permissions, hosts or network requests. The manifest only changes its version.
+Extension changes: the review page marks a destination folder that will be created on save; the background script keeps the sidebar review assistant attached while a queued review moves to the next note in the same tab, and an automatic detection of a tab that is still opening (about:blank) no longer reports an error; two CSS rules (centered segmented control labels, rectangular note rows in the assistant).
+The local Python companion decides the destination folder, file name and frontmatter; it may create one unit folder inside the user's vault when the user saves the reviewed note.
+Build and package reproduction: AMO_BUILD.md. Account-free capture testing: docs/amo/1.3.0-reviewer-notes.txt. Update settings: docs/amo/1.3.2-reviewer-notes.txt.

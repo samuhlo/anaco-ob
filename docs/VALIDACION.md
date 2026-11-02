@@ -1103,3 +1103,14 @@ Esta beta se publica como prerelease de GitHub con ZIP sin firma de Mozilla, fue
 - Validador Mozilla: cero errores; permanecen las dos advertencias previas (Android y DOMPurify). La publicación de GitHub contiene un ZIP sin firma; publicar la extensión firmada en AMO es un paso separado.
 
 La primera ejecución de CI detectó una carrera previa de limpieza de procesos en macOS/Python 3.11: `killpg` devolvía EPERM tras finalizar el hijo y ocultaba el error original de una transcripción inválida. Se comprueba que el hijo haya terminado antes de tolerar ese caso; un proceso vivo sigue propagando el error. Dos pruebas específicas cubren ambas situaciones.
+
+## 1.3.3 · apuntes de curso por unidad (2026-11-02)
+
+- 141 pruebas Node y 272 pruebas Python (una omitida, del lanzador Windows); catálogos bilingües sin problemas. `npm ci`, `vendor` y el catálogo regenerados sin diferencias.
+- Ubicación y títulos: unidad nueva junto a las anteriores con carpeta propuesta y creada solo al guardar (y retirada si falla), metadatos heredados, numeración `NN - ` continuada y renumerada al guardar desde una cola, colecciones sin números repetidos ni enlaces rotos, carpeta no admitida por el perfil, unidad escrita en texto, módulo desde la intención, secciones `Apartado07-8`/`Ap4` y código `_MP5160_A`, títulos sin la «S» ni el nombre de otro curso.
+- Cola: el asistente lateral conserva la sesión al pasar a la siguiente nota; una pestaña que se abre (`about:blank`) no muestra error en detección automática.
+- Zen real: `--batch`, `--batch --batch-video`, `--course-links`, `--panel-ux`, `--review-menu` y `--split-review` superados. La e2e `--batch --batch-video` detectó durante el desarrollo una regresión (`n()` sombreado en el despachador, que hacía transcribir el audio en vez de usar subtítulos), confirmada por bisección y cubierta con una prueba unitaria.
+- Revisión independiente con p_reviewer: tres hallazgos reproducidos y corregidos con prueba antes de la versión.
+- `python3 scripts/smoke_updater.py`: instalación real en entorno separado, respuesta Native Messaging con la versión 1.3.3 y configuración intacta.
+- Validador Mozilla: cero errores y las dos advertencias previas (Android y DOMPurify). No se añaden permisos ni accesos de red. La publicación firmada en AMO es un paso separado.
+- No se reprodujo en la barra lateral real el error descrito al terminar una cola de archivos; queda pendiente de confirmar con uso real.

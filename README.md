@@ -7,7 +7,7 @@
 <br /><br />
 
   <img src="https://img.shields.io/badge/STATUS-BETA-FFCA40?style=for-the-badge&labelColor=000000" alt="Status" />
-  <img src="https://img.shields.io/badge/VERSIÓN-1.3.2-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
+  <img src="https://img.shields.io/badge/VERSIÓN-1.3.3-FFCA40?style=for-the-badge&labelColor=000000" alt="Versión" />
   <img src="https://img.shields.io/badge/LICENCIA-MIT-FFCA40?style=for-the-badge&labelColor=000000" alt="Licencia MIT" />
   <br/>
   <img src="https://img.shields.io/badge/Zen_·_Firefox-0C0011?style=for-the-badge&logo=firefoxbrowser&logoColor=FFCA40&labelColor=000000" alt="Zen y Firefox" />
@@ -19,7 +19,7 @@
   <img src="https://img.shields.io/badge/Whisper_local-0C0011?style=for-the-badge&labelColor=000000" alt="Whisper local" />
   <br/><br/>
 
-[Descargar 1.3.2](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.2) ·
+[Descargar 1.3.3](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.3) ·
 [Guía de prueba](PRUEBA.md) ·
 [Historial](docs/HISTORIAL.md) ·
 [Validación](docs/VALIDACION.md) ·
@@ -128,18 +128,22 @@ El perfil se guarda como `.json` en una carpeta normal del vault, por ejemplo `9
 
 ## // 06_ INICIO_RÁPIDO
 
+### 1.3.3 · apuntes de curso por unidad
+
+Los apuntes de un curso se guardan junto a las unidades anteriores. Si un módulo ordena sus apuntes en `UD01`, `UD02`…, una captura de la UD2 va a la `UD02` de ese módulo; si aún no existe, la revisión la propone como **(carpeta nueva)** y se crea al guardar. La nota hereda curso, asignatura, módulo y origen de sus hermanas y continúa su numeración `NN - título`. El título sigue la forma de la unidad (`UD2 · Apartado 6: …`). La intención escrita puede indicar el módulo («apuntes de MP5160»). Detalle en [contexto de fuentes](docs/CONTEXTO_FUENTES.md).
+
 ### 1.3.2 · actualizaciones desde Anaco
 
 **Opciones → Actualizaciones** muestra las versiones de la extensión y el servicio local. Anaco consulta cada día los canales estables de Mozilla y GitHub y avisa en el panel cuando hay una versión nueva. Puedes desactivar las consultas automáticas o usar **Buscar actualizaciones**.
 
 **Actualizar extensión** abre Mozilla Add-ons para completar la instalación con la confirmación del navegador. **Actualizar servicio local** instala la versión estable de GitHub en un entorno separado, comprueba la versión y reconecta el navegador. Conserva configuración, capturas, transcripciones y notas; espera a que termine cualquier trabajo antes de actualizar. Si falla la descarga o la comprobación, sigue disponible el servicio anterior.
 
-La extensión y el servicio usan **1.3.2**. El ZIP de GitHub **no está firmado por Mozilla**: para probarlo, descomprímelo y carga su `manifest.json` desde `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal**. La carga temporal dura hasta cerrar el navegador. La versión firmada se instala desde AMO cuando esté publicada allí.
+La extensión y el servicio usan **1.3.3**. El ZIP de GitHub **no está firmado por Mozilla**: para probarlo, descomprímelo y carga su `manifest.json` desde `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal**. La carga temporal dura hasta cerrar el navegador. La versión firmada se instala desde AMO cuando esté publicada allí.
 
 Si tu servicio es anterior a 1.3.2, actualízalo una vez desde la guía de instalación o con estas órdenes. Las siguientes actualizaciones ya se pueden iniciar desde Opciones:
 
 ```sh
-uv tool install --force --python 3.12 "anaco-ob @ https://github.com/samuhlo/anaco-ob/archive/refs/tags/v1.3.2.zip"
+uv tool install --force --python 3.12 "anaco-ob @ https://github.com/samuhlo/anaco-ob/archive/refs/tags/v1.3.3.zip"
 anaco-ob install
 anaco-ob doctor
 ```
@@ -209,7 +213,7 @@ docs/          # Historial, validación, notas técnicas y capturas
 
 ## // 08_ TESTS · DOCS · ESTADO · LICENCIA
 
-- **Estado:** [1.3.2 en GitHub](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.2), con extensión y fuentes verificables. El complemento firmado se distribuye por [Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/). Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
+- **Estado:** [1.3.3 en GitHub](https://github.com/samuhlo/anaco-ob/releases/tag/v1.3.3), con extensión y fuentes verificables. El complemento firmado se distribuye por [Mozilla Add-ons](https://addons.mozilla.org/addon/anaco/). Los cursos privados se validan en la sesión del usuario; ver [VALIDACION.md](docs/VALIDACION.md).
 - **Docs:** [plan de estabilización](docs/PLAN_ESTABILIZACION.md), [guía de prueba](PRUEBA.md), [historial](docs/HISTORIAL.md), [notas técnicas](docs/TECNICO.md), [contrato editorial de la IA](skills/anaco-ob/SKILL.md) y [publicación en AMO](docs/amo/README.md).
 - **Licencia:** [MIT](LICENSE).
 

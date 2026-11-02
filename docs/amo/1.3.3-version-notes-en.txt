@@ -1,0 +1,1 @@
+Anaco 1.3.3 saves course notes next to their previous units: it proposes the folder for a new unit, inherits course and module from sibling notes and continues their numbering. Titles follow the unit's form ("UD2 · Apartado 6: …"). In the link queue, the sidebar assistant no longer shows an error when moving from one note to the next, and its note rows no longer cut titles.

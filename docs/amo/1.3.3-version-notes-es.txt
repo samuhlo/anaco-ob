@@ -1,0 +1,1 @@
+Anaco 1.3.3 guarda los apuntes de curso junto a sus unidades anteriores: propone la carpeta de la unidad nueva, hereda curso y módulo de las notas hermanas y continúa su numeración. Los títulos siguen la forma de la unidad («UD2 · Apartado 6: …»). En la cola de enlaces, el asistente lateral ya no muestra un error al pasar de una nota a otra, y sus notas no cortan el título.
