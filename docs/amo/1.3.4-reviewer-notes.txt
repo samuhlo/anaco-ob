@@ -1,0 +1,5 @@
+Anaco 1.3.4 fixes book extraction from pdf.js-style viewers and link queue transitions.
+No new permissions, hosts or network requests. The manifest only changes its version.
+Extension changes: surfaces.js waits up to 15 seconds for a book page to have a drawable and to be painted before rasterizing it, instead of trusting the viewer's data-loaded mark (pdf.js sets it before painting); batch-ui.js removes a finished link queue when the user leaves it; diagnosis.js compares only major.minor between extension and companion; panel.js and one CSS rule keep page detection notices out of the link queue view.
+The local Python companion gives the final synthesis of a long book a time limit proportional to its pages (300 s plus 10 s per page, at most 30 minutes) instead of a fixed 300 s.
+Build and package reproduction: AMO_BUILD.md. Account-free capture testing: docs/amo/1.3.0-reviewer-notes.txt. Update settings: docs/amo/1.3.2-reviewer-notes.txt.

@@ -1114,3 +1114,13 @@ La primera ejecución de CI detectó una carrera previa de limpieza de procesos 
 - `python3 scripts/smoke_updater.py`: instalación real en entorno separado, respuesta Native Messaging con la versión 1.3.3 y configuración intacta.
 - Validador Mozilla: cero errores y las dos advertencias previas (Android y DOMPurify). No se añaden permisos ni accesos de red. La publicación firmada en AMO es un paso separado.
 - No se reprodujo en la barra lateral real el error descrito al terminar una cola de archivos; queda pendiente de confirmar con uso real.
+
+## 1.3.4 · libros grandes y cola terminada (2026-11-03)
+
+- Origen: cinco extracciones reales de las Student Guide de AWS Academy (55–79 páginas, visor pdf.js dentro de un LTI de Canvas) se quedaron en la página 1, guardada en blanco; una de 79 páginas leyó sus 14 lotes y su síntesis se cortó tres veces a los 300 s.
+- 142 pruebas Node y 273 pruebas Python (una omitida, del lanzador Windows); catálogos bilingües sin problemas.
+- Síntesis: `test_synthesis_of_a_long_book_gets_more_time_than_one_batch` falla con el límite fijo y pasa con 1090 s para 79 páginas; los lotes siguen con 300 s.
+- Zen real: `--reader` reproduce la página en blanco con un visor que marca `data-loaded` antes de pintar y pasa con la espera nueva; `--book` (55 páginas) sin cambios. `--reader` seguía comprobando la etiqueta «LECTOR HTML», sustituida en la 1.2.0; ahora comprueba «Libro o lector» antes de extraer. Cola terminada y avisos: `--batch`, `--batch --batch-video`, `--copy-error`, `--panel-ux`, `--course-links` y `--review-menu` superados en sus commits.
+- `python3 scripts/smoke_updater.py`: instalación real en entorno separado, respuesta Native Messaging con la versión 1.3.4 y configuración intacta.
+- Validador Mozilla: cero errores y las dos advertencias previas (Android y DOMPurify). No se añaden permisos ni accesos de red. La publicación firmada en AMO es un paso separado.
+- Pendiente de uso real: extraer de nuevo una Student Guide en la sesión del usuario. El centrado de botones de la cola espera una captura.
