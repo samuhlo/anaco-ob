@@ -57,3 +57,11 @@ test('the one-line install fits each system and points to a script that exists',
   assert.match(windows.command,/^powershell -ExecutionPolicy ByPass -c "irm https:\/\/raw\.githubusercontent\.com\/samuhlo\/anaco-ob\/main\/scripts\/install\.ps1 \| iex"$/);
   for(const value of [unix,windows])assert.ok(fs.existsSync(value.script.replace('https://github.com/samuhlo/anaco-ob/blob/main/','')),value.script);
 });
+
+test('a patch release of one piece does not report different versions',()=>{
+  // Mozilla publishes the extension later than GitHub: 1.3.2 with 1.3.3 is a normal state.
+  assert.deepEqual([...diagnosis.status({version:'1.3.3'},'1.3.2')],[]);
+  assert.deepEqual([...diagnosis.status({version:'1.3.2'},'1.3.10')],[]);
+  assert.equal(diagnosis.status({version:'1.4.0'},'1.3.2')[0].kind,'version');
+  assert.equal(diagnosis.status({version:'2.0.0'},'1.3.2')[0].kind,'version');
+});

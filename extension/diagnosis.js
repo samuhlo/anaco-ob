@@ -14,7 +14,9 @@ globalThis.AnacoObDiagnosis=(()=>{
   // Problems in a status reply from a running service.
   function status(reply,extensionVersion){
     const out=[];
-    if(reply?.version&&extensionVersion&&reply.version!==extensionVersion)
+    // Pieces of the same major.minor work together; a patch can reach GitHub before Mozilla.
+    const line=version=>String(version).split('.').slice(0,2).join('.');
+    if(reply?.version&&extensionVersion&&line(reply.version)!==line(extensionVersion))
       out.push({kind:'version',title:tx('diag_versiones_distintas'),text:tx('diag_la_extension_es_la_1_y_el_servicio_la_2_',[extensionVersion,reply.version]),action:'options'});
     if(reply?.ai&&!reply.ai.ready)
       out.push({kind:'ai',title:tx('diag_la_ia_no_esta_lista'),text:reply.ai.message||tx('diag_revisa_el_proveedor_de_ia_en_opciones'),action:'options'});
