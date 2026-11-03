@@ -1,0 +1,5 @@
+Anaco 1.3.5 fixes book extraction after a course player replaces the reader frame, and the extension update flow.
+No new permissions, hosts or network requests. The manifest only changes its version.
+Extension changes: background.js re-runs the existing tab detection when a reader frame recorded at detection no longer exists (webNavigation.getAllFrames), and reports "the reader changed" instead of Firefox's raw frame error. update-manager.js listens to runtime.onUpdateAvailable so an update downloaded by Firefox never reloads the extension mid-work; it stores the version and the Options button calls runtime.reload() only when no work is running. The button no longer opens the AMO listing; when AMO has a newer version that Firefox has not downloaded, Options explains about:addons → Check for Updates. A stale notice is cleared on startup after the update is applied.
+The local Python companion only changes its version.
+Build and package reproduction: AMO_BUILD.md. Account-free capture testing: docs/amo/1.3.0-reviewer-notes.txt. Update settings: docs/amo/1.3.2-reviewer-notes.txt.

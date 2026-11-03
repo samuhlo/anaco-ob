@@ -1,4 +1,4 @@
-# Rebuilding Anaco 1.3.4
+# Rebuilding Anaco 1.3.5
 
 The source archive contains the browser extension, its local Native Messaging
 companion and build inputs. It excludes development environments, personal test
@@ -27,7 +27,7 @@ npm run lint
 npm run build
 ```
 
-The result is `dist/anaco-ob-1.3.4.zip`. Compare the names and bytes of its
+The result is `dist/anaco-ob-1.3.5.zip`. Compare the names and bytes of its
 uncompressed entries with the submitted add-on. ZIP timestamps may differ.
 No signing key or environment secret is required.
 
@@ -37,7 +37,9 @@ of marked 18.1.1 and DOMPurify 3.4.17 into `extension/vendor/`.
 JSON files. There is no first-party JavaScript bundler, transpiler, minifier or
 obfuscator. Third-party source links and account-free testing instructions are
 in `docs/amo/1.3.0-reviewer-notes.txt` (the previous AMO submission materials).
-Release 1.3.4 waits for book pages to be painted before capturing them and
+Release 1.3.5 detects a replaced book reader frame again and holds Firefox's
+downloaded extension update until the user restarts Anaco; it adds no permissions
+or network access (see `docs/amo/1.3.5-reviewer-notes.txt`). Release 1.3.4 waits for book pages to be painted before capturing them and
 lets a finished link queue leave the panel; it adds no permissions or network
 access (see `docs/amo/1.3.4-reviewer-notes.txt`). Release 1.3.3 places course notes next to their sibling unit folders and fixes
 queue review transitions; it adds no permissions or network access (see

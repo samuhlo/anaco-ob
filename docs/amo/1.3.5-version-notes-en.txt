@@ -1,0 +1,1 @@
+Anaco 1.3.5 detects a book again when the course player replaces the reader frame before extraction, instead of failing with "Invalid frame IDs". Extension updates no longer interrupt work: Firefox downloads the new version, Anaco keeps it and applies it when you choose "Restart and update". The update notice goes away once applied.

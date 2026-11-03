@@ -1124,3 +1124,14 @@ La primera ejecución de CI detectó una carrera previa de limpieza de procesos 
 - `python3 scripts/smoke_updater.py`: instalación real en entorno separado, respuesta Native Messaging con la versión 1.3.4 y configuración intacta.
 - Validador Mozilla: cero errores y las dos advertencias previas (Android y DOMPurify). No se añaden permisos ni accesos de red. La publicación firmada en AMO es un paso separado.
 - Pendiente de uso real: extraer de nuevo una Student Guide en la sesión del usuario. El centrado de botones de la cola espera una captura.
+
+## 1.3.5 · lector sustituido y actualizaciones de la extensión (2026-11-03)
+
+- Origen: una Student Guide de AWS Academy detectada mientras el visor cargaba; el reproductor de contentcontroller sustituyó el marco del lector y la extracción falló con «Invalid frame IDs». Con la 1.3.4 publicada en Mozilla, «Actualizar extensión» abría la ficha de AMO sin actualizar y el aviso permanecía.
+- 144 pruebas Node y 273 pruebas Python (una omitida, del lanzador Windows); catálogos bilingües sin problemas.
+- Zen real: `--reader` reproduce el error sustituyendo el iframe tras la detección y pasa con la nueva detección; `--book` sin cambios. `smoke_updates_ui.py`: sin botón cuando solo Mozilla publica la versión (indicación de `about:addons`), «Reiniciar y actualizar» con la versión descargada y aviso del panel con esa versión.
+- Retención de la actualización (`runtime.onUpdateAvailable`) y aplicación con `runtime.reload()` solo fuera de un trabajo: pruebas unitarias con el navegador simulado. Firefox no permite comprobarlo sin una versión firmada servida por Mozilla.
+- `python3 scripts/smoke_updater.py`: instalación real en entorno separado, respuesta Native Messaging con la versión 1.3.5 y configuración intacta.
+- Validador Mozilla: cero errores y las dos advertencias previas (Android y DOMPurify). No se añaden permisos ni accesos de red. La publicación firmada en AMO es un paso separado.
+- La 1.3.4 firmada de AMO coincide con el ZIP de GitHub salvo el `manifest.json` reescrito por la firma.
+- Pendiente de uso real: extraer de nuevo una Student Guide en la sesión del usuario.

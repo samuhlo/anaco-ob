@@ -40,7 +40,7 @@ def main():
         wait = WebDriverWait(driver, 40)
         try:
             driver.set_window_size(1100, 1100)
-            addon = driver.install_addon(str(ROOT / 'dist/anaco-ob-1.3.4.zip'), temporary=True)
+            addon = driver.install_addon(str(ROOT / 'dist/anaco-ob-1.3.5.zip'), temporary=True)
             driver.set_context('chrome')
             uuid = json.loads(driver.execute_script('return Services.prefs.getStringPref("extensions.webextensions.uuids")'))[addon]
             driver.set_context('content')
@@ -60,7 +60,7 @@ def main():
             wait.until(lambda d: d.find_element('id', 'updateExtension').is_displayed())
             assert driver.find_element('id', 'updateExtension').text == 'Reiniciar y actualizar'
             assert not driver.find_element('id', 'updateExtensionHint').is_displayed()
-            assert '1.3.4' in driver.find_element('id', 'serviceVersion').text
+            assert '1.3.5' in driver.find_element('id', 'serviceVersion').text
             assert '1.4.0' in driver.find_element('id', 'serviceVersion').text
             driver.find_element('id', 'updatesCard').screenshot(str(out / 'options-updates.png'))
             driver.find_element('id', 'autoUpdateCheck').click()
