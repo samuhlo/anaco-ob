@@ -2,7 +2,7 @@ globalThis.AnacoObBatchUI={busy:false};
 (()=>{
   // view: which mode the panel shows. source: how the next list is filled.
   let importedContexts={};
-  let queue=null,signature='',pageQueueId=null,newList=false,previousQueueId=null,importedCookieStoreId=null,view='page',source='paste',structureTouched=false;
+  let queue=null,finished=false,signature='',pageQueueId=null,newList=false,previousQueueId=null,importedCookieStoreId=null,view='page',source='paste',structureTouched=false;
   const action=fn=>async()=>{
     $('batchError').hidden=true;
     try{await fn();}catch(error){$('batchError').textContent=error.message;$('batchError').hidden=false;}
@@ -25,8 +25,12 @@ globalThis.AnacoObBatchUI={busy:false};
     $('sourcePaste').setAttribute('aria-pressed',String(source==='paste'));$('sourceCourse').setAttribute('aria-pressed',String(source==='course'));
     $('batchPaste').hidden=source!=='paste';$('courseExplorer').hidden=source!=='course';
   }
-  $('modePage').onclick=()=>{pageQueueId=queue?.id;newList=false;setView('page');};
-  $('modeBatch').onclick=()=>{pageQueueId=null;setView('batch');};
+  // MOTIVE -> leaving a queue is remembered in storage: a reopened panel must not bring it back.
+  $('modePage').onclick=action(async()=>{
+    if(finished)await browser.runtime.sendMessage({type:'batchClear'});
+    pageQueueId=queue?.id;newList=false;await browser.storage.local.set({batchLeftQueue:queue?.id||null});setView('page');
+  });
+  $('modeBatch').onclick=action(async()=>{pageQueueId=null;await browser.storage.local.set({batchLeftQueue:null});setView('batch');});
   $('sourcePaste').onclick=()=>setSource('paste');
   $('sourceCourse').onclick=()=>setSource('course');
   $('batchStructure').onchange=()=>{structureTouched=true;};
@@ -48,7 +52,11 @@ globalThis.AnacoObBatchUI={busy:false};
     setSource('paste');view='batch';render().then(()=>$('batchURLs').focus()).catch(showError);
   };
   $('batchCancelNew').onclick=()=>{newList=false;render().catch(showError);};
-  $('batchNewList').onclick=()=>{newList=true;importedCookieStoreId=null;render().then(()=>$('batchURLs').focus()).catch(showError);};
+  // A finished queue has nothing left to do: a new list replaces it at once.
+  $('batchNewList').onclick=action(async()=>{
+    if(finished)await browser.runtime.sendMessage({type:'batchClear'});else newList=true;
+    importedCookieStoreId=null;await render();$('batchURLs').focus();
+  });
   $('batchRestartVideos').onclick=action(async()=>{closeMore();await browser.runtime.sendMessage({type:'batchRestartVideos',windowId:panelWindowId});});
   $('batchRetryFailed').onclick=action(async()=>{
     const failed=queue?.items.filter(i=>i.status==='failed')||[];
@@ -71,13 +79,14 @@ globalThis.AnacoObBatchUI={busy:false};
   const statusLabel=value=>({saved:tx('batch_status_saved'),discarded:tx('batch_status_discarded'),pending:tx('batch_status_pending'),running:tx('batch_status_running'),ready:tx('batch_status_ready'),failed:tx('batch_status_failed'),paused:tx('batch_status_paused'),pausing:tx('batch_status_pausing'),complete:tx('batch_status_complete')})[value]||value;
   const tone=value=>({running:'run',pausing:'run',paused:'run',complete:''})[value]||'';
   async function render(){
-    const data=await browser.storage.local.get(['batchQueue','activeWork']);queue=data.batchQueue;
+    const data=await browser.storage.local.get(['batchQueue','activeWork','batchLeftQueue']);queue=data.batchQueue;
     const items=queue?.items||[],busy=['running','pausing'].includes(queue?.status),working=Boolean(data.activeWork);AnacoObBatchUI.busy=busy;
     const count=state=>items.filter(i=>i.status===state).length;
     const pending=count('pending'),failed=count('failed'),ready=count('ready'),saved=count('saved');
+    finished=!busy&&items.length>0&&items.every(i=>['saved','discarded'].includes(i.status));
     if(queue?.id!==previousQueueId){newList=false;previousQueueId=queue?.id;}
     // A running queue, or one the user has not left yet, keeps the panel on it.
-    if(!manualImport&&items.length&&(busy||pageQueueId!==queue.id))view='batch';
+    if(!manualImport&&items.length&&(busy||(pageQueueId??data.batchLeftQueue)!==queue.id))view='batch';
     if(manualImport)view='page';
     const batch=view==='batch',composing=!items.length||newList;
     // The panel's organization is only a default until the list chooses its own.

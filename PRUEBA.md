@@ -443,7 +443,7 @@ En automático se excluyen los PDF de navegación (por ejemplo, la guía general
 
 Los marcos auxiliares de Google Feedback ya no bloquean la lectura del vídeo. La autorización de Google Drive incluye los dominios de redirección de sus descargas, igual que el flujo individual. Si una cola anterior quedó fallida, pulsa **Autorizar y reintentar fallidos** para solicitar juntos los permisos pendientes y repetir los enlaces fallidos sin volver a preparar los que ya están listos. El mensaje de permiso indica ahora los dominios concretos.
 
-Al iniciar una cola, el panel muestra su progreso y resultados y oculta la captura de la página y el formulario de nuevos enlaces. Mantiene esa vista al pausarse o terminar. **Esta página** recupera la captura individual cuando la cola no está en marcha y **Preparar otros enlaces** permite introducir otra lista cuando no quedan enlaces pendientes. La bienvenida separa los botones de cada paso de los campos anteriores, también en pantallas estrechas.
+Al iniciar una cola, el panel muestra su progreso y resultados y oculta la captura de la página y el formulario de nuevos enlaces. Mantiene esa vista al pausarse o terminar. **Esta página** recupera la captura individual cuando la cola no está en marcha y **Preparar otros enlaces** permite introducir otra lista cuando no quedan enlaces pendientes. Salir de una cola se recuerda aunque cierres el panel. Una cola terminada (todo guardado o descartado) se retira al salir de ella con cualquiera de los dos botones: no vuelve a aparecer. La bienvenida separa los botones de cada paso de los campos anteriores, también en pantallas estrechas.
 
 ### Editar la cola y vídeos grandes de Drive · misma versión 1.2.3
 
@@ -478,7 +478,7 @@ En la revisión, **Seleccionar todas las relaciones** y **Desmarcar todas** afec
 1. Abre el panel en una página: el selector muestra **Esta página**. Cambia a **Varios enlaces**: la captura se oculta y **Ajustes de captura** sigue visible debajo.
 2. Escribe una intención en la captura de la página y otra distinta en la cola. Prepara la cola y abre una de sus notas: la nota usa la intención de la cola.
 3. Mientras la cola se prepara, **Esta página** está desactivado; al pausarla o terminar, vuelve a funcionar y recupera la captura.
-4. Al terminar, la cola muestra una sola acción principal: **Revisar pendientes** si hay notas por revisar, **Autorizar y reintentar fallidos** si solo quedan fallos o **Preparar otros enlaces** si todo está guardado. **Reprocesar como vídeos**, **Quitar fallidos** y **Vaciar cola** están en **Más**.
+4. Al terminar, la cola muestra una sola acción principal: **Revisar pendientes** si hay notas por revisar, **Autorizar y reintentar fallidos** si solo quedan fallos o **Preparar otros enlaces** si todo está guardado; en ese caso la cola terminada se retira y queda el formulario vacío. **Reprocesar como vídeos**, **Quitar fallidos** y **Vaciar cola** están en **Más**.
 5. En **Desde un curso**, cuando ya hay resultados, la única acción principal es **Añadir N a la cola**; **Buscar de nuevo** queda como secundaria.
 
 Pruebas reproducibles: `.venv/bin/python tests/e2e_zen.py --batch`, `--batch --batch-video`, `--course-links` y `--panel-ux`.

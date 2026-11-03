@@ -785,7 +785,18 @@ def main():
             driver.find_element(By.ID,'saveReview').click()
             wait.until(lambda d:duplicate_handle not in d.window_handles)
             driver.switch_to.window(panel_handle);assert target.is_file()
-            report={'passed':True,'pinned_source':True,'authenticated_session':True,'continues_without_panel':True,'no_automatic_review_tabs':True,'login_page_rejected':True,'ready':2,'failed':1,'narrow_panel_no_overflow':True,'save_advances_in_same_tab':True,'last_save_returns_to_queue':True,'saved_rows_marked_done':True,'single_primary_action':True,'batch_own_intent':True,'deleted_note_can_be_regenerated_and_saved':True}
+            # A finished queue stays visible until the user leaves it, and does not come back after that.
+            message({'type':'batchClear','failedOnly':True})
+            def reopen_panel():
+                driver.get(panel);wait.until(lambda d:'CONECTADO' in d.find_element(By.ID,'connection').text.upper());time.sleep(1)
+            reopen_panel()
+            wait.until(lambda d:d.find_element(By.ID,'batchQueue').is_displayed())
+            field('batchNewList').click()
+            wait.until(lambda d:d.find_element(By.ID,'batchForm').is_displayed())
+            assert not (queued() or {}).get('items'),queued()
+            reopen_panel()
+            assert not driver.find_element(By.ID,'batchQueue').is_displayed()
+            report={'passed':True,'finished_queue_leaves':True,'pinned_source':True,'authenticated_session':True,'continues_without_panel':True,'no_automatic_review_tabs':True,'login_page_rejected':True,'ready':2,'failed':1,'narrow_panel_no_overflow':True,'save_advances_in_same_tab':True,'last_save_returns_to_queue':True,'saved_rows_marked_done':True,'single_primary_action':True,'batch_own_intent':True,'deleted_note_can_be_regenerated_and_saved':True}
             (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2));return
 
         def source_script(tab_id,code):
