@@ -253,7 +253,7 @@ class LongConversationTest(unittest.TestCase):
         self.app.set_config({'provider': 'openai', 'api_model': 'local-reader', 'api_base': 'http://localhost:11434/v1'})
         c = self.long_capture()
         calls = []
-        def api(cfg, prompt, spec, images=None):
+        def api(cfg, prompt, spec, images=None, timeout=None):
             self.assertEqual(cfg['api_model'], 'local-reader')
             return self.fake(calls)(prompt, spec)
         with patch('ai.openai_json', side_effect=api):
