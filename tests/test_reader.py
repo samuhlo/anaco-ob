@@ -57,6 +57,23 @@ class ReaderTest(core_tests.unittest.TestCase):
         self.assertIn('Aprendido en la página 55.', syntheses[0][2])
         self.assertEqual(self.app.load(c['id'])['reader']['analyzed_pages'], 55)
 
+    def test_synthesis_of_a_long_book_gets_more_time_than_one_batch(self):
+        reader, job = self.book(79)
+        c = reader.finish({'job': job})
+        timeouts = {}
+        def fake(command, **kwargs):
+            payload = json.loads(kwargs['input'][kwargs['input'].index('\n\n{') + 2:])['capture']
+            timeouts.setdefault(payload['reader']['scope'], set()).add(kwargs['timeout'])
+            result = {'title': 'Libro de cloud', 'context': 'Lectura completa', 'body': payload['text'][:500], 'folder': self.app.folders()[0],
+                      'tags': ['cloud'], 'relations': [],
+                      'image_captions': [{'index': i, 'description': 'Diagrama del libro.', 'useful': True} for i in payload.get('vision_images', [])]}
+            core_tests.Path(command[command.index('--output-last-message') + 1]).write_text(json.dumps(result))
+            return core_tests.subprocess.CompletedProcess(command, 0)
+        with patch('core.subprocess.run', side_effect=fake):
+            self.app.draft(c['id'], provider='codex')
+        self.assertEqual(timeouts['batch'], {300})
+        self.assertEqual(timeouts['synthesis'], {300 + 10 * 79})
+
     def test_missing_page_cannot_finish_as_a_complete_book_and_can_resume(self):
         reader, job = self.book(55, omit=27)
         with self.assertRaisesRegex(UserError, 'incompleto'):

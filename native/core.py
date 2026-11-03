@@ -555,9 +555,13 @@ class App:
         if provider=="openai":
             from ai import openai_json
             self.check_cancel()
-            return openai_json(self.config(),prompt,spec,images)
+            return openai_json(self.config(),prompt,spec,images,self.ai_timeout())
         # Same call shape as before, so the Codex path is unchanged.
         return self.codex_json(prompt,spec) if model is None and images is None else self.codex_json(prompt,spec,model,images)
+
+    def ai_timeout(self):
+        # A synthesis of many pages may raise it for its own call; every other call keeps 300 s.
+        return getattr(self,'_ai_timeout',None) or 300
 
     def codex_json(self,prompt,spec,model=None,images=None):
         cfg=self.config();model=model or cfg["model"]
@@ -579,8 +583,8 @@ class App:
             try:
                 if self.job_id or getattr(self, '_cancelable_ai', False):
                     from jobs import run_command
-                    completed=run_command(command,self.check_cancel,input=prompt,text=True,timeout=300)
-                else:completed = subprocess.run(command, input=prompt, text=True, capture_output=True, timeout=300)
+                    completed=run_command(command,self.check_cancel,input=prompt,text=True,timeout=self.ai_timeout())
+                else:completed = subprocess.run(command, input=prompt, text=True, capture_output=True, timeout=self.ai_timeout())
             except FileNotFoundError as exc:
                 raise UserError("No encuentro Codex. Ejecuta el instalador o elige Captura manual en Opciones.") from exc
             except subprocess.TimeoutExpired as exc:

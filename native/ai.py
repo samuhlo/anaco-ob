@@ -22,7 +22,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def request(cfg, body):
+def request(cfg, body, timeout=TIMEOUT):
     url = api_endpoint(cfg['api_base']) + '/chat/completions'
     headers = {"Content-Type": "application/json"}
     if cfg.get("api_key"):
@@ -30,7 +30,7 @@ def request(cfg, body):
     data = json.dumps(body, ensure_ascii=False).encode()
     try:
         opener = urllib.request.build_opener(NoRedirect())
-        with opener.open(urllib.request.Request(url, data=data, headers=headers, method="POST"), timeout=TIMEOUT) as response:
+        with opener.open(urllib.request.Request(url, data=data, headers=headers, method="POST"), timeout=timeout) as response:
             return 200, json.loads(response.read())
     except urllib.error.HTTPError as exc:
         if exc.code in (301, 302, 303, 307, 308):
@@ -66,7 +66,7 @@ def parse(content):
         raise UserError("La IA no devolvió una propuesta válida; la captura sigue pendiente.") from exc
 
 
-def openai_json(cfg, prompt, spec, images=None):
+def openai_json(cfg, prompt, spec, images=None, timeout=TIMEOUT):
     model = (cfg.get("api_vision_model") or cfg["api_model"]) if images else cfg["api_model"]
     parts = [{"type": "text", "text": prompt + "\n\nDevuelve un único objeto JSON que cumpla este esquema:\n" + json.dumps(spec, ensure_ascii=False)}]
     for image in images or []:
@@ -77,11 +77,11 @@ def openai_json(cfg, prompt, spec, images=None):
     # No temperature: recent Claude and reasoning models reject anything but their default.
     body = {"model": model, "messages": messages,
             "response_format": {"type": "json_schema", "json_schema": {"name": "anaco", "schema": spec, "strict": True}}}
-    status, detail = request(cfg, body)
+    status, detail = request(cfg, body, timeout)
     if status == 400 and re.search(r"response_format|json_schema|schema", message(detail), re.I):
         # GUARD -> Some local servers reject schemas: the prompt already carries it, ask for plain JSON.
         body = {**body, "response_format": {"type": "json_object"}}
-        status, detail = request(cfg, body)
+        status, detail = request(cfg, body, timeout)
     if status in (401, 403):
         raise UserError("El servidor de IA rechaza la clave API. Revísala en Opciones. La captura sigue pendiente.")
     if status == 404:

@@ -207,7 +207,12 @@ class Reader:
         samples = '\n\n'.join(f"[Página {p['index']}, extracto literal]\n{p['text'][:650]}" for p in pages if p['text'])
         synthesis = {**capture, 'reader': {'scope': 'synthesis', 'total_pages': len(pages)},
                      'images': [], 'selected_images': [], 'available_figures':[{'index':i,'page':v.get('page'),'description':captions.get(v.get('page'),{}).get('description','')} for i,v in enumerate(capture['images'])], 'text': '\n\n'.join(summaries) + '\n\nTexto HTML adicional del lector:\n'+meta.get('html_context','')+'\n\nExtractos literales para verificar relaciones:\n' + samples}
-        result = self.app.codex_generate(synthesis, candidates, folders)
+        # MOTIVE -> the synthesis grows with the book; 300 s cut a 79-page guide on every retry.
+        self.app._ai_timeout = min(1800, 300 + 10 * len(pages))
+        try:
+            result = self.app.codex_generate(synthesis, candidates, folders)
+        finally:
+            self.app._ai_timeout = None
         required = self.app.prepare_captions(capture)
         result['image_captions'] = []
         for index in required:
