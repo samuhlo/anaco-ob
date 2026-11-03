@@ -62,7 +62,9 @@ function attachmentSummary(){
   const checks=[...document.querySelectorAll('#images input[type=checkbox],#embeds input[type=checkbox]')];
   $('attachmentCount').textContent=tx('panel_flow_attachments_count',[checks.filter(c=>c.checked).length,checks.length]);
 }
-const showError = error => {$("error").textContent=error.message||String(error);$("error").hidden=false;};
+const showError = error => {$("error").textContent=error.message||String(error);if($("error").dataset)delete $("error").dataset.scope;$("error").hidden=false;};
+// What the bound page lacks matters only in "This page"; the link queue hides it.
+const showPageProblem = text => {showError(text);if($("error").dataset)$("error").dataset.scope='page';};
 const run = fn => async () => {$("error").hidden=true;try{await fn();}catch(error){showError(error);}};
 
 async function copyReport(button) {
@@ -121,7 +123,7 @@ function drawCapture(c) {
     $('capturePreview').open=c.kind==='quote';
   }
   if(state.operation&&c.note_structure)$('noteStructure').value=c.note_structure;
-  if(c.detectionError)showError(c.detectionError);
+  if(c.detectionError)showPageProblem(c.detectionError);
   $("success").hidden=true;
   $("captureTitle").textContent=c.title;$("kind").textContent={article:tx('panel_articulo'),quote:tx('panel_frase'),image:tx('panel_imagen'),pdf:"PDF",video:tx('panel_video_audio')}[c.kind];
   if(c.reader&&c.kind!=="pdf")$("kind").textContent=tx('panel_lector_html');
@@ -327,7 +329,7 @@ async function sync(changes) {
   $("pageStatus").textContent=manualImport?tx('panel_importacion_manual_de_un_archivo_local'):page?.status==='loading'?tx('panel_detectando_el_contenido_de_esta_pestana'):page?.url?(host=>state.operation?tx('panel_origen_del_trabajo_1',[host]):tx('panel_pagina_1',[host]))((()=>{try{return new URL(page.url).hostname;}catch{return tx('panel_archivo_local');}})()):'';
   $('pageStatus').hidden=Boolean(state.currentCapture&&!manualImport&&page?.status!=='loading');
   if(activeReview&&!state.operationError)$('error').hidden=true;
-  else if(page?.status==='error')showError(page.error);
+  else if(page?.status==='error')showPageProblem(page.error);
   else if(page?.status==='ready'&&!state.operationError&&!state.currentCapture?.detectionError)$("error").hidden=true;
   $("operation").textContent=state.operation||'';$("operation").hidden=!state.operation;workDisplay();imageSelection();brandProgress();
   $("prepare").disabled=Boolean(state.operation)||(!state.currentCapture?.id&&state.currentCapture?.kind==="pdf");$("recapture").disabled=Boolean(state.operation);
@@ -486,7 +488,7 @@ let tabRefreshTimer;
 function detectCurrent(fresh=false,tabId){
   clearTimeout(tabRefreshTimer);
   if(activeReview)return;
-  tabRefreshTimer=setTimeout(()=>browser.runtime.sendMessage({type:'detectActive',fresh,tabId,windowId:panelWindowId}).catch(showError),100);
+  tabRefreshTimer=setTimeout(()=>browser.runtime.sendMessage({type:'detectActive',fresh,tabId,windowId:panelWindowId}).catch(error=>showPageProblem(error.message||String(error))),100);
 }
 async function startPanel(){
   if(browser.windows?.getCurrent)panelWindowId=(await browser.windows.getCurrent()).id;

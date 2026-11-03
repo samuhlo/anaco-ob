@@ -480,7 +480,17 @@ def main():
             assert driver.find_element(By.ID,'error').text==sample
             driver.execute_script('document.getElementById("error").hidden=true;')
             assert not driver.find_element(By.ID,'copyError').is_displayed()
-            report={'passed':True,'real_clipboard':True,'error_and_diagnostic':True,'diagnostic_button':True,'original_error_preserved':True,'fallback_selected':True}
+            # A problem detecting the bound page belongs to this page, not to the link queue.
+            own=driver.execute_async_script('const done=arguments[arguments.length-1];browser.windows.getCurrent().then(w=>browser.runtime.sendMessage({type:"panelCapture",windowId:w.id})).then(done);')
+            source=own['panelSource']
+            driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.set({operationError:"",currentCapture:null,pageContext:{tabId:arguments[0],url:arguments[1],status:"error",error:"PAGE PROBLEM"}}).then(done);',source['tabId'],source['url'])
+            wait.until(lambda d:d.find_element(By.ID,'error').is_displayed() and d.find_element(By.ID,'error').text=='PAGE PROBLEM')
+            driver.find_element(By.ID,'modeBatch').click()
+            wait.until(lambda d:not d.find_element(By.ID,'error').is_displayed())
+            assert not driver.find_element(By.ID,'copyError').is_displayed()
+            driver.find_element(By.ID,'modePage').click()
+            wait.until(lambda d:d.find_element(By.ID,'error').is_displayed())
+            report={'passed':True,'page_problem_hidden_in_queue':True,'real_clipboard':True,'error_and_diagnostic':True,'diagnostic_button':True,'original_error_preserved':True,'fallback_selected':True}
             (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
             return
         if args.options:
