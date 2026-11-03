@@ -777,19 +777,30 @@ async function importResource(message,ownedCapture=null){
 }
 
 let readingBook=false;
+// Firefox's own wording when a frame from an earlier detection no longer exists.
+const frameGone=error=>/invalid frame ids?/i.test(error?.message||'');
 async function extractReader(message,ownedCapture=null){
   const {currentCapture:storedCapture,operation}=await browser.storage.local.get(['currentCapture','operation']);
   const c=ownedCapture||storedCapture;
   if(operation||readingBook)throw new Error(tx('bg_ya_hay_una_extraccion_o_una_nota_en_curs'));
   if(!c?.reader||c.token!==message.token)throw new Error(tx('bg_el_lector_cambio_vuelve_a_detectarlo'));
   if(c.reader.overflow)throw new Error(tx('bg_el_libro_supera_las_500_paginas_admitida'));
-  const frames=[...new Set([0,...c.reader.frames,...(c.detection?.frameDetails||[]).map(f=>f.id).filter(Number.isInteger)])];
   const work=await beginWork(c,tx('bg_preparando_la_extraccion_del_libro_compl'));
-  let failure=null;
+  let failure=null,frames=[0];
   readingBook=true;
   try{
+    // A course player can replace the reader's iframe after detection: read the tab again.
+    let reader=c.reader,frameDetails=c.detection?.frameDetails||[];
+    const live=new Set((await browser.webNavigation.getAllFrames({tabId:c.source.tabId}).catch(()=>[])||[]).map(f=>f.frameId));
+    if(reader.frames.some(id=>!live.has(id))){
+      const fresh=await scanTab(await browser.tabs.get(c.source.tabId));
+      if(!fresh?.reader?.pages.length)throw new Error(tx('bg_el_lector_cambio_vuelve_a_detectarlo'));
+      if(fresh.reader.overflow)throw new Error(tx('bg_el_libro_supera_las_500_paginas_admitida'));
+      reader=fresh.reader;frameDetails=fresh.detection?.frameDetails||[];
+    }
+    frames=[...new Set([0,...reader.frames,...frameDetails.map(f=>f.id).filter(Number.isInteger)])];
     const pages=[];
-    for(const frameId of c.reader.frames){
+    for(const frameId of reader.frames){
       const [inventory]=await browser.tabs.executeScript(c.source.tabId,{frameId,matchAboutBlank:true,code:'AnacoObSurfaces.inventory(globalThis.AnacoObReaderRoot||document.body)'});
       if(inventory.overflow)throw new Error(tx('bg_el_libro_supera_el_limite_de_500_paginas'));
       pages.push(...inventory.pages.map(p=>({...p,frameId})));
@@ -820,13 +831,13 @@ async function extractReader(message,ownedCapture=null){
         }
         checkWork();done.add(i+1);
         await browser.storage.local.set({operationProgress:{stage:'capture',unit:'pages',completed:done.size,total:pages.length}});
-      }catch(error){throw new Error(tx('bg_no_se_ha_podido_leer_la_pagina_1_2_3_las',[i+1,pages.length,error.message]));}
+      }catch(error){throw new Error(frameGone(error)?tx('bg_el_lector_cambio_vuelve_a_detectarlo'):tx('bg_no_se_ha_podido_leer_la_pagina_1_2_3_las',[i+1,pages.length,error.message]));}
     }
     await browser.storage.local.set({operation:tx('bg_1_2_paginas_recibidas_preparando_el_cont',[pages.length,pages.length]),operationProgress:null});
     let result=await native({action:'reader_finish',job:begin.job});
     result=await native({action:'source_context',id:result.id,source_context:c.source_context});
     return await adoptMedia(result,c.source);
-  }catch(error){failure=error;throw error;}
+  }catch(error){failure=frameGone(error)?new Error(tx('bg_el_lector_cambio_vuelve_a_detectarlo')):error;throw failure;}
   finally{
     for(const frameId of [...frames].reverse())await browser.tabs.executeScript(c.source.tabId,{frameId,matchAboutBlank:true,code:'AnacoObSurfaces.end();void 0;'}).catch(()=>{});
     readingBook=false;

@@ -315,6 +315,7 @@ def main():
 
             # pdf.js marks a page loaded before painting its canvas; the test decides when it paints.
             (fixtures/'reader-late.html').write_text('<!doctype html><html><head><meta charset="utf-8"><title>Visor que pinta tarde</title></head><body><div class="pdfViewer">'+''.join(f'<div class="page" data-page-number="{n}" data-loaded="true" style="width:400px;height:500px;margin-bottom:900px"><canvas width="400" height="500" data-number="{n}"></canvas></div>' for n in (1,2))+'</div><script>const wait=setInterval(()=>{if(!document.body.dataset.paint)return;clearInterval(wait);setTimeout(()=>{for(const canvas of document.querySelectorAll("canvas")){const c=canvas.getContext("2d");c.fillStyle="#34234f";c.fillRect(0,0,400,500);c.fillStyle="white";c.font="28px sans-serif";c.fillText("PAGINA PINTADA "+canvas.dataset.number,20,80);}},1500);},100);</script></body></html>')
+            (fixtures/'reader-swap.html').write_text('<!doctype html><html><head><meta charset="utf-8"><title>Visor que sustituye su marco</title></head><body><main><iframe title="Lector" src="reader-many.html" width="800" height="700"></iframe></main></body></html>')
             (fixtures/'reader-shell.html').write_text(f'<html><title>Libro del curso</title><main><iframe title="Lector" src="http://localhost:{server.server_port}/reader-launch.html" width="850" height="850"></iframe></main></html>')
             (fixtures/'reader-wrapper.html').write_text('<html><title>Visor del curso</title><iframe src="reader-book.html" width="800" height="800"></iframe></html>')
             (fixtures/'reader-book.html').write_text("""<!doctype html><html><head><meta charset="utf-8"><title>Página de IAM</title></head><body><main class="book-content">
@@ -1889,7 +1890,16 @@ def main():
                   image.onload=()=>{const c=document.createElement('canvas');c.width=image.width;c.height=image.height;const x=c.getContext('2d');x.drawImage(image,0,0);done([...x.getImageData(image.width>>1,image.height>>1,1,1).data]);};
                   image.src='data:image/jpeg;base64,'+arguments[0];''',base64.b64encode((book/page).read_bytes()).decode())
                 assert sum(pixel[:3])<300,(page,pixel)  # Painted (#34234f), not the blank canvas.
-            report={'passed':True,'cross_origin_reader':True,'redirect_does_not_request_access_again':True,'canvas':True,'inline_svg':True,'background_image':True,'hidden_page_excluded':True,'loaded_pages_below_viewport':True,'reader_not_limited_to_eight_pages':True,'late_painted_pages_waited':True,'original_pdf_found_from_network':True,'original_pdf_extracted':True,'local_attachments':True,'saved':True}
+            # A course player can replace the reader's iframe after detection; its frame id no longer exists.
+            swap=capture({},url.replace('article.html','reader-swap.html'))
+            assert len(swap['reader']['pages'])==10,swap['reader']
+            source_script(swap['source']['tabId'],'const old=document.querySelector("iframe"),fresh=old.cloneNode();fresh.onload=()=>{document.body.dataset.swapped="yes";};old.replaceWith(fresh);void 0')
+            wait.until(lambda d:source_script(swap['source']['tabId'],'document.body.dataset.swapped==="yes"'))
+            resource_button('reader').click()
+            WebDriverWait(driver,60).until(lambda d:extracted(d) and d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("currentCapture").then(s=>done(s.currentCapture.title));')=='Visor que sustituye su marco')
+            swapped=driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("currentCapture").then(s=>done(s.currentCapture));')
+            assert swapped['reader']['captured_pages']==10,swapped['reader']
+            report={'passed':True,'cross_origin_reader':True,'redirect_does_not_request_access_again':True,'canvas':True,'inline_svg':True,'background_image':True,'hidden_page_excluded':True,'loaded_pages_below_viewport':True,'reader_not_limited_to_eight_pages':True,'late_painted_pages_waited':True,'replaced_reader_frame_detected_again':True,'original_pdf_found_from_network':True,'original_pdf_extracted':True,'local_attachments':True,'saved':True}
             (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
             return
         c=capture({"kind":"article"})
