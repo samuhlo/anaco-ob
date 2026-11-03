@@ -2532,7 +2532,7 @@
     "message": "Local service"
   },
   "updates_help": {
-    "message": "The extension updates through Mozilla with browser confirmation. The local service installs from the latest stable GitHub release and keeps your data."
+    "message": "Firefox downloads the new extension from Mozilla on its daily check and keeps it without interrupting your work; it is applied when you choose Restart and update or restart the browser. The local service installs from the latest stable GitHub release and keeps your data."
   },
   "updates_auto": {
     "message": "Check for updates automatically every day"
@@ -2542,9 +2542,6 @@
   },
   "updates_check": {
     "message": "Check for updates"
-  },
-  "updates_install_extension": {
-    "message": "Update extension ↗"
   },
   "updates_install_service": {
     "message": "Update local service"
@@ -2593,5 +2590,14 @@
   },
   "review_carpeta_nueva": {
     "message": "(new folder)"
+  },
+  "updates_extension_manual": {
+    "message": "Firefox has not downloaded the new version yet; it checks once a day by itself. To skip the wait, open about:addons, choose ⚙ → Check for Updates and come back here."
+  },
+  "updates_extension_ready": {
+    "message": "Anaco $1 is downloaded. Restart the extension to apply it."
+  },
+  "updates_apply_extension": {
+    "message": "Restart and update"
   }
 }

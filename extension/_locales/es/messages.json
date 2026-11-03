@@ -2532,7 +2532,7 @@
     "message": "Servicio local"
   },
   "updates_help": {
-    "message": "La extensión se actualiza desde Mozilla con la confirmación del navegador. El servicio local se instala desde la última versión estable de GitHub y conserva tus datos."
+    "message": "Firefox descarga la extensión nueva desde Mozilla en su comprobación diaria y la guarda sin interrumpir tu trabajo; se aplica al pulsar Reiniciar y actualizar o al reiniciar el navegador. El servicio local se instala desde la última versión estable de GitHub y conserva tus datos."
   },
   "updates_auto": {
     "message": "Buscar actualizaciones automáticamente cada día"
@@ -2542,9 +2542,6 @@
   },
   "updates_check": {
     "message": "Buscar actualizaciones"
-  },
-  "updates_install_extension": {
-    "message": "Actualizar extensión ↗"
   },
   "updates_install_service": {
     "message": "Actualizar servicio local"
@@ -2593,5 +2590,14 @@
   },
   "review_carpeta_nueva": {
     "message": "(carpeta nueva)"
+  },
+  "updates_extension_manual": {
+    "message": "Firefox aún no ha descargado la versión nueva; la busca sola una vez al día. Para no esperar, abre about:addons, pulsa ⚙ → Buscar actualizaciones y vuelve aquí."
+  },
+  "updates_extension_ready": {
+    "message": "Anaco $1 está descargada. Reinicia la extensión para aplicarla."
+  },
+  "updates_apply_extension": {
+    "message": "Reiniciar y actualizar"
   }
 }

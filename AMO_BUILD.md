@@ -43,8 +43,10 @@ access (see `docs/amo/1.3.4-reviewer-notes.txt`). Release 1.3.3 places course no
 queue review transitions; it adds no permissions or network access (see
 `docs/amo/1.3.3-reviewer-notes.txt`). Release 1.3.2 added stable update checks and in-plugin companion updates. The
 extension checks the public Mozilla and GitHub APIs daily (disable in Options).
-Only version metadata is requested, without cookies or user content. The extension
-update button opens the official AMO listing; Firefox handles installation and signing.
+Only version metadata is requested, without cookies or user content. Firefox downloads
+extension updates from AMO; the extension listens to `runtime.onUpdateAvailable`
+so an update never interrupts work, and applies it with `runtime.reload()` when
+the user chooses Restart and update.
 The native companion installs the official stable tagged Python package in a separate
 virtual environment, verifies its version, then switches the Native Messaging launcher.
 No remote code is loaded into the extension. See `docs/amo/1.3.2-reviewer-notes.txt`.

@@ -53,7 +53,13 @@ def main():
             driver.execute_script('''browser.runtime.getBackgroundPage().then(bg=>{bg.fetch=async()=>({ok:true,json:async()=>({guid:'anaco-ob@samuhlo',current_version:{version:'1.4.0',file:{status:'public'}},tag_name:'v1.4.0'})});});''')
             driver.find_element('id', 'checkUpdates').click()
             wait.until(lambda d: d.find_element('id', 'updateService').is_displayed())
-            assert driver.find_element('id', 'updateExtension').is_displayed()
+            # Published on Mozilla but not downloaded by Firefox yet: explain how to ask Firefox, offer no dead button.
+            assert not driver.find_element('id', 'updateExtension').is_displayed()
+            assert 'about:addons' in driver.find_element('id', 'updateExtensionHint').text
+            driver.execute_script('browser.storage.local.set({extensionUpdateReady:"1.4.0"})')
+            wait.until(lambda d: d.find_element('id', 'updateExtension').is_displayed())
+            assert driver.find_element('id', 'updateExtension').text == 'Reiniciar y actualizar'
+            assert not driver.find_element('id', 'updateExtensionHint').is_displayed()
             assert '1.3.4' in driver.find_element('id', 'serviceVersion').text
             assert '1.4.0' in driver.find_element('id', 'serviceVersion').text
             driver.find_element('id', 'updatesCard').screenshot(str(out / 'options-updates.png'))
@@ -63,6 +69,7 @@ def main():
             assert not driver.find_element('id', 'autoUpdateCheck').is_selected()
             driver.get(base + 'panel.html')
             wait.until(lambda d: d.find_element('id', 'updateNotice').is_displayed())
+            assert '1.4.0' in driver.find_element('id', 'updateNoticeText').text
             driver.set_window_size(420, 950)
             assert driver.execute_script('return document.documentElement.scrollWidth <= innerWidth')
             driver.find_element('id', 'updateNotice').screenshot(str(out / 'panel-update.png'))
@@ -70,7 +77,7 @@ def main():
             driver.execute_script('browser.runtime.getBackgroundPage().then(bg=>{bg.fetch=async()=>{throw Error("offline fixture")}})')
             driver.find_element('id', 'checkUpdates').click()
             wait.until(lambda d: 'No se pudo comprobar' in d.find_element('id', 'extensionVersion').text)
-            print(json.dumps({'passed': True, 'real_native_connection': True, 'manual_check': True, 'opt_out_persisted': True, 'sidebar_notice': True, 'offline_error': True, 'narrow_layout': True}))
+            print(json.dumps({'passed': True, 'real_native_connection': True, 'manual_check': True, 'opt_out_persisted': True, 'sidebar_notice': True, 'held_extension_update': True, 'offline_error': True, 'narrow_layout': True}))
         finally:
             driver.quit()
 

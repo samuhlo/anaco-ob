@@ -1,13 +1,13 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
 const I18N=require('./i18n.cjs');
-function app(){
- const data={autoUpdateCheck:false},calls=[],opened=[];
+function app(stored={},installed='1.3.2'){
+ const data={autoUpdateCheck:false,...stored},calls=[],opened=[],firefox={updateListeners:[],reloads:0};
  const ctx=vm.createContext({AbortSignal,Date,console,workClaim:null,requests:new Map(),port:null,
- browser:{storage:{local:{get:async()=>data,set:async v=>Object.assign(data,v)}},runtime:{getManifest:()=>({version:'1.3.2'})},alarms:{create(){},onAlarm:{addListener(){}}},tabs:{create:async v=>opened.push(v)}},
+ browser:{storage:{local:{get:async()=>data,set:async v=>Object.assign(data,v)}},runtime:{getManifest:()=>({version:installed}),onUpdateAvailable:{addListener:f=>firefox.updateListeners.push(f)},reload:()=>{firefox.reloads++;}},alarms:{create(){},onAlarm:{addListener(){}}},tabs:{create:async v=>opened.push(v)}},
  fetch:async(url,opts)=>{calls.push({url,opts});return {ok:true,json:async()=>url.includes('github')?{tag_name:'v1.4.0'}:{guid:'anaco-ob@samuhlo',current_version:{version:'1.3.3',file:{status:'public'}}}};},
  native:async message=>message.action==='install_update'?{version:'1.4.0'}:{version:'1.3.2',can_update:true}});
  vm.runInContext(I18N+fs.readFileSync('extension/update-manager.js','utf8'),ctx);
- return {ctx,api:ctx.AnacoObUpdates,data,calls,opened};
+ return {ctx,api:ctx.AnacoObUpdates,data,calls,opened,firefox};
 }
 test('numeric version comparison rejects prereleases and malformed versions',()=>{
  const {api}=app();assert.equal(api.newer('1.10.0','1.9.9'),true);assert.equal(api.newer('1.3.2','1.3.2'),false);
@@ -47,6 +47,20 @@ test('service install reconnects and verifies the version, preserving an actiona
  a.data.updateState.service={current:'1.3.2',latest:'1.4.0',canUpdate:true};a.ctx.native=async()=>{throw Error('download failed');};
  await assert.rejects(a.api.installService(),/download failed/);assert.equal(a.data.updateInstalling,false);assert.equal(a.data.updateInstallError,'download failed');
 });
-test('extension install always opens Mozilla, ignoring remote URL fields',async()=>{
- const a=app();await a.api.check();a.data.updateState={extension:{url:'https://evil.test'}};await a.api.extension();assert.equal(a.opened[0].url,'https://addons.mozilla.org/firefox/addon/anaco/');
+test('Firefox keeps a downloaded extension update until the user applies it outside any work',async()=>{
+ const a=app();await a.api.check(true);
+ assert.equal(a.firefox.updateListeners.length,1);
+ a.firefox.updateListeners[0]({version:'1.3.3'});await new Promise(r=>setImmediate(r));
+ assert.equal(a.data.extensionUpdateReady,'1.3.3');assert.equal(a.firefox.reloads,0);
+ a.ctx.workClaim='capture';await assert.rejects(a.api.extension(),/termine/);assert.equal(a.firefox.reloads,0);
+ a.ctx.workClaim=null;await a.api.extension();assert.equal(a.firefox.reloads,1);
+});
+test('without a downloaded update the extension button opens nothing, not even remote URL fields',async()=>{
+ const a=app();await a.api.check(true);a.data.updateState.extension.url='https://evil.test';
+ await assert.rejects(a.api.extension(),/about:addons/);assert.deepEqual(a.opened,[]);assert.equal(a.firefox.reloads,0);
+});
+test('an applied update clears the notice it left behind',async()=>{
+ const a=app({updateState:{checkedAt:Date.now(),extension:{current:'1.3.2',latest:'1.3.3',available:true},service:{}},extensionUpdateReady:'1.3.3'},'1.3.3');
+ await new Promise(r=>setImmediate(r));
+ assert.equal(a.data.updateState.extension.available,false);assert.equal(a.data.updateState.extension.current,'1.3.3');assert.equal(a.data.extensionUpdateReady,null);
 });

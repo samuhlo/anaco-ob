@@ -62,13 +62,28 @@ globalThis.AnacoObUpdates=(()=>{
     }catch(error){await browser.storage.local.set({updateInstallError:error.message});throw error;}
     finally{installing=false;await browser.storage.local.set({updateInstalling:false});}
   }
+  // Firefox cannot be asked to look for an extension update: it downloads one on its own
+  // daily check, and the listener in start() holds it until Anaco is reloaded here.
   async function extension(){
     if(installing||checking||workClaim||requests.size||globalThis.AnacoObBatch?.busy())throw new Error(tx('updates_busy'));
-    // Mozilla handles signing, compatibility and the user's installation approval.
-    return browser.tabs.create({url:'https://addons.mozilla.org/firefox/addon/anaco/'});
+    const {extensionUpdateReady}=await browser.storage.local.get('extensionUpdateReady');
+    if(!newer(extensionUpdateReady,browser.runtime.getManifest().version))throw new Error(tx('updates_extension_manual'));
+    browser.runtime.reload();
+  }
+  async function applied(){
+    const current=browser.runtime.getManifest().version;
+    const {updateState,extensionUpdateReady}=await browser.storage.local.get(['updateState','extensionUpdateReady']);
+    const changes={};
+    if(extensionUpdateReady&&!newer(extensionUpdateReady,current))changes.extensionUpdateReady=null;
+    if(updateState?.extension&&updateState.extension.current!==current)
+      changes.updateState={...updateState,extension:{...updateState.extension,current,available:newer(updateState.extension.latest,current)}};
+    if(Object.keys(changes).length)await browser.storage.local.set(changes);
   }
   function start(){
     browser.storage.local.set({updateInstalling:false});
+    // MOTIVE -> without a listener Firefox reloads Anaco as soon as it downloads an update, even mid-extraction.
+    browser.runtime.onUpdateAvailable.addListener(details=>{browser.storage.local.set({extensionUpdateReady:details.version});});
+    applied().catch(()=>{});
     browser.alarms.create('anaco-update-check',{periodInMinutes:60});
     browser.alarms.onAlarm.addListener(alarm=>{if(alarm.name==='anaco-update-check')check().catch(()=>{});});
     check().catch(()=>{});
