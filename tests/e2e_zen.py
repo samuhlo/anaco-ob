@@ -5,6 +5,7 @@ Only the test copy receives localhost host permissions, allowing WebDriver to
 exercise capture without clicking a browser toolbar. Production uses activeTab.
 """
 import argparse
+import base64
 import functools
 import http.server
 import json
@@ -312,6 +313,8 @@ def main():
             (fixtures/'reader-pdf.html').write_text('<html><title>Visor de libro con PDF</title><body><div class="pdfViewer"><canvas width="400" height="300"></canvas></div><script>fetch("reader-original.pdf").then(r=>r.arrayBuffer()).then(()=>document.body.dataset.ready="yes");</script></body></html>')
             (fixtures/'reader-many.html').write_text('<html><title>Libro largo</title><main class="book-content">'+''.join('<canvas width="200" height="120"></canvas>' for _ in range(10))+'<script>for(const canvas of document.querySelectorAll("canvas")){const c=canvas.getContext("2d");c.fillStyle="purple";c.fillRect(0,0,200,120);c.fillStyle="white";c.fillText("Página de prueba",20,60);}</script></main></html>')
 
+            # pdf.js marks a page loaded before painting its canvas; the test decides when it paints.
+            (fixtures/'reader-late.html').write_text('<!doctype html><html><head><meta charset="utf-8"><title>Visor que pinta tarde</title></head><body><div class="pdfViewer">'+''.join(f'<div class="page" data-page-number="{n}" data-loaded="true" style="width:400px;height:500px;margin-bottom:900px"><canvas width="400" height="500" data-number="{n}"></canvas></div>' for n in (1,2))+'</div><script>const wait=setInterval(()=>{if(!document.body.dataset.paint)return;clearInterval(wait);setTimeout(()=>{for(const canvas of document.querySelectorAll("canvas")){const c=canvas.getContext("2d");c.fillStyle="#34234f";c.fillRect(0,0,400,500);c.fillStyle="white";c.font="28px sans-serif";c.fillText("PAGINA PINTADA "+canvas.dataset.number,20,80);}},1500);},100);</script></body></html>')
             (fixtures/'reader-shell.html').write_text(f'<html><title>Libro del curso</title><main><iframe title="Lector" src="http://localhost:{server.server_port}/reader-launch.html" width="850" height="850"></iframe></main></html>')
             (fixtures/'reader-wrapper.html').write_text('<html><title>Visor del curso</title><iframe src="reader-book.html" width="800" height="800"></iframe></html>')
             (fixtures/'reader-book.html').write_text("""<!doctype html><html><head><meta charset="utf-8"><title>Página de IAM</title></head><body><main class="book-content">
@@ -1842,14 +1845,15 @@ def main():
             assert 'PÁGINA OCULTA' not in c['text']
             assert 'SEGUNDA PÁGINA CARGADA FUERA DE LA PANTALLA' in c['text']
             assert c['images']==[]
-            resource_button('reader').click()
+            extract=resource_button('reader')
+            wait.until(lambda d:d.find_element(By.ID,'kind').text.casefold()=='libro o lector')
+            extract.click()
             def extracted(d):
                 result=d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get(["currentCapture","operation","operationError"]).then(done);')
                 if result.get('operationError'):raise AssertionError(result['operationError'])
                 return result['currentCapture'] if result['currentCapture'].get('id') and not result.get('operation') else False
             c=WebDriverWait(driver,60).until(extracted)
             assert c['reader']['captured_pages']==4 and len(c['images'])==3
-            assert driver.find_element(By.ID,'kind').text=='LECTOR HTML'
             assert not driver.find_element(By.ID,'authorizeDetection').is_displayed()
             assert all(i.is_selected() for i in driver.find_elements(By.CSS_SELECTOR,'#images input'))
             driver.save_screenshot(str(out/'reader.png'))
@@ -1874,7 +1878,18 @@ def main():
             WebDriverWait(driver,60).until(lambda d:d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get(["currentCapture","operation"]).then(s=>done(s.currentCapture?.id&&s.currentCapture.kind==="pdf"&&!s.operation));'))
             loaded=driver.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("currentCapture").then(s=>done(s.currentCapture));')
             assert '[Página 2]' in loaded['text']
-            report={'passed':True,'cross_origin_reader':True,'redirect_does_not_request_access_again':True,'canvas':True,'inline_svg':True,'background_image':True,'hidden_page_excluded':True,'loaded_pages_below_viewport':True,'reader_not_limited_to_eight_pages':True,'original_pdf_found_from_network':True,'original_pdf_extracted':True,'local_attachments':True,'saved':True}
+            late=capture({},url.replace('article.html','reader-late.html'))
+            assert len(late['reader']['pages'])==2,late['reader']
+            resource_button('reader').click();time.sleep(1)
+            source_script(late['source']['tabId'],'document.body.dataset.paint="yes";void 0')
+            WebDriverWait(driver,60).until(lambda d:extracted(d) and d.execute_async_script('const done=arguments[arguments.length-1];browser.storage.local.get("currentCapture").then(s=>done(s.currentCapture.title));')=='Visor que pinta tarde')
+            book=next(b.parent for b in (run_dir/'state'/'readers').glob('*/book.json') if json.loads(b.read_text())['title']=='Visor que pinta tarde')
+            for page in ('page-1.jpg','page-2.jpg'):
+                pixel=driver.execute_async_script('''const done=arguments[arguments.length-1],image=new Image();
+                  image.onload=()=>{const c=document.createElement('canvas');c.width=image.width;c.height=image.height;const x=c.getContext('2d');x.drawImage(image,0,0);done([...x.getImageData(image.width>>1,image.height>>1,1,1).data]);};
+                  image.src='data:image/jpeg;base64,'+arguments[0];''',base64.b64encode((book/page).read_bytes()).decode())
+                assert sum(pixel[:3])<300,(page,pixel)  # Painted (#34234f), not the blank canvas.
+            report={'passed':True,'cross_origin_reader':True,'redirect_does_not_request_access_again':True,'canvas':True,'inline_svg':True,'background_image':True,'hidden_page_excluded':True,'loaded_pages_below_viewport':True,'reader_not_limited_to_eight_pages':True,'late_painted_pages_waited':True,'original_pdf_found_from_network':True,'original_pdf_extracted':True,'local_attachments':True,'saved':True}
             (out/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
             return
         c=capture({"kind":"article"})

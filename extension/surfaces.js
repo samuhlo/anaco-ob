@@ -117,10 +117,17 @@ if (!globalThis.AnacoObSurfaces) {
     if(!node)throw new Error(tx('surfaces_la_pagina_cambio_mientras_se_extraia_el_'));
     start();node.scrollIntoView({behavior:'instant',block:'center',inline:'nearest'});
     await new Promise(r=>setTimeout(r,180));
-    const items=[node,...node.querySelectorAll('canvas,img,svg')].filter(e=>visible(e)&&/^(canvas|img|svg)$/i.test(e.tagName));
-    items.sort((a,b)=>{const x=a.getBoundingClientRect(),y=b.getBoundingClientRect();return y.width*y.height-x.width*x.height;});
-    const primary=items[0];
-    const text=(node.innerText||'').trim();
+    // pdf.js creates, paints and labels a page only after it scrolls into view.
+    const deadline=Date.now()+15000;
+    let primary,text,background;
+    while(true){
+      const items=[node,...node.querySelectorAll('canvas,img,svg')].filter(e=>visible(e)&&/^(canvas|img|svg)$/i.test(e.tagName));
+      items.sort((a,b)=>{const x=a.getBoundingClientRect(),y=b.getBoundingClientRect();return y.width*y.height-x.width*x.height;});
+      primary=items[0];text=(node.innerText||'').trim();
+      background=[...getComputedStyle(node).backgroundImage.matchAll(/url\(["']?([^"')]+)["']?\)/g)][0]?.[1];
+      if(primary||text||background||Date.now()>=deadline)break;
+      await new Promise(r=>setTimeout(r,120));
+    }
     if(primary?.tagName.toLowerCase()==='img'){
       for(let n=0;n<60&&(!primary.complete||!primary.naturalWidth);n++)await new Promise(r=>setTimeout(r,100));
       if(!primary.complete||!primary.naturalWidth)throw new Error(tx('surfaces_la_imagen_de_esta_pagina_todavia_no_esta'));
@@ -130,23 +137,24 @@ if (!globalThis.AnacoObSurfaces) {
     }
     if(primary?.tagName.toLowerCase()==='canvas'){
       // Do not accept an unpainted canvas as a successfully read book page.
+      // GUARD -> pdf.js sets data-loaded before painting: it only vouches for a blank page once the wait runs out.
       let ready=false;
-      for(let attempt=0;attempt<50;attempt++){
+      while(!ready){
         const probe=document.createElement('canvas');probe.width=64;probe.height=64;
         const ctx=probe.getContext('2d');ctx.drawImage(primary,0,0,64,64);
         const pixels=ctx.getImageData(0,0,64,64).data;
         let changed=false;
         for(let at=4;at<pixels.length;at+=4){if(Math.abs(pixels[at]-pixels[0])+Math.abs(pixels[at+1]-pixels[1])+Math.abs(pixels[at+2]-pixels[2])>4){changed=true;break;}}
-        const knownLoaded=node.dataset.loaded==='true'||primary.closest('[data-loaded="true"]');
-        if(changed||knownLoaded||text.length>=120){ready=true;break;}
+        text=(node.innerText||'').trim();
+        if(changed||text.length>=120){ready=true;break;}
+        if(Date.now()>=deadline){ready=node.dataset.loaded==='true'||Boolean(primary.closest('[data-loaded="true"]'));break;}
         await new Promise(r=>setTimeout(r,120));
       }
       if(!ready)throw new Error(tx('surfaces_el_visor_todavia_no_ha_dibujado_esta_pag'));
       return {text,image:raster(primary,primary,tx('surfaces_pagina_del_libro'))};
     }
     if(primary?.tagName.toLowerCase()==='svg')return {text,image:await svgImage(primary)};
-    const url=[...getComputedStyle(node).backgroundImage.matchAll(/url\(["']?([^"')]+)["']?\)/g)][0]?.[1];
-    if(url)return {text,image:{url:new URL(url,location.href).href,alt:tx('surfaces_pagina_del_libro'),visual_page:true}};
+    if(background)return {text,image:{url:new URL(background,location.href).href,alt:tx('surfaces_pagina_del_libro'),visual_page:true}};
     if(text)return {text,image:null};
     throw new Error(tx('surfaces_esta_pagina_no_expone_texto_ni_una_image'));
   }

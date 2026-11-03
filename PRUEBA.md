@@ -420,7 +420,7 @@ La detección enumera páginas sin rasterizar el libro repetidamente. Los cambio
 
 El texto, las páginas y las lecturas intermedias se conservan en `~/.local/share/anaco-ob/readers/`, separados por extracción y vinculados al vault. Las notas y adjuntos finales siguen requiriendo revisión. La reanudación de transferencia utiliza el mismo lector y captura; si recargas o cambias el libro, vuelve a detectar para evitar mezclar páginas distintas.
 
-La versión admite hasta 500 páginas localizables en el DOM del lector. Un visor que recicla unas pocas páginas y no expone las restantes puede requerir una adaptación específica; comprueba el número localizado antes de empezar. Las páginas no dibujadas o protegidas se notifican sin omitirlas en silencio.
+La versión admite hasta 500 páginas localizables en el DOM del lector. Un visor que recicla unas pocas páginas y no expone las restantes puede requerir una adaptación específica; comprueba el número localizado antes de empezar. Al llegar a cada página se esperan hasta 15 s a que el visor la dibuje: visores como pdf.js crean y pintan la página solo cuando entra en pantalla, y la marcan como cargada antes de pintarla. Una página que sigue en blanco solo se acepta si el visor la marca como cargada; las páginas no dibujadas o protegidas se notifican sin omitirlas en silencio.
 
 ## Panel vinculado y cola de enlaces (1.2.1)
 
